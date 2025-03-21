@@ -15,21 +15,26 @@ import { JointPositionGizmo } from './JointPositionGizmo';
 import { Mesh } from './GeometryMesh';
 
 import * as GUI from 'babylonjs-gui';
+import * as GUI3D from 'babylonjs-gui';
 import * as ColladaFileLoader from '@polyhobbyist/babylon-collada-loader';
 
 export class RobotScene {
   public engine : BABYLON.Engine | undefined = undefined;
-
   public scene : BABYLON.Scene | undefined = undefined;
-  
   public currentURDF : string | undefined = undefined;
+  public uiScene : BABYLON.Scene | undefined = undefined;
   public currentRobot : Robot | undefined = undefined;
-  public UILayer : GUI.AdvancedDynamicTexture | undefined = undefined;
+  public UI3DManager : GUI3D.GUI3DManager | undefined = undefined;
+  public acitonMenu : GUI3D.NearMenu | undefined = undefined;
   
   public ground : BABYLON.GroundMesh | undefined = undefined;
   public camera : BABYLON.ArcRotateCamera | undefined = undefined;
   private mirrorTexture : BABYLON.MirrorTexture | undefined = undefined;
   private statusLabel = new GUI.TextBlock();
+  public uiCamera : BABYLON.FreeCamera | undefined = undefined;
+  private status3DText : GUI3D.TextBlock | undefined = undefined;
+  private statusHologram : GUI3D.HolographicButton | undefined = undefined;
+
   public readyToRender : Boolean = false;
 
   private jointAxisList : BABYLON.PositionGizmo[] = [];
@@ -66,12 +71,16 @@ export class RobotScene {
   
   // Enhanced visuals properties
   private enhancedVisualsEnabled: boolean = true;
+  
+  // UI properties  
+  public UILayer: GUI.AdvancedDynamicTexture | undefined = undefined;
+  private isWebXRActive: boolean = false;
       
-
   clearStatus() {
-    this.statusLabel.text = "";
+    if (this.status3DText) {
+      this.status3DText.text = "";
+    }
   }
-
   
   clearAxisGizmos() {
     this.linkAxisList.forEach((a) => {
@@ -94,19 +103,20 @@ export class RobotScene {
   
       let drag = () => {
         if (transform) {
-          this.statusLabel.text = transform.name + 
-          "\nX: " + transform.position.x.toFixed(6) + 
-          "\nY: " + transform.position.y.toFixed(6) + 
-          "\nZ: " + transform.position.z.toFixed(6);
-          this.statusLabel.linkOffsetY = -100;
-        this.statusLabel.linkWithMesh(transform);
+          if (this.status3DText) {
+            this.status3DText.text = transform.name + 
+            "\nX: " + transform.position.x.toFixed(6) + 
+            "\nY: " + transform.position.y.toFixed(6) + 
+            "\nZ: " + transform.position.z.toFixed(6);
+            
+            this.updateStatusPosition(transform);
+          }
         }
       };
   
       axis.xGizmo.dragBehavior.onDragObservable.add(drag);
       axis.yGizmo.dragBehavior.onDragObservable.add(drag);
       axis.zGizmo.dragBehavior.onDragObservable.add(drag);
-        
     }
   }
   
@@ -161,12 +171,15 @@ export class RobotScene {
   
       let drag = () => {
         if (transform) {
-          this.statusLabel.text = transform.name + 
+          let statusText = transform.name + 
           "\nR:" + transform.rotation.x.toFixed(6) + 
           "\nP:" + transform.rotation.y.toFixed(6) + 
           "\nY:" + transform.rotation.z.toFixed(6);
-          this.statusLabel.linkOffsetY = -100;
-          this.statusLabel.linkWithMesh(transform);
+          
+          if (this.status3DText) {
+            this.status3DText.text = statusText;
+            this.updateStatusPosition(transform);
+          }
         }
       };
   
@@ -174,11 +187,10 @@ export class RobotScene {
       rotationGizmo.yGizmo.dragBehavior.onDragObservable.add(drag);
       rotationGizmo.zGizmo.dragBehavior.onDragObservable.add(drag);
     }
-  
   }
   
-  toggleAxisRotationOnRobot(jointOrLink : Boolean, ui: GUI.AdvancedDynamicTexture | undefined, scene : BABYLON.Scene | undefined, layer: BABYLON.UtilityLayerRenderer) {
-    if (!this.currentRobot || !scene || !ui) {
+  toggleAxisRotationOnRobot(jointOrLink : Boolean, scene : BABYLON.Scene | undefined, layer: BABYLON.UtilityLayerRenderer) {
+    if (!this.currentRobot || !scene) {
       return;
     }
   
@@ -208,6 +220,18 @@ export class RobotScene {
     this.planeRotationGizmo = undefined;
     this.planePositionGizmo?.dispose();
     this.planePositionGizmo = undefined;
+  }
+
+  updateStatusPosition(transform: BABYLON.TransformNode) {
+    if (this.statusHologram && transform) {
+      // Position the status hologram near the transform
+      const worldPos = transform.getAbsolutePosition();
+      this.statusHologram.position = new BABYLON.Vector3(
+        worldPos.x, 
+        worldPos.y + 0.3, // Position slightly above the object
+        worldPos.z
+      );
+    }
   }
 
   addExerciseGizmoToJoint(joint: Joint, scene: BABYLON.Scene, layer: BABYLON.UtilityLayerRenderer) {
@@ -323,14 +347,16 @@ export class RobotScene {
               joint.transform.position.z.toFixed(3);
     }
 
-
-    this.statusLabel.text = joint.name + 
+    let statusText = joint.name + 
       "\nType: " + joint.type +
       limitsText +
       rotationText +
       positionText;
-    this.statusLabel.linkOffsetY = -100;
-    this.statusLabel.linkWithMesh(joint.transform);
+    
+    if (this.status3DText) {
+      this.status3DText.text = statusText;
+      this.updateStatusPosition(joint.transform);
+    }
   }
   
   toggleCollision() {
@@ -540,18 +566,21 @@ export class RobotScene {
     }
   }
   
-  createButton(toolbar: GUI.StackPanel, name : string, text : string, scene : BABYLON.Scene, onClick : () => void) {
-    const button = GUI.Button.CreateSimpleButton(name, text);
-    button.width = "100px";
-    button.height = "20px";
-    button.color = "white";
-    button.cornerRadius = 5;
-    button.background = "green";
+  create3DButton(name: string, text: string, onClick: () => void): GUI3D.TouchHolographicButton {
+    const button = new GUI3D.TouchHolographicButton(name);
     button.onPointerUpObservable.add(onClick);
-    toolbar.addControl(button);
+    
+    const textBlock = new GUI3D.TextBlock();
+    textBlock.text = text;
+    textBlock.color = "white";
+    textBlock.fontSize = 14;
+    
+    button.content = textBlock;
+    
     return button;
   }
 
+  // 2D UI methods for desktop
   createMenuButton(name : string, text : string, onClick : () => void) {
     const button = GUI.Button.CreateSimpleButton(name, text);
     button.widthInPixels = 120;
@@ -650,12 +679,12 @@ export class RobotScene {
     this.menuPanel.addControl(linkAxisButton);
 
     const jointRotationButton = this.createMenuButton("jointRotationButton", "Joint Rotation", () => {
-      this.toggleAxisRotationOnRobot(true, this.UILayer, this.scene, this.utilLayer!);
+      this.toggleAxisRotationOnRobot(true, this.scene, this.utilLayer!);
     });
     this.menuPanel.addControl(jointRotationButton);
 
     const linkRotationButton = this.createMenuButton("linkRotationButton", "Link Rotation", () => {
-      this.toggleAxisRotationOnRobot(false, this.UILayer, this.scene, this.utilLayer!);
+      this.toggleAxisRotationOnRobot(false, this.scene, this.utilLayer!);
     });
     this.menuPanel.addControl(linkRotationButton);
 
@@ -727,7 +756,7 @@ export class RobotScene {
     }
   }
 
-
+  // 3D UI methods for WebXR
   makeTextPlane(text : string, color : string, size : number) {
     if (!this.scene) {
       return;
@@ -826,6 +855,217 @@ export class RobotScene {
       } else {
         this.worldAxis.setEnabled(true);
       }
+    }
+  }
+
+
+  createUI() {
+    if (!this.engine || !this.scene) {
+      return;
+    }
+
+    // Detect WebXR capability and current state
+    this.detectWebXRState();
+
+    // Create UI Scene for overlay elements
+    this.uiScene = new BABYLON.Scene(this.engine);
+    this.uiScene.autoClearDepthAndStencil = false; 
+    this.uiScene.autoClear = false; 
+    this.uiScene.clearColor = new BABYLON.Color4(0, 0, 0, 0);
+    this.uiScene.useRightHandedSystem = false;
+
+    this.uiCamera = new BABYLON.FreeCamera("overlayCamera", new BABYLON.Vector3(0, 0, 0), this.uiScene);
+    this.uiCamera.fov = this.camera?.fov || 0.8;
+
+    if (this.isWebXRActive) {
+      // Create 3D WebXR UI
+      this.create3DUI();
+    } else {
+      // Create 2D Desktop UI
+      this.create2DUI();
+    }
+
+    // Create utility layer for gizmos (used by both UI modes)
+    this.utilLayer = new BABYLON.UtilityLayerRenderer(this.isWebXRActive ? this.uiScene : this.scene);
+    this.utilLayer.utilityLayerScene.autoClearDepthAndStencil = false;
+    this.utilLayer.shouldRender = true;
+    this.utilLayer.onlyCheckPointerDownEvents = false;
+
+    const gizmoManager = new BABYLON.GizmoManager(this.uiScene, 5, this.utilLayer);
+    gizmoManager.usePointerToAttachGizmos = false;
+    gizmoManager.positionGizmoEnabled = true;
+    gizmoManager.rotationGizmoEnabled = true;
+    
+    this.createWorldAxis();
+
+    // Sync camera for UI overlay
+    if (!this.isWebXRActive) {
+      this.scene.onBeforeRenderObservable.add(() => {
+        if (this.camera) {
+          this.uiCamera?.position.copyFrom(this.camera.position);
+          this.uiCamera?.rotation.copyFrom(this.camera.rotation);
+        }
+      });
+    }
+
+    // Set up pointer interaction for selecting joints (works for both UI modes)
+    this.setupJointSelection();
+  }
+
+  private detectWebXRState(): void {
+    // Check if WebXR is available and active
+    // This is a simplified check - in a real implementation you'd want more sophisticated detection
+    this.isWebXRActive = !!(navigator as any).xr && (this.scene?.getEngine() as any).webXRDefaultExperience?.baseExperience?.sessionManager?.session;
+  }
+
+  private create2DUI(): void {
+    // Create 2D UI Layer for desktop
+    this.UILayer = GUI.AdvancedDynamicTexture.CreateFullscreenUI("UI");
+    
+    // Create status label for desktop
+    this.statusLabel.color = "white";
+    this.statusLabel.textHorizontalAlignment = GUI.Control.HORIZONTAL_ALIGNMENT_LEFT;
+    this.statusLabel.horizontalAlignment = GUI.Control.HORIZONTAL_ALIGNMENT_CENTER;
+    this.statusLabel.resizeToFit = true;
+    this.statusLabel.outlineColor = "green";
+    this.statusLabel.outlineWidth = 2.0;
+    this.UILayer.addControl(this.statusLabel);
+
+    // Create hamburger menu system for desktop
+    this.createHamburgerMenu();
+  }
+
+  private create3DUI(): void {
+    // Create 3D UI manager for WebXR
+    this.UI3DManager = new GUI3D.GUI3DManager(this.uiScene);
+    
+    // Create status display for 3D UI
+    this.statusHologram = new GUI3D.HolographicButton("statusHologram");
+    this.statusHologram.isVisible = false;
+    
+    // Create status text for 3D UI
+    this.status3DText = new GUI3D.TextBlock();
+    this.status3DText.text = "";
+    this.status3DText.color = "white";
+    this.status3DText.fontSize = 14;
+    
+    this.statusHologram.content = this.status3DText;
+    this.statusHologram.position = new BABYLON.Vector3(0, 4, 0);
+    
+    // Create 3D action menu for WebXR
+    this.acitonMenu = new GUI3D.NearMenu("near");
+    let follower = this.acitonMenu.defaultBehavior.followBehavior;
+    if (follower) {
+      //follower.defaultDistance = 5;
+      //follower.minimumDistance = 5;
+      //follower.maximumDistance = 5;
+    }
+    
+    this.UI3DManager.addControl(this.acitonMenu);
+
+    // Create buttons for circular menu
+    const buttonData = [
+      { name: "jointAxisButton", text: "Joint Axis", action: () => this.toggleAxisOnRobot(true, this.uiScene, this.utilLayer!) },
+      { name: "linkAxisButton", text: "Link Axis", action: () => this.toggleAxisOnRobot(false, this.uiScene, this.utilLayer!) },
+      { name: "jointRotationButton", text: "Joint Rotation", action: () => this.toggleAxisRotationOnRobot(true, this.uiScene, this.utilLayer!) },
+      { name: "linkRotationButton", text: "Link Rotation", action: () => this.toggleAxisRotationOnRobot(false, this.uiScene, this.utilLayer!) },
+      { name: "worldAxisButton", text: "World Axis", action: () => this.toggleWorldAxis() },
+      { name: "collisionButton", text: "Collision", action: () => this.toggleCollision() },
+      { name: "visualsButton", text: "Visuals", action: () => this.toggleVisuals() },
+      { name: "boundingBoxButton", text: "Bounding Box", action: () => this.toggleBoundingBoxes() }
+    ];
+
+    buttonData.forEach((bd) => {
+      const button = this.create3DButton(bd.name, bd.text, bd.action);
+      this.acitonMenu?.addButton(button);
+    });
+
+    // Configure menu layout
+    this.acitonMenu.rows = buttonData.length / 2;
+  }
+
+  private setupJointSelection(): void {
+    // Set up pointer interaction for selecting joints
+    let that = this;
+    
+    const pointerDownHandler = function castRay() {
+      if (that.scene && that.camera) {
+        if (that.selectedVisual) {
+          that.selectedVisual.geometry?.meshes?.forEach((m: BABYLON.AbstractMesh) => {
+            m.showBoundingBox = false;
+          });
+          that.selectedVisual = undefined;
+        }
+
+        that.clearStatus();
+
+        var ray = that.scene.createPickingRay(that.scene.pointerX, that.scene.pointerY, BABYLON.Matrix.Identity(), that.camera, false);	
+
+        var hit = that.scene.pickWithRay(ray);
+        if (hit?.pickedMesh && that.currentRobot) {
+          let foundJoint: Joint | undefined;
+          
+          // Convert Map entries to array and iterate through them safely
+          Array.from(that.currentRobot.joints.entries()).forEach(([name, j]) => {
+            // Skip fixed joints since they can't be exercised
+            if (j.type === JointType.Fixed) return;
+            
+            if (j.transform) {
+              // Check if the picked mesh is a child of this joint's transform
+              if (hit?.pickedMesh?.parent === j.transform) {
+                foundJoint = j;
+                console.log(`Found joint (direct parent): ${j.name}`);
+                return; // Exit the forEach early
+              }
+              
+              // If we have a child link, check if the mesh belongs to any visual in that link
+              if (j.child && !foundJoint) {
+                j.child.visuals.forEach(visual => {
+                  if (visual.geometry?.meshes) {
+                    visual.geometry.meshes.forEach(mesh => {
+                      if (mesh === hit?.pickedMesh) {
+                        foundJoint = j;
+                        console.log(`Found joint (child link visual): ${j.name}`);
+                        return; // Exit inner forEach
+                      }
+                    });
+                  }
+                });
+              }
+            }
+          });
+          
+          // Process the found joint if any
+          if (foundJoint) {
+            console.log(`Creating gizmo for joint: ${foundJoint.name}`);
+            
+            // If it's different from the currently selected joint, update the gizmo
+            if (foundJoint !== that.hoveredJoint) {
+              that.clearJointExerciseGizmos();
+              that.hoveredJoint = foundJoint;
+              
+              // Add the gizmo to the joint using our custom layer
+              that.addExerciseGizmoToJoint(foundJoint, that.scene!, that.utilLayer!);
+              
+              // Update status label with joint info
+              if (foundJoint.transform) {
+                that.updateJointStatusLabel(foundJoint);
+              }
+            }
+          } else {
+            that.hoveredJoint = undefined;
+            that.clearJointExerciseGizmos();
+            that.clearStatus();
+          }
+        }
+      }
+    };
+    
+    // Apply the handler to the appropriate scene
+    if (this.isWebXRActive && this.uiScene) {
+      this.uiScene.onPointerDown = pointerDownHandler;
+    } else if (this.scene) {
+      this.scene.onPointerDown = pointerDownHandler;
     }
   }
 
@@ -965,133 +1205,6 @@ export class RobotScene {
       setTimeout(() => {
         this.updateMirrorReflections();
       }, 100);
-    }
-  }
-  
-  
-  createUI() {
-    if (!this.scene) {
-      return;
-    }
-    
-    this.UILayer = GUI.AdvancedDynamicTexture.CreateFullscreenUI("UI", true, this.scene);
-    
-    this.statusLabel.color = "white";
-    this.statusLabel.textHorizontalAlignment = GUI.Control.HORIZONTAL_ALIGNMENT_LEFT;
-    this.statusLabel.horizontalAlignment = GUI.Control.HORIZONTAL_ALIGNMENT_CENTER;
-    this.statusLabel.resizeToFit = true;
-    this.statusLabel.outlineColor = "green";
-    this.statusLabel.outlineWidth = 2.0;
-    this.UILayer.addControl(this.statusLabel);
-  
-    // Create a utility layer with specific settings to ensure gizmo visibility
-    this.utilLayer = new BABYLON.UtilityLayerRenderer(this.scene);
-    //this.utilLayer.utilityLayerScene.autoClearDepthAndStencil = false; // Helps with depth sorting
-    this.utilLayer.shouldRender = true; // Ensure the layer renders
-    this.utilLayer.onlyCheckPointerDownEvents = false; // Respond to all pointer events
-  
-    const gizmoManager = new BABYLON.GizmoManager(this.scene, 5, this.utilLayer);
-    gizmoManager.usePointerToAttachGizmos = false;
-    gizmoManager.positionGizmoEnabled = true;
-    gizmoManager.rotationGizmoEnabled = true;
-    
-    this.createWorldAxis();
-    
-    // Create hamburger menu system
-    this.createHamburgerMenu();
-
-    let that = this;
-    this.scene.onPointerDown = function castRay() {
-      if (that.scene && that.camera) {
-        if (that.selectedVisual) {
-          that.selectedVisual.geometry?.meshes?.forEach((m: BABYLON.AbstractMesh) => {
-            m.showBoundingBox = false;
-          });
-          that.selectedVisual = undefined;
-        }
-
-        that.clearStatus();
-
-        var ray = that.scene.createPickingRay(that.scene.pointerX, that.scene.pointerY, BABYLON.Matrix.Identity(), that.camera, false);	
-
-        var hit = that.scene.pickWithRay(ray);
-        if (hit?.pickedMesh && that.currentRobot) {
-          let foundJoint: Joint | undefined;
-          
-          // Convert Map entries to array and iterate through them safely
-          Array.from(that.currentRobot.joints.entries()).forEach(([name, j]) => {
-            // Skip fixed joints since they can't be exercised
-            if (j.type === JointType.Fixed) return;
-            
-            if (j.transform) {
-              // Check if the picked mesh is a child of this joint's transform
-              if (hit?.pickedMesh?.parent === j.transform) {
-                foundJoint = j;
-                console.log(`Found joint (direct parent): ${j.name}`);
-                return; // Exit the forEach early
-              }
-              
-              // If we have a child link, check if the mesh belongs to any visual in that link
-              if (j.child && !foundJoint) {
-                j.child.visuals.forEach(visual => {
-                  if (visual.geometry?.meshes) {
-                    visual.geometry.meshes.forEach(mesh => {
-                      if (mesh === hit?.pickedMesh) {
-                        foundJoint = j;
-                        console.log(`Found joint (child link visual): ${j.name}`);
-                        return; // Exit inner forEach
-                      }
-                    });
-                  }
-                });
-              }
-            }
-          });
-          
-          // Process the found joint if any
-          if (foundJoint) {
-            console.log(`Creating gizmo for joint: ${foundJoint.name}`);
-            
-            // If it's different from the currently selected joint, update the gizmo
-            if (foundJoint !== that.hoveredJoint) {
-              that.clearJointExerciseGizmos();
-              that.hoveredJoint = foundJoint;
-              
-              // Add the gizmo to the joint using our custom layer
-              that.addExerciseGizmoToJoint(foundJoint, that.scene!, that.utilLayer!);
-              
-              // Update status label with joint info
-              if (foundJoint.transform) {
-                that.updateJointStatusLabel(foundJoint);
-              }
-            }
-          } else {
-            that.hoveredJoint = undefined;
-            that.clearJointExerciseGizmos();
-            that.clearStatus();
-          }
-
-          // find the visual that has this mesh
-          // This is messy for lots of meshes.
-          // Maybe highlight the mesh tree?
-          /*
-          let found = false;
-          that.currentRobot?.links.forEach((link: Link, name: string) => {
-            link.visuals.forEach((v: Visual) => {
-              v.geometry?.meshes?.forEach((m: BABYLON.AbstractMesh) => {
-                if (hit?.pickedMesh && m === hit.pickedMesh) {
-                  that.selectedVisual = v;
-                  that.selectedVisual.geometry?.meshes?.forEach((m: BABYLON.AbstractMesh) => {
-                    m.showBoundingBox = true;
-                  });
-                }
-              });
-            });
-          });
-          */
-          
-        }
-      }
     }
   }
   

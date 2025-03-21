@@ -13,16 +13,20 @@ import {Visual} from './Visual';
 import { RobotScene } from './RobotScene';
 
 import * as GUI from 'babylonjs-gui';
+import * as GUI3D from 'babylonjs-gui';
 import * as ColladaFileLoader from '@polyhobbyist/babylon-collada-loader';
 
 let currentRobotScene : RobotScene | undefined = undefined;
 
-// Test menu state variables
+// Test menu state variables for 2D UI
 let testMenuButton: GUI.Button | undefined = undefined;
 let testMenuPanel: GUI.StackPanel | undefined = undefined;
 let testMenuScrollViewer: GUI.ScrollViewer | undefined = undefined;
 let isTestMenuExpanded: boolean = false;
 let testMenuContainer: GUI.Rectangle | undefined = undefined;
+
+// Test menu variables for 3D UI
+let testWristMenu: GUI3D.NearMenu | undefined = undefined;
 
 function createTestMenuButton(name: string, text: string, onClick: () => void): GUI.Button {
   const button = GUI.Button.CreateSimpleButton(name, text);
@@ -74,8 +78,21 @@ function toggleTestMenu() {
 }
 
 function addTestToRobotScene(robotScene : RobotScene) {
-  if (robotScene.UILayer === undefined) {
-    return
+  // Detect UI mode based on RobotScene state
+  const isWebXR = robotScene.UI3DManager !== undefined;
+  
+  if (isWebXR) {
+    // Create 3D WebXR test interface with wrist menu
+    createWebXRTestInterface(robotScene);
+  } else {
+    // Create 2D desktop test interface
+    createDesktopTestInterface(robotScene);
+  }
+}
+
+function createDesktopTestInterface(robotScene: RobotScene) {
+  if (!robotScene.UILayer) {
+    return;
   }
 
   // Create hamburger-style test menu button
@@ -135,8 +152,38 @@ function addTestToRobotScene(robotScene : RobotScene) {
   
   testMenuScrollViewer.addControl(testMenuPanel);
 
+  addDesktopTestButtons(robotScene);
+}
+
+function createWebXRTestInterface(robotScene: RobotScene) {
+  if (!robotScene.UI3DManager) {
+    return;
+  }
+
+  // Create wrist menu for WebXR
+  const wristMenu = new GUI3D.NearMenu("testWristMenu");
+  
+  // Configure wrist menu behavior
+  const followBehavior = wristMenu.defaultBehavior.followBehavior;
+  if (followBehavior) {
+    followBehavior.defaultDistance = 0.8;
+    followBehavior.minimumDistance = 0.3;
+    followBehavior.maximumDistance = 2.0;
+  }
+
+  // Position wrist menu near user's left wrist
+  wristMenu.position = new BABYLON.Vector3(-0.3, -0.2, 0.3);
+  
+  robotScene.UI3DManager.addControl(wristMenu);
+
+  addWebXRTestButtons(robotScene, wristMenu);
+}
+
+function addDesktopTestButtons(robotScene: RobotScene) {
+  if (!testMenuPanel) return;
+
   // Test data
-  var basicTestList = [ 
+  const basicTestList = [ 
     {name: "Basic", url: "https://raw.githubusercontent.com/Ranch-Hand-Robotics/babylon_ros/main/test/testdata/basic.urdf"},
     {name: "Basic Joint", url: "https://raw.githubusercontent.com/Ranch-Hand-Robotics/babylon_ros/main/test/testdata/basic_with_joint.urdf"},
     {name: "Basic Revolute Joint", url: "https://raw.githubusercontent.com/Ranch-Hand-Robotics/babylon_ros/main/test/testdata/basic_with_joint_with_effort.urdf"},
@@ -150,13 +197,13 @@ function addTestToRobotScene(robotScene : RobotScene) {
     {name: "DAE", url: "https://raw.githubusercontent.com/Ranch-Hand-Robotics/babylon_ros/main/test/testdata/leo_chassis.urdf"},
   ];
 
-  var robotTestList = [ 
+  const robotTestList = [ 
     {name: "leo", url: "https://raw.githubusercontent.com/Ranch-Hand-Robotics/babylon_ros/main/test/testdata/leo.urdf"},
     {name: "BB", url: "https://raw.githubusercontent.com/Ranch-Hand-Robotics/babylon_ros/main/test/testdata/bb.urdf"},
     {name: "Motoman", url: "https://raw.githubusercontent.com/Ranch-Hand-Robotics/babylon_ros/main/test/testdata/motoman.urdf"},
     {name: "Arti Robot", url: "https://raw.githubusercontent.com/Ranch-Hand-Robotics/babylon_ros/main/test/testdata/arti.urdf"},
     {name: "Mule", url: "https://raw.githubusercontent.com/Ranch-Hand-Robotics/babylon_ros/main/test/testdata/mule.urdf"},
-    {name: "inline", url: ""},
+    {name: "Inline Example", url: ""},
   ];
 
   // Add Basic Tests group
@@ -169,9 +216,7 @@ function addTestToRobotScene(robotScene : RobotScene) {
   basicTestList.forEach((t) => {
     const button = createTestMenuButton(t.name, t.name, async () => {
       toggleTestMenu(); // Close menu after selection
-      const response = await fetch(t.url);
-      const urdfText = await response.text();
-      robotScene.applyURDF(urdfText);
+      await loadURDF(robotScene, t.url);
     });
     if (testMenuPanel) {
       testMenuPanel.addControl(button);
@@ -196,11 +241,61 @@ function addTestToRobotScene(robotScene : RobotScene) {
   robotTestList.forEach((t) => {
     const button = createTestMenuButton(t.name, t.name, async () => {
       toggleTestMenu(); // Close menu after selection
-      
-      if (t.name === "inline") {
-        const inlineURDF = `<?xml version="1.0"?>
-<robot name="planar_joint_example">
+      await loadURDF(robotScene, t.url, t.name === "Inline Example");
+    });
+    if (testMenuPanel) {
+      testMenuPanel.addControl(button);
+    }
+  });
+}
 
+function addWebXRTestButtons(robotScene: RobotScene, wristMenu: GUI3D.NearMenu) {
+  const testList = [ 
+    {name: "Basic", url: "https://raw.githubusercontent.com/Ranch-Hand-Robotics/babylon_ros/main/test/testdata/basic.urdf"},
+    {name: "Basic Joint", url: "https://raw.githubusercontent.com/Ranch-Hand-Robotics/babylon_ros/main/test/testdata/basic_with_joint.urdf"},
+    {name: "Basic Revolute", url: "https://raw.githubusercontent.com/Ranch-Hand-Robotics/babylon_ros/main/test/testdata/basic_with_joint_with_effort.urdf"},
+    {name: "Planar Joint", url: "https://raw.githubusercontent.com/Ranch-Hand-Robotics/babylon_ros/main/test/testdata/basic_with_joint_planar.urdf"},
+    {name: "Prismatic Joint", url: "https://raw.githubusercontent.com/Ranch-Hand-Robotics/babylon_ros/main/test/testdata/basic_with_joint_prismatic.urdf"},
+    {name: "With Material", url: "https://raw.githubusercontent.com/Ranch-Hand-Robotics/babylon_ros/main/test/testdata/basic_with_material.urdf"},
+    {name: "Remote Mesh", url: "https://raw.githubusercontent.com/Ranch-Hand-Robotics/babylon_ros/main/test/testdata/basic_with_remote_mesh.urdf"},
+    {name: "STL Mesh", url: "https://raw.githubusercontent.com/Ranch-Hand-Robotics/babylon_ros/main/test/testdata/basic_with_stl_mesh.urdf"},
+    {name: "Leo Robot", url: "https://raw.githubusercontent.com/Ranch-Hand-Robotics/babylon_ros/main/test/testdata/leo.urdf"},
+    {name: "Motoman", url: "https://raw.githubusercontent.com/Ranch-Hand-Robotics/babylon_ros/main/test/testdata/motoman.urdf"},
+    {name: "Mule Robot", url: "https://raw.githubusercontent.com/Ranch-Hand-Robotics/babylon_ros/main/test/testdata/mule.urdf"},
+    {name: "Inline Example", url: ""},
+  ];
+
+  // Create wrist menu buttons
+  testList.forEach((t) => {
+    const button = new GUI3D.TouchHolographicButton(t.name);
+    const buttonText = new GUI3D.TextBlock();
+    buttonText.text = t.name;
+    buttonText.color = "white";
+    buttonText.fontSize = 10;
+    button.content = buttonText;
+    
+    // Make buttons smaller for wrist menu
+    button.scaling = new BABYLON.Vector3(0.7, 0.7, 0.7);
+    
+    button.onPointerUpObservable.add(async () => {
+      await loadURDF(robotScene, t.url, t.name === "Inline Example");
+    });
+    
+    wristMenu.addButton(button);
+  });
+
+  // Configure wrist menu layout for better organization
+  wristMenu.rows = Math.ceil(testList.length / 3);
+}
+
+async function loadURDF(robotScene: RobotScene, url: string, useInline: boolean = false) {
+  try {
+    let urdfText: string;
+    
+    if (useInline) {
+      // Inline URDF example
+      urdfText = `<?xml version="1.0"?>
+<robot name="planar_joint_example">
   <!-- Base Link -->
   <link name="base_link">
     <visual>
@@ -253,23 +348,18 @@ function addTestToRobotScene(robotScene : RobotScene) {
     <child link="moving_link"/>
     <origin xyz="0 0 0.05" rpy="0 0 0"/>
     <axis xyz="0 0 1"/>
-    <limit effort="1000" velocity="1.0" lower="-0.25" upper="0.25"/> <!-- Limits for translation -->
+    <limit effort="1000" velocity="1.0" lower="-0.25" upper="0.25"/>
   </joint>
-
-</robot>
-`;
-        robotScene.applyURDF(inlineURDF);
-        return;
-      }
-      
-      const response = await fetch(t.url);
-      const urdfText = await response.text();
-      robotScene.applyURDF(urdfText);
-    });
-    if (testMenuPanel) {
-      testMenuPanel.addControl(button);
+</robot>`;
+    } else {
+      const response = await fetch(url);
+      urdfText = await response.text();
     }
-  });
+    
+    await robotScene.applyURDF(urdfText);
+  } catch (error) {
+    console.error(`Failed to load URDF: ${error}`);
+  }
 }
 
 // Main function that gets executed once the webview DOM loads
@@ -284,12 +374,14 @@ export async function RenderTestMain() {
   }
 
   currentRobotScene.scene.debugLayer.show();
-  currentRobotScene.createUI();
+  await currentRobotScene.createUI();
   addTestToRobotScene(currentRobotScene);
 
   currentRobotScene.engine.runRenderLoop(function () {
-    if (currentRobotScene !== undefined && currentRobotScene.scene !== undefined) {
+    if (currentRobotScene !== undefined && currentRobotScene.scene !== undefined && currentRobotScene.uiScene !== undefined) {
+      // Update the scene
       currentRobotScene.scene.render();
+      currentRobotScene.uiScene.render();
     }
   });
   
