@@ -16,7 +16,8 @@
         "--disable-web-security",
         "--disable-features=VizDisplayCompositor",
         "--allow-file-access-from-files"
-      ]
+      ],
+      "preLaunchTask": "npm: build"
     }
   ]
 }

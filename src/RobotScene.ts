@@ -17,6 +17,7 @@ import { Mesh } from './GeometryMesh';
 import * as GUI from 'babylonjs-gui';
 import * as GUI3D from 'babylonjs-gui';
 import * as ColladaFileLoader from '@polyhobbyist/babylon-collada-loader';
+import {Logger} from 'babylonjs';
 
 export class RobotScene {
   public engine : BABYLON.Engine | undefined = undefined;
@@ -25,8 +26,11 @@ export class RobotScene {
   public uiScene : BABYLON.Scene | undefined = undefined;
   public currentRobot : Robot | undefined = undefined;
   public UI3DManager : GUI3D.GUI3DManager | undefined = undefined;
-  public acitonMenu : GUI3D.NearMenu | undefined = undefined;
-  
+  public actionMenu : GUI3D.HandMenu | undefined = undefined; // Fixed typo from acitonMenu to actionMenu
+  public xrHelper: BABYLON.WebXRDefaultExperience | undefined = undefined;
+  public UILayer : GUI.AdvancedDynamicTexture | undefined = undefined;
+  public toolbar : GUI.StackPanel | undefined = undefined;
+
   public ground : BABYLON.GroundMesh | undefined = undefined;
   public camera : BABYLON.ArcRotateCamera | undefined = undefined;
   private mirrorTexture : BABYLON.MirrorTexture | undefined = undefined;
@@ -72,9 +76,13 @@ export class RobotScene {
   // Enhanced visuals properties
   private enhancedVisualsEnabled: boolean = true;
   
-  // UI properties  
-  public UILayer: GUI.AdvancedDynamicTexture | undefined = undefined;
   private isWebXRActive: boolean = false;
+  
+  // Console logging panel properties
+  private consolePanel: BABYLON.Mesh | undefined = undefined;
+  private consoleDynamicTexture: BABYLON.DynamicTexture | undefined = undefined;
+  private logMessages: string[] = [];
+  private maxLogMessages: number = 20;
       
   clearStatus() {
     if (this.status3DText) {
@@ -569,13 +577,7 @@ export class RobotScene {
   create3DButton(name: string, text: string, onClick: () => void): GUI3D.TouchHolographicButton {
     const button = new GUI3D.TouchHolographicButton(name);
     button.onPointerUpObservable.add(onClick);
-    
-    const textBlock = new GUI3D.TextBlock();
-    textBlock.text = text;
-    textBlock.color = "white";
-    textBlock.fontSize = 14;
-    
-    button.content = textBlock;
+    button.text = text;
     
     return button;
   }
@@ -857,9 +859,73 @@ export class RobotScene {
       }
     }
   }
+  // Helper function to initialize WebXR with all available features
+  async initializeWebXR() {
+    // Create default XR experience with enhanced options
+    const xrOptions : BABYLON.WebXRDefaultExperienceOptions = {
+      uiOptions: {
+        sessionMode: "immersive-vr" as XRSessionMode, // Default to AR mode
+        onError: (error: any) => {
+            this.log(error.message, "error");
+        }
+      },
+      optionalFeatures: true,
+      handSupportOptions: {
+      },
+    };
 
+    // Create the XR experience helper
+    this.xrHelper = await this.scene?.createDefaultXRExperienceAsync(xrOptions);
 
-  createUI() {
+    if (this.xrHelper) {
+      const xrHand = this.xrHelper.baseExperience.featuresManager.enableFeature(BABYLON.WebXRFeatureName.HAND_TRACKING, "latest", {
+        xrInput: this.xrHelper.input,
+        jointMeshes: {
+            enableHandMeshes: true,
+            enableHandTracking: true,
+          } 
+      }) as BABYLON.WebXRHandTracking;    
+
+      xrHand.onHandAddedObservable.add((newHand) => {
+        // celebrate, we have a new hand!
+        this.scene?.onBeforeRenderObservable.add(() => {
+          // get the real world wrist position on each frame
+          this.log(newHand.handMesh?.position.toString() ?? "No hand Mesh", "info");
+        });
+      });      
+    }
+
+    // Set up event handler for when XR session starts
+    if (this.xrHelper) {
+      this.xrHelper.baseExperience.onStateChangedObservable.add((state) => {
+        if (state === BABYLON.WebXRState.IN_XR) {
+          this.log("Entered WebXR mode, setting up action menu in 5 seconds");
+          
+          // Set a timer to link the action menu after 5 seconds
+          setTimeout(() => {
+            if (this.actionMenu && this.xrHelper) {
+              this.log("Linking action menu to XR experience");
+              this.actionMenu.handConstraintBehavior.linkToXRExperience(this.xrHelper.baseExperience);
+            }
+          }, 5000); // 5 seconds delay
+        }
+      });
+    }
+  }
+
+  createButton(toolbar: GUI.StackPanel, name : string, text : string, scene : BABYLON.Scene, onClick : () => void) {
+    var button = GUI.Button.CreateSimpleButton(name, text);
+    button.width = "140px";
+    button.height = "20px";
+    button.color = "white";
+    button.cornerRadius = 5;
+    button.background = "green";
+    button.onPointerUpObservable.add(onClick);
+    toolbar.addControl(button);
+    return button;
+  }
+
+  async createUI() {
     if (!this.engine || !this.scene) {
       return;
     }
@@ -873,6 +939,8 @@ export class RobotScene {
     this.uiScene.autoClear = false; 
     this.uiScene.clearColor = new BABYLON.Color4(0, 0, 0, 0);
     this.uiScene.useRightHandedSystem = false;
+
+    await this.initializeWebXR();
 
     this.uiCamera = new BABYLON.FreeCamera("overlayCamera", new BABYLON.Vector3(0, 0, 0), this.uiScene);
     this.uiCamera.fov = this.camera?.fov || 0.8;
@@ -898,47 +966,12 @@ export class RobotScene {
     
     this.createWorldAxis();
 
-    // Sync camera for UI overlay
-    if (!this.isWebXRActive) {
-      this.scene.onBeforeRenderObservable.add(() => {
-        if (this.camera) {
-          this.uiCamera?.position.copyFrom(this.camera.position);
-          this.uiCamera?.rotation.copyFrom(this.camera.rotation);
-        }
-      });
-    }
-
-    // Set up pointer interaction for selecting joints (works for both UI modes)
-    this.setupJointSelection();
-  }
-
-  private detectWebXRState(): void {
-    // Check if WebXR is available and active
-    // This is a simplified check - in a real implementation you'd want more sophisticated detection
-    this.isWebXRActive = !!(navigator as any).xr && (this.scene?.getEngine() as any).webXRDefaultExperience?.baseExperience?.sessionManager?.session;
-  }
-
-  private create2DUI(): void {
-    // Create 2D UI Layer for desktop
-    this.UILayer = GUI.AdvancedDynamicTexture.CreateFullscreenUI("UI");
-    
-    // Create status label for desktop
-    this.statusLabel.color = "white";
-    this.statusLabel.textHorizontalAlignment = GUI.Control.HORIZONTAL_ALIGNMENT_LEFT;
-    this.statusLabel.horizontalAlignment = GUI.Control.HORIZONTAL_ALIGNMENT_CENTER;
-    this.statusLabel.resizeToFit = true;
-    this.statusLabel.outlineColor = "green";
-    this.statusLabel.outlineWidth = 2.0;
-    this.UILayer.addControl(this.statusLabel);
-
-    // Create hamburger menu system for desktop
-    this.createHamburgerMenu();
-  }
-
-  private create3DUI(): void {
     // Create 3D UI manager for WebXR
     this.UI3DManager = new GUI3D.GUI3DManager(this.uiScene);
     
+    // 2D UI for desktop
+    this.UILayer = GUI.AdvancedDynamicTexture.CreateFullscreenUI("UI", true, this.scene);
+
     // Create status display for 3D UI
     this.statusHologram = new GUI3D.HolographicButton("statusHologram");
     this.statusHologram.isVisible = false;
@@ -953,17 +986,65 @@ export class RobotScene {
     this.statusHologram.position = new BABYLON.Vector3(0, 4, 0);
     
     // Create 3D action menu for WebXR
-    this.acitonMenu = new GUI3D.NearMenu("near");
-    let follower = this.acitonMenu.defaultBehavior.followBehavior;
-    if (follower) {
-      //follower.defaultDistance = 5;
-      //follower.minimumDistance = 5;
-      //follower.maximumDistance = 5;
+    if (this.xrHelper) {
+      this.actionMenu = new GUI3D.HandMenu(this.xrHelper.baseExperience, "handMenu");
+      this.UI3DManager.addControl(this.actionMenu);
+    }
+
+    // Sync camera for UI overlay
+    if (!this.isWebXRActive) {
+      this.scene.onBeforeRenderObservable.add(() => {
+        if (this.camera) {
+          this.uiCamera?.position.copyFrom(this.camera.position);
+          this.uiCamera?.rotation.copyFrom(this.camera.rotation);
+        }
+      });
+    }
+
+    // Set up pointer interaction for selecting joints (works for both UI modes)
+    this.setupJointSelection();
+    
+    // Detect environment and create appropriate UI
+    this.detectWebXRState();
+    if (!this.isWebXRActive) {
+      this.create2DUI();
+    } else {
+      this.create3DUI();
+    }
+  }
+
+  private detectWebXRState(): void {
+    // Check if WebXR is available and active
+    this.isWebXRActive = !!(navigator as any).xr && (this.scene?.getEngine() as any).webXRDefaultExperience?.baseExperience?.sessionManager?.session;
+  }
+
+  private create2DUI(): void {
+    // Create status label for desktop
+    this.statusLabel.color = "white";
+    this.statusLabel.textHorizontalAlignment = GUI.Control.HORIZONTAL_ALIGNMENT_LEFT;
+    this.statusLabel.horizontalAlignment = GUI.Control.HORIZONTAL_ALIGNMENT_CENTER;
+    this.statusLabel.resizeToFit = true;
+    this.statusLabel.outlineColor = "green";
+    this.statusLabel.outlineWidth = 2.0;
+    this.UILayer?.addControl(this.statusLabel);
+
+    // Create hamburger menu system for desktop
+    this.createHamburgerMenu();
+  }
+
+  private create3DUI(): void {
+
+    if (this.statusHologram && this.UI3DManager) {
+      this.UI3DManager.addControl(this.statusHologram);
     }
     
-    this.UI3DManager.addControl(this.acitonMenu);
+    // Initialize the console panel aligned to the ground
+    this.createConsolePanel();
+    
+    // Set up Babylon error listeners for the console panel
+    this.setupBabylonErrorListeners();
 
-    // Create buttons for circular menu
+    // Create buttons
     const buttonData = [
       { name: "jointAxisButton", text: "Joint Axis", action: () => this.toggleAxisOnRobot(true, this.uiScene, this.utilLayer!) },
       { name: "linkAxisButton", text: "Link Axis", action: () => this.toggleAxisOnRobot(false, this.uiScene, this.utilLayer!) },
@@ -977,11 +1058,13 @@ export class RobotScene {
 
     buttonData.forEach((bd) => {
       const button = this.create3DButton(bd.name, bd.text, bd.action);
-      this.acitonMenu?.addButton(button);
+      this.actionMenu?.addButton(button);
     });
 
     // Configure menu layout
-    this.acitonMenu.rows = buttonData.length / 2;
+    if (this.actionMenu) {
+      this.actionMenu.rows = buttonData.length / 2;
+    }
   }
 
   private setupJointSelection(): void {
@@ -1208,6 +1291,144 @@ export class RobotScene {
     }
   }
   
+  /**
+   * Creates and initializes a simple console panel
+   */
+  private createConsolePanel() {
+    if (!this.scene) return;
+    
+    // Create a plane for the console panel
+    this.consolePanel = BABYLON.MeshBuilder.CreatePlane("consolePanel", { width: 2, height: 1 }, this.scene);
+    
+    // Position the panel near ground level
+    this.consolePanel.position = new BABYLON.Vector3(0, 0.5, 0); 
+    this.consolePanel.rotation = new BABYLON.Vector3(0, Math.PI / 8, 0);
+    
+    // Create a material for the console panel
+    const material = new BABYLON.StandardMaterial("consoleMaterial", this.scene);
+    material.diffuseColor = new BABYLON.Color3(0.1, 0.1, 0.1);
+    material.specularColor = new BABYLON.Color3(0, 0, 0);
+    
+    // Create a dynamic texture for text display
+    this.consoleDynamicTexture = new BABYLON.DynamicTexture("consoleDynamicTexture", 1024, this.scene, false);
+    this.consoleDynamicTexture.hasAlpha = true;
+    
+    // Set the texture as the diffuse texture of the material
+    material.diffuseTexture = this.consoleDynamicTexture;
+    material.emissiveColor = new BABYLON.Color3(0.2, 0.2, 0.2);
+    
+    // Apply the material to the panel
+    this.consolePanel.material = material;
+    
+    // Update display with initial message
+    this.updateConsoleDisplay();
+  }
+
+  /**
+   * Adds a log message to the console panel
+   */
+  public log(message: string, type: "info" | "warn" | "error" | "debug" = "info") {
+    // Format the message with timestamp and type
+    const now = new Date();
+    const timestamp = now.toLocaleTimeString();
+    const formattedMessage = `[${timestamp}] [${type.toUpperCase()}] ${message}`;
+    
+    // Add to log messages array
+    this.logMessages.push(formattedMessage);
+    
+    // Keep log size under control
+    if (this.logMessages.length > this.maxLogMessages) {
+      this.logMessages.shift();
+    }
+    
+    // Update the display
+    this.updateConsoleDisplay();
+  }
+  
+  /**
+   * Updates the console display with current messages
+   */
+  private updateConsoleDisplay() {
+    if (!this.consoleDynamicTexture) return;
+    
+    // Clear the texture context
+    const context = this.consoleDynamicTexture.getContext();
+    context.fillStyle = "#333333";
+    context.fillRect(0, 0, this.consoleDynamicTexture.getSize().width, this.consoleDynamicTexture.getSize().height);
+    
+    // Add title
+    this.consoleDynamicTexture.drawText("CONSOLE LOG", 10, 30, "24px Arial", "white", null, false, true);
+    
+    // Draw messages
+    let y = 60;
+    for (let i = 0; i < this.logMessages.length; i++) {
+      const msg = this.logMessages[i];
+      let color = "white";
+      
+      if (msg.includes("[ERROR]")) {
+        color = "red";
+      } else if (msg.includes("[WARN]")) {
+        color = "yellow";
+      } else if (msg.includes("[DEBUG]")) {
+        color = "lightblue";
+      }
+      
+      this.consoleDynamicTexture.drawText(msg, 10, y, "16px monospace", color, null, false, true);
+      y += 25;
+    }
+    
+    // Update the texture
+    this.consoleDynamicTexture.update();
+  }
+  
+  /**
+   * Clears all messages from the console log
+   */
+  public clearConsoleLog() {
+    this.logMessages = [];
+    this.updateConsoleDisplay();
+  }
+
+  /**
+   * Hooks into Babylon.js error and logging systems
+   */
+  private setupBabylonErrorListeners() {
+    // Register to log error and warning events from the logger
+    BABYLON.Logger.LogLevels = BABYLON.Logger.AllLogLevel;
+    
+    // Add log message to console when we get Babylon cache entries
+    BABYLON.Tools.OnNewCacheEntry = (entry) => {
+      this.log(`Babylon Cache: ${entry}`, "debug");
+      console.log(`Babylon Cache: ${entry}`);
+    };
+  }
+
+  /**
+   * Adds custom logging methods to the RobotScene
+   * to capture all console and Babylon.js logs
+   */
+  public setupConsoleLogging() {
+    // Add button to toggle console visibility
+    if (this.toolbar && this.scene) {
+      this.createButton(this.toolbar, "toggleConsole", "Toggle Console", this.scene, () => {
+        if (this.consolePanel) {
+          this.consolePanel.isVisible = !this.consolePanel.isVisible;
+        }
+      });
+      
+      this.createButton(this.toolbar, "clearConsole", "Clear Console", this.scene, () => {
+        this.clearConsoleLog();
+      });
+      
+      // Add "Test Error" button to demonstrate error logging
+      this.createButton(this.toolbar, "testError", "Test Error", this.scene, () => {
+        Logger.Error("This is a test error message");
+        Logger.Warn("This is a test warning message");
+        this.log("This is a test info message", "info");
+      });
+    }
+  }
+
   public async applyURDF(urdfText: string, vscode: any | undefined = undefined) {
     this.clearAxisGizmos();
     this.clearRotationGizmos();
@@ -1685,6 +1906,7 @@ export class RobotScene {
 
     // Enhanced scene setup with improved visual effects
     this.scene.useRightHandedSystem = true;
+    this.scene.clearColor = BABYLON.Color4.FromColor3(BABYLON.Color3.Black());
     
     // Create sophisticated lighting setup
     this.createEnhancedLighting();
@@ -1701,6 +1923,28 @@ export class RobotScene {
     
     // Enhanced scene background with gradient
     this.createEnhancedBackground();
+
+    var groundMaterial = new Materials.GridMaterial("groundMaterial", this.scene);
+    groundMaterial.majorUnitFrequency = 5;
+    groundMaterial.minorUnitVisibility = 0.5;
+    groundMaterial.gridRatio = 1;
+    groundMaterial.opacity = 0.8;
+    groundMaterial.useMaxLine = true;
+    groundMaterial.lineColor = BABYLON.Color3.Green();
+    groundMaterial.mainColor = BABYLON.Color3.Green();
+
+    this.ground = BABYLON.MeshBuilder.CreateGround("ground", {width: 50, height: 50}, this.scene);
+    this.ground.material = groundMaterial;
+    this.ground.isPickable = false;
+    
+    // Create the UI after the main scene is set up
+    this.createUI();
+    
+    // Initialize console logging capabilities
+    this.setupConsoleLogging();
+    
+    // Log that scene creation is complete
+    this.log("Scene created successfully", "info");
   }
 }
 

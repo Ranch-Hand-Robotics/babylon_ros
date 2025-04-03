@@ -160,41 +160,34 @@ function createWebXRTestInterface(robotScene: RobotScene) {
     return;
   }
 
-  // Create wrist menu for WebXR
-  const wristMenu = new GUI3D.NearMenu("testWristMenu");
-  
-  // Configure wrist menu behavior
-  const followBehavior = wristMenu.defaultBehavior.followBehavior;
-  if (followBehavior) {
-    followBehavior.defaultDistance = 0.8;
-    followBehavior.minimumDistance = 0.3;
-    followBehavior.maximumDistance = 2.0;
+  // Create wrist menu for WebXR - use the existing actionMenu structure
+  if (robotScene.actionMenu) {
+    addWebXRTestButtons(robotScene, robotScene.actionMenu);
   }
-
-  // Position wrist menu near user's left wrist
-  wristMenu.position = new BABYLON.Vector3(-0.3, -0.2, 0.3);
-  
-  robotScene.UI3DManager.addControl(wristMenu);
-
-  addWebXRTestButtons(robotScene, wristMenu);
 }
 
 function addDesktopTestButtons(robotScene: RobotScene) {
   if (!testMenuPanel) return;
 
-  // Test data
-  const basicTestList = [ 
-    {name: "Basic", url: "https://raw.githubusercontent.com/Ranch-Hand-Robotics/babylon_ros/main/test/testdata/basic.urdf"},
-    {name: "Basic Joint", url: "https://raw.githubusercontent.com/Ranch-Hand-Robotics/babylon_ros/main/test/testdata/basic_with_joint.urdf"},
-    {name: "Basic Revolute Joint", url: "https://raw.githubusercontent.com/Ranch-Hand-Robotics/babylon_ros/main/test/testdata/basic_with_joint_with_effort.urdf"},
-    {name: "Planar Joint", url: "https://raw.githubusercontent.com/Ranch-Hand-Robotics/babylon_ros/main/test/testdata/basic_with_joint_planar.urdf"},
-    {name: "Prismatic Joint", url: "https://raw.githubusercontent.com/Ranch-Hand-Robotics/babylon_ros/main/test/testdata/basic_with_joint_prismatic.urdf"},
-    {name: "Basic Material", url: "https://raw.githubusercontent.com/Ranch-Hand-Robotics/babylon_ros/main/test/testdata/basic_with_material.urdf"},
-    {name: "Basic Remote Mesh", url: "https://raw.githubusercontent.com/Ranch-Hand-Robotics/babylon_ros/main/test/testdata/basic_with_remote_mesh.urdf"},
-    {name: "Basic with STL", url: "https://raw.githubusercontent.com/Ranch-Hand-Robotics/babylon_ros/main/test/testdata/basic_with_stl_mesh.urdf"},
-    {name: "Orientation", url: "https://raw.githubusercontent.com/Ranch-Hand-Robotics/babylon_ros/main/test/testdata/orientation.urdf"},
-    {name: "Bad", url: "https://raw.githubusercontent.com/Ranch-Hand-Robotics/babylon_ros/main/test/testdata/bad.urdf"},
-    {name: "DAE", url: "https://raw.githubusercontent.com/Ranch-Hand-Robotics/babylon_ros/main/test/testdata/leo_chassis.urdf"},
+  // Test data - combine both lists for comprehensive coverage
+  const testList = [ 
+    {name: "Basic", text: "Basic", url: "https://raw.githubusercontent.com/Ranch-Hand-Robotics/babylon_ros/main/test/testdata/basic.urdf"},
+    {name: "Basic Joint", text: "Basic Joint", url: "https://raw.githubusercontent.com/Ranch-Hand-Robotics/babylon_ros/main/test/testdata/basic_with_joint.urdf"},
+    {name: "Basic Revolute Joint", text: "Basic Revolute Joint", url: "https://raw.githubusercontent.com/Ranch-Hand-Robotics/babylon_ros/main/test/testdata/basic_with_joint_with_effort.urdf"},
+    {name: "Planar Joint", text: "Planar Joint", url: "https://raw.githubusercontent.com/Ranch-Hand-Robotics/babylon_ros/main/test/testdata/basic_with_joint_planar.urdf"},
+    {name: "Prismatic Joint", text: "Prismatic Joint", url: "https://raw.githubusercontent.com/Ranch-Hand-Robotics/babylon_ros/main/test/testdata/basic_with_joint_prismatic.urdf"},
+    {name: "Basic Material", text: "Basic Material", url: "https://raw.githubusercontent.com/Ranch-Hand-Robotics/babylon_ros/main/test/testdata/basic_with_material.urdf"},
+    {name: "Basic Remote Mesh", text: "Basic Remote Mesh", url: "https://raw.githubusercontent.com/Ranch-Hand-Robotics/babylon_ros/main/test/testdata/basic_with_remote_mesh.urdf"},
+    {name: "Basic with STL", text: "Basic with STL", url: "https://raw.githubusercontent.com/Ranch-Hand-Robotics/babylon_ros/main/test/testdata/basic_with_stl_mesh.urdf"},
+    {name: "Orientation", text: "Orientation", url: "https://raw.githubusercontent.com/Ranch-Hand-Robotics/babylon_ros/main/test/testdata/orientation.urdf"},
+    {name: "Bad URDF", text: "Bad URDF", url: "https://raw.githubusercontent.com/Ranch-Hand-Robotics/babylon_ros/main/test/testdata/bad.urdf"},
+    {name: "DAE Test", text: "DAE Test", url: "https://raw.githubusercontent.com/Ranch-Hand-Robotics/babylon_ros/main/test/testdata/leo_chassis.urdf"},
+    {name: "Leo Rover", text: "Leo Rover", url: "https://raw.githubusercontent.com/Ranch-Hand-Robotics/babylon_ros/main/test/testdata/leo.urdf"},
+    {name: "BB", text: "BB", url: "https://raw.githubusercontent.com/Ranch-Hand-Robotics/babylon_ros/main/test/testdata/bb.urdf"},
+    {name: "Motoman", text: "Motoman", url: "https://raw.githubusercontent.com/Ranch-Hand-Robotics/babylon_ros/main/test/testdata/motoman.urdf"},
+    {name: "Arti Robot", text: "Arti Robot", url: "https://raw.githubusercontent.com/Ranch-Hand-Robotics/babylon_ros/main/test/testdata/arti.urdf"},
+    {name: "Mule", text: "Mule", url: "https://raw.githubusercontent.com/Ranch-Hand-Robotics/babylon_ros/main/test/testdata/mule.urdf"},
+    {name: "Inline Example", text: "Inline Example", url: ""},
   ];
 
   const robotTestList = [ 
@@ -213,7 +206,7 @@ function addDesktopTestButtons(robotScene: RobotScene) {
   const basicTestsSeparator = createTestGroupSeparator();
   testMenuPanel.addControl(basicTestsSeparator);
 
-  basicTestList.forEach((t) => {
+  testList.forEach((t) => {
     const button = createTestMenuButton(t.name, t.name, async () => {
       toggleTestMenu(); // Close menu after selection
       await loadURDF(robotScene, t.url);
@@ -223,33 +216,10 @@ function addDesktopTestButtons(robotScene: RobotScene) {
     }
   });
 
-  // Add some spacing between groups
-  const spacer1 = new GUI.Rectangle();
-  spacer1.heightInPixels = 15;
-  spacer1.color = "transparent";
-  spacer1.background = "transparent";
-  spacer1.thickness = 0;
-  testMenuPanel.addControl(spacer1);
 
-  // Add Robot Tests group
-  const robotTestsHeader = createTestGroupHeader("Robot Tests");
-  testMenuPanel.addControl(robotTestsHeader);
-  
-  const robotTestsSeparator = createTestGroupSeparator();
-  testMenuPanel.addControl(robotTestsSeparator);
-
-  robotTestList.forEach((t) => {
-    const button = createTestMenuButton(t.name, t.name, async () => {
-      toggleTestMenu(); // Close menu after selection
-      await loadURDF(robotScene, t.url, t.name === "Inline Example");
-    });
-    if (testMenuPanel) {
-      testMenuPanel.addControl(button);
-    }
-  });
 }
 
-function addWebXRTestButtons(robotScene: RobotScene, wristMenu: GUI3D.NearMenu) {
+function addWebXRTestButtons(robotScene: RobotScene, wristMenu: GUI3D.HandMenu) {
   const testList = [ 
     {name: "Basic", url: "https://raw.githubusercontent.com/Ranch-Hand-Robotics/babylon_ros/main/test/testdata/basic.urdf"},
     {name: "Basic Joint", url: "https://raw.githubusercontent.com/Ranch-Hand-Robotics/babylon_ros/main/test/testdata/basic_with_joint.urdf"},
@@ -353,6 +323,9 @@ async function loadURDF(robotScene: RobotScene, url: string, useInline: boolean 
 </robot>`;
     } else {
       const response = await fetch(url);
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
       urdfText = await response.text();
     }
     
@@ -373,8 +346,7 @@ export async function RenderTestMain() {
     return;
   }
 
-  currentRobotScene.scene.debugLayer.show();
-  await currentRobotScene.createUI();
+  //currentRobotScene.scene.debugLayer.show();
   addTestToRobotScene(currentRobotScene);
 
   currentRobotScene.engine.runRenderLoop(function () {
