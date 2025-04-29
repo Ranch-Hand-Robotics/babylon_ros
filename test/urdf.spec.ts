@@ -7,10 +7,10 @@ import * as BABYLON from 'babylonjs';
 import * as fs from 'node:fs/promises';
 import * as path from 'path';
 import {parseString} from 'xml2js';
-import {deserializeUrdfToRobot, deserializeMaterial, parseUrdf} from '../src/urdf'
-import { Cylinder } from '../src/GeometryCylinder';
-import { Robot } from '../src/Robot';
-import {loadRobot} from './testutil';
+import {deserializeUrdfToRobot, deserializeMaterial, parseUrdf} from '../src/urdf.js'
+import { Cylinder } from '../src/GeometryCylinder.js';
+import { Robot } from '../src/Robot.js';
+import {loadRobot} from './testutil.js';
 
 let engine : any = undefined;
 let scene : BABYLON.Scene | undefined = undefined;

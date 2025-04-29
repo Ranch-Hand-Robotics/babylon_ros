@@ -82,7 +82,7 @@ export class RobotScene {
   private consolePanel: BABYLON.Mesh | undefined = undefined;
   private consoleDynamicTexture: BABYLON.DynamicTexture | undefined = undefined;
   private logMessages: string[] = [];
-  private maxLogMessages: number = 20;
+  private maxLogMessages: number = 50;
       
   clearStatus() {
     if (this.status3DText) {
@@ -864,35 +864,78 @@ export class RobotScene {
     // Create default XR experience with enhanced options
     const xrOptions : BABYLON.WebXRDefaultExperienceOptions = {
       uiOptions: {
-        sessionMode: "immersive-vr" as XRSessionMode, // Default to AR mode
+        sessionMode: "immersive-vr" as XRSessionMode, // Default to VR mode
         onError: (error: any) => {
             this.log(error.message, "error");
         }
       },
       optionalFeatures: true,
-      handSupportOptions: {
-      },
     };
 
     // Create the XR experience helper
     this.xrHelper = await this.scene?.createDefaultXRExperienceAsync(xrOptions);
 
     if (this.xrHelper) {
-      const xrHand = this.xrHelper.baseExperience.featuresManager.enableFeature(BABYLON.WebXRFeatureName.HAND_TRACKING, "latest", {
-        xrInput: this.xrHelper.input,
-        jointMeshes: {
-            enableHandMeshes: true,
-            enableHandTracking: true,
-          } 
-      }) as BABYLON.WebXRHandTracking;    
+      // Enable hand tracking with proper configuration
+      const xrHandFeature = this.xrHelper.baseExperience.featuresManager.enableFeature(
+        BABYLON.WebXRFeatureName.HAND_TRACKING, 
+        "latest", 
+        {
+          xrInput: this.xrHelper.input,
+          jointMeshes: {
+            enableHandMeshes: true,         // Enable hand meshes
+            enableHandJoints: true,         // Enable hand joints
+            disableDefaultHandMesh: false,  // Use default hand mesh
+            handMeshes: {
+              useCustomMeshes: false,       // Use default meshes
+              sourceMeshReplication: true,  // Replicate source meshes
+              customRootMesh: null
+            },
+            // Material settings for hand joints
+            jointMeshes: {
+              disableDefaultJointMesh: false,
+              segmentationMeshes: true,
+              meshesDefinition: null
+            },
+          }
+        }
+      ) as BABYLON.WebXRHandTracking;    
 
-      xrHand.onHandAddedObservable.add((newHand) => {
-        // celebrate, we have a new hand!
+      // Handle new hands being added
+      xrHandFeature.onHandAddedObservable.add((newHand) => {
+        this.log(`Hand added: ${newHand.xrController.inputSource.handedness}`, "info");
+        
+        // Configure hand mesh if available
+        if (newHand.handMesh) {
+          // Make hand mesh more visible with custom material
+          const handMaterial = new BABYLON.StandardMaterial("handMaterial", this.scene);
+          handMaterial.alpha = 0.7; // Semi-transparent
+          handMaterial.diffuseColor = new BABYLON.Color3(0.5, 0.8, 1.0); // Light blue color
+          handMaterial.emissiveColor = new BABYLON.Color3(0.2, 0.4, 0.6); // Slight glow
+          handMaterial.specularColor = new BABYLON.Color3(1, 1, 1);
+          
+          // Apply material to hand mesh
+          newHand.handMesh.material = handMaterial;
+          
+          // Make sure it's visible and enabled
+          newHand.handMesh.isVisible = true;
+          newHand.handMesh.setEnabled(true);
+        }
+        
+        // Log hand positions during rendering
         this.scene?.onBeforeRenderObservable.add(() => {
-          // get the real world wrist position on each frame
-          this.log(newHand.handMesh?.position.toString() ?? "No hand Mesh", "info");
+          if (newHand.handMesh?.isEnabled() && newHand.handMesh?.isVisible) {
+            this.log(`Hand position: ${newHand.handMesh?.position.toString() ?? "No position"}`, "debug");
+          } else {
+            this.log(`Hand mesh not visible or enabled`, "debug");
+          }
         });
-      });      
+      });
+      
+      // Handle hand removal
+      xrHandFeature.onHandRemovedObservable.add((removedHand) => {
+        this.log(`Hand removed: ${removedHand.xrController.inputSource.handedness}`, "info");
+      });
     }
 
     // Set up event handler for when XR session starts
@@ -1069,7 +1112,7 @@ export class RobotScene {
 
   private setupJointSelection(): void {
     // Set up pointer interaction for selecting joints
-    let that = this;
+    let that: RobotScene = this;
     
     const pointerDownHandler = function castRay() {
       if (that.scene && that.camera) {
@@ -1335,6 +1378,8 @@ export class RobotScene {
     
     // Add to log messages array
     this.logMessages.push(formattedMessage);
+
+    console.log(`[${type.toUpperCase()}] ${message}`); // Also log to console for debugging
     
     // Keep log size under control
     if (this.logMessages.length > this.maxLogMessages) {
@@ -1401,32 +1446,6 @@ export class RobotScene {
       this.log(`Babylon Cache: ${entry}`, "debug");
       console.log(`Babylon Cache: ${entry}`);
     };
-  }
-
-  /**
-   * Adds custom logging methods to the RobotScene
-   * to capture all console and Babylon.js logs
-   */
-  public setupConsoleLogging() {
-    // Add button to toggle console visibility
-    if (this.toolbar && this.scene) {
-      this.createButton(this.toolbar, "toggleConsole", "Toggle Console", this.scene, () => {
-        if (this.consolePanel) {
-          this.consolePanel.isVisible = !this.consolePanel.isVisible;
-        }
-      });
-      
-      this.createButton(this.toolbar, "clearConsole", "Clear Console", this.scene, () => {
-        this.clearConsoleLog();
-      });
-      
-      // Add "Test Error" button to demonstrate error logging
-      this.createButton(this.toolbar, "testError", "Test Error", this.scene, () => {
-        Logger.Error("This is a test error message");
-        Logger.Warn("This is a test warning message");
-        this.log("This is a test info message", "info");
-      });
-    }
   }
 
   public async applyURDF(urdfText: string, vscode: any | undefined = undefined) {
@@ -1899,10 +1918,8 @@ export class RobotScene {
     this.engine = e;
 
     this.scene = new BABYLON.Scene(e);
-    if (BABYLON.SceneLoader) {
-      //Add this loader into the register plugin
-      BABYLON.SceneLoader.RegisterPlugin(new ColladaFileLoader.DAEFileLoader());
-    }
+    
+    //BABYLON.RegisterSceneLoaderPlugin(new ColladaFileLoader.DAEFileLoader());
 
     // Enhanced scene setup with improved visual effects
     this.scene.useRightHandedSystem = true;
@@ -1939,9 +1956,6 @@ export class RobotScene {
     
     // Create the UI after the main scene is set up
     this.createUI();
-    
-    // Initialize console logging capabilities
-    this.setupConsoleLogging();
     
     // Log that scene creation is complete
     this.log("Scene created successfully", "info");

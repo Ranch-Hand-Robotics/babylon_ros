@@ -4,7 +4,7 @@
  */
 
 import * as BABYLON from 'babylonjs';
-import { parseVector, parseRPY, parseColor } from '../src/util'
+import { parseVector, parseRPY, parseColor } from '../src/util.js'
 describe("Testing Vector", () => {
   test('Parse Vector3 with zeros', () => {
     let v = parseVector("0 0 0");

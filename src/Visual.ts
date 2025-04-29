@@ -4,9 +4,9 @@
  */
 
 import * as BABYLON from 'babylonjs';
-import { Material } from './Material';
-import * as Util from './util';
-import {IGeometry} from './IGeometry';
+import { Material } from './Material.js';
+import * as Util from './util.js';
+import {IGeometry} from './IGeometry.js';
 
 export class Visual {
     public name : string = "";

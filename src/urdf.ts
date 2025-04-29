@@ -6,16 +6,16 @@
 import * as BABYLON from 'babylonjs';
 import * as Materials from 'babylonjs-materials';
 import {parseStringPromise} from 'xml2js';
-import { Robot } from './Robot';
-import { Link } from './Link';
-import { Joint, JointType } from './Joint';
-import { Visual } from './Visual';
-import { Material } from './Material';
-import { Cylinder } from './GeometryCylinder';
-import { Sphere } from './GeometrySphere';
-import { Box } from './GeometryBox';
-import { Mesh } from './GeometryMesh';
-import {parseVector, parseRPY, parseColor } from './util';
+import { Robot } from './Robot.js';
+import { Link } from './Link.js';
+import { Joint, JointType } from './Joint.js';
+import { Visual } from './Visual.js';
+import { Material } from './Material.js';
+import { Cylinder } from './GeometryCylinder.js';
+import { Sphere } from './GeometrySphere.js';
+import { Box } from './GeometryBox.js';
+import { Mesh } from './GeometryMesh.js';
+import {parseVector, parseRPY, parseColor } from './util.js';
 
 export async function parseUrdf(urdf: string) : Promise<any> {
     return parseStringPromise(urdf);

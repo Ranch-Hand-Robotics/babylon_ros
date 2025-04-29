@@ -4,10 +4,10 @@
  */
 
 import * as BABYLON from 'babylonjs';
-import { Material, CollisionMaterial } from './Material';
+import { Material, CollisionMaterial } from './Material.js';
 
-import {Link} from './Link';
-import {Joint} from './Joint';
+import {Link} from './Link.js';
+import {Joint} from './Joint.js';
 
 export class Robot {
     public name : string = "";

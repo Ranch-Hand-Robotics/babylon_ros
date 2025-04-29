@@ -1,8 +1,8 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-        <meta charset="UTF-8">
-        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <style nonce="${nonce}">
     html,
     body {
@@ -18,17 +18,14 @@
     height: 100%;
     touch-action: none;
     }
-</style>
-<title>URDF Preview</title>
+    </style>
+    <title>URDF Preview</title>
 </head>
 <body>
     <canvas id="renderCanvas" touch-action="none"></canvas>    
     <script src="./ros.js"></script>
     <script>
-        
         window.addEventListener("load", babylon_ros.RenderTestMain);
-
     </script>
-
 </body>
 </html>

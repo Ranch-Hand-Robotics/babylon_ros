@@ -5,7 +5,7 @@
   "version": "0.2.0",
   "configurations": [
     {
-      "type": "msedge",
+      "type": "chrome",
       "request": "launch",
       "runtimeExecutable": "C:\\Program Files (x86)\\Microsoft\\Edge\\Application\\msedge.exe",
       "name": "Open Static Viewer",
@@ -18,6 +18,43 @@
         "--allow-file-access-from-files"
       ],
       "preLaunchTask": "npm: build"
+    },
+    {
+      "type": "chrome",
+      "request": "launch",
+      "name": "Debug with Dev Server",
+      "url": "http://localhost:8080/web/viewer.html",
+      "webRoot": "${workspaceFolder}",
+      "preLaunchTask": "npm: build",
+      "runtimeArgs": ["--remote-debugging-port=9222"],
+      "sourceMaps": true,
+      "sourceMapPathOverrides": {
+        "webpack:///./~/*": "${webRoot}/node_modules/*",
+        "webpack:///./*": "${webRoot}/*",
+        "webpack:///*": "*"
+      },
+      "trace": true
+    },
+    {
+      "type": "chrome",
+      "request": "launch",
+      "name": "Open viewer.html (Chrome)",
+      "url": "file:///c:/ws/babylon_ros/web/viewer.html",
+      "webRoot": "${workspaceFolder}/web",
+      "preLaunchTask": "npm: build",
+      "sourceMapPathOverrides": {
+        "webpack:///./~/*": "${webRoot}/node_modules/*",
+        "webpack:///./*": "${webRoot}/*",
+        "webpack:///*": "*"
+      },
+      "trace": true
+    }
+  ],
+  "compounds": [
+    {
+      "name": "Run Dev Server and Debug",
+      "configurations": ["Debug with Dev Server"],
+      "preLaunchTask": "npm: dev-server"
     }
   ]
 }

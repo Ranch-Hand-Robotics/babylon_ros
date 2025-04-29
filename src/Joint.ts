@@ -4,9 +4,9 @@
  */
 
 import * as BABYLON from 'babylonjs';
-import {Link} from './Link';
-import { Material } from './Material';
-import * as Util from './util';
+import {Link} from './Link.js';
+import { Material } from './Material.js';
+import * as Util from './util.js';
 
 export enum JointType {
     Fixed = "fixed",

@@ -5,9 +5,9 @@
 
 import * as BABYLON from 'babylonjs';
 
-import { IGeometry } from "./IGeometry";
-import { Material } from './Material';
-import { Visual } from "./Visual";
+import { IGeometry } from "./IGeometry.js";
+import { Material } from './Material.js';
+import { Visual } from "./Visual.js";
 
 export class Link {
     public name : string = "";

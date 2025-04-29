@@ -5,8 +5,8 @@
 
 import * as BABYLON from 'babylonjs';
 import 'babylonjs-loaders';
-import { IGeometry } from "./IGeometry";
-import { Material } from "./Material";
+import { IGeometry } from "./IGeometry.js";
+import { Material } from "./Material.js";
 import path from 'path';
 import { readFileSync } from 'fs';
 

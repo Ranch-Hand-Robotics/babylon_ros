@@ -4,7 +4,7 @@
  */
 
 import * as BABYLON from 'babylonjs';
-import { Material } from './Material';
+import { Material } from './Material.js';
 
 export interface IGeometry {
     meshes : BABYLON.AbstractMesh[] | undefined;

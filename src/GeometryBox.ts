@@ -4,8 +4,8 @@
  */
 
 import * as BABYLON from 'babylonjs';
-import { Material } from './Material';
-import { IGeometry } from "./IGeometry";
+import { Material } from './Material.js';
+import { IGeometry } from "./IGeometry.js";
 
 export class Box implements IGeometry {
     public width : number = 0;

@@ -8,6 +8,37 @@
 			"problemMatcher": [],
 			"label": "npm: build",
 			"detail": "webpack --mode development"
+		},
+		{
+			"label": "npm: dev-server-build",
+			"dependsOn": [
+				"npm: build",
+				"npm: dev-server"
+			],
+			"dependsOrder": "sequence",
+			"problemMatcher": []
+		},
+		{
+			"type": "npm",
+			"script": "dev-server",
+			"problemMatcher": {
+				"pattern": {
+					"regexp": "^.*Available on:.*$",
+					"line": 1
+				},
+				"background": {
+					"activeOnStart": true,
+					"beginsPattern": "^Starting up http-server.*$",
+					"endsPattern": "^Available on:.*$"
+				}
+			},
+			"label": "npm: dev-server",
+			"detail": "npx http-server -c-1 --cors -p 8080 .",
+			"isBackground": true,
+			"presentation": {
+				"reveal": "always",
+				"panel": "dedicated"
+			}
 		}
 	]
 }

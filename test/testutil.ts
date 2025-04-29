@@ -6,8 +6,8 @@
 import * as fs from 'node:fs/promises';
 import * as path from 'path';
 import * as BABYLON from 'babylonjs';
-import { Robot } from '../src/Robot';
-import {deserializeUrdfToRobot} from '../src/urdf'
+import { Robot } from '../src/Robot.js';
+import {deserializeUrdfToRobot} from '../src/urdf.js'
 
 export async function loadRobot(file : string) : Promise<Robot> {
   const basicUrdfFilename = path.join(__dirname, file);
