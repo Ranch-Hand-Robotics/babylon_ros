@@ -5,6 +5,21 @@ nav:
   - Home: index.md
   - Installation: installation.md
   - URDF Viewer: urdf.md
+  - API Reference:
+    - Overview: api-overview.md
+    - Core Classes:
+      - RobotScene: api/robot-scene.md
+      - Robot: api/robot.md
+      - Joint: api/joint.md
+      - Link: api/link.md
+      - Visual: api/visual.md
+      - Material: api/material.md
+    - Geometry System:
+      - Geometry Types: api/geometry.md
+    - Interactive Tools:
+      - Gizmos: api/gizmos.md
+    - Utilities:
+      - Helper Functions: api/utilities.md
 
 theme: 
   name: readthedocs
