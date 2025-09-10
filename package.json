@@ -5,7 +5,7 @@
     "url": "https://github.com/Ranch-Hand-Robotics/babylon_ros.git"
   },
   "description": "Babylon.JS abstractions for ROS 2",
-  "version": "0.1.7",
+  "version": "0.1.8",
   "main": "dist/ros.js",
   "types": "types/src/ros.d.ts",
   "exports": {
