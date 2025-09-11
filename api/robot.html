@@ -1,0 +1,395 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+    <meta charset="utf-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+      <link rel="shortcut icon" href="../img/favicon.ico" />
+    <title>Robot - Robot Developer Tools for Web</title>
+    <link rel="stylesheet" href="../css/theme.css" />
+    <link rel="stylesheet" href="../css/theme_extra.css" />
+        <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/styles/github.min.css" />
+    
+      <script>
+        // Current page data
+        var mkdocs_page_name = "Robot";
+        var mkdocs_page_input_path = "api/robot.md";
+        var mkdocs_page_url = null;
+      </script>
+    
+    <!--[if lt IE 9]>
+      <script src="../js/html5shiv.min.js"></script>
+    <![endif]-->
+      <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/highlight.min.js"></script>
+      <script>hljs.highlightAll();</script> 
+</head>
+
+<body class="wy-body-for-nav" role="document">
+
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side stickynav">
+    <div class="wy-side-scroll">
+      <div class="wy-side-nav-search">
+          <a href="../index.html" class="icon icon-home"> Robot Developer Tools for Web
+        </a><div role="search">
+  <form id ="rtd-search-form" class="wy-form" action="../search.html" method="get">
+      <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" title="Type search term here" />
+  </form>
+</div>
+      </div>
+
+      <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <ul>
+                <li class="toctree-l1"><a class="reference internal" href="../index.html">Home</a>
+                </li>
+              </ul>
+              <ul>
+                <li class="toctree-l1"><a class="reference internal" href="../installation.html">Installation</a>
+                </li>
+              </ul>
+              <ul>
+                <li class="toctree-l1"><a class="reference internal" href="../urdf.html">URDF Viewer</a>
+                </li>
+              </ul>
+              <p class="caption"><span class="caption-text">API Reference</span></p>
+              <ul class="current">
+                  <li class="toctree-l1"><a class="reference internal" href="../api-overview.html">Overview</a>
+                  </li>
+                  <li class="toctree-l1 current"><a class="reference internal current" >Core Classes</a>
+    <ul class="current">
+                <li class="toctree-l2"><a class="reference internal" href="robot-scene.html">RobotScene</a>
+                </li>
+                <li class="toctree-l2 current"><a class="reference internal current" href="#">Robot</a>
+    <ul class="current">
+    <li class="toctree-l3"><a class="reference internal" href="#constructor">Constructor</a>
+    </li>
+    <li class="toctree-l3"><a class="reference internal" href="#properties">Properties</a>
+        <ul>
+    <li class="toctree-l4"><a class="reference internal" href="#public-properties">Public Properties</a>
+    </li>
+        </ul>
+    </li>
+    <li class="toctree-l3"><a class="reference internal" href="#methods">Methods</a>
+        <ul>
+    <li class="toctree-l4"><a class="reference internal" href="#lifecycle-methods">Lifecycle Methods</a>
+    </li>
+        </ul>
+    </li>
+    <li class="toctree-l3"><a class="reference internal" href="#default-materials">Default Materials</a>
+        <ul>
+    <li class="toctree-l4"><a class="reference internal" href="#default-material">Default Material</a>
+    </li>
+    <li class="toctree-l4"><a class="reference internal" href="#collision-material">Collision Material</a>
+    </li>
+        </ul>
+    </li>
+    <li class="toctree-l3"><a class="reference internal" href="#transform-hierarchy">Transform Hierarchy</a>
+        <ul>
+    <li class="toctree-l4"><a class="reference internal" href="#coordinate-system-conversion">Coordinate System Conversion</a>
+    </li>
+        </ul>
+    </li>
+    <li class="toctree-l3"><a class="reference internal" href="#usage-examples">Usage Examples</a>
+        <ul>
+    <li class="toctree-l4"><a class="reference internal" href="#basic-robot-creation">Basic Robot Creation</a>
+    </li>
+    <li class="toctree-l4"><a class="reference internal" href="#accessing-robot-components">Accessing Robot Components</a>
+    </li>
+    <li class="toctree-l4"><a class="reference internal" href="#working-with-robot-transform">Working with Robot Transform</a>
+    </li>
+        </ul>
+    </li>
+    <li class="toctree-l3"><a class="reference internal" href="#integration-with-urdf">Integration with URDF</a>
+    </li>
+    <li class="toctree-l3"><a class="reference internal" href="#common-base-links">Common Base Links</a>
+    </li>
+    <li class="toctree-l3"><a class="reference internal" href="#error-handling">Error Handling</a>
+    </li>
+    <li class="toctree-l3"><a class="reference internal" href="#performance-considerations">Performance Considerations</a>
+    </li>
+    <li class="toctree-l3"><a class="reference internal" href="#thread-safety">Thread Safety</a>
+    </li>
+    </ul>
+                </li>
+                <li class="toctree-l2"><a class="reference internal" href="joint.html">Joint</a>
+                </li>
+                <li class="toctree-l2"><a class="reference internal" href="link.html">Link</a>
+                </li>
+                <li class="toctree-l2"><a class="reference internal" href="visual.html">Visual</a>
+                </li>
+                <li class="toctree-l2"><a class="reference internal" href="material.html">Material</a>
+                </li>
+    </ul>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" >Geometry System</a>
+    <ul>
+                <li class="toctree-l2"><a class="reference internal" href="geometry.html">Geometry Types</a>
+                </li>
+    </ul>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" >Interactive Tools</a>
+    <ul>
+                <li class="toctree-l2"><a class="reference internal" href="gizmos.html">Gizmos</a>
+                </li>
+    </ul>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" >Utilities</a>
+    <ul>
+                <li class="toctree-l2"><a class="reference internal" href="utilities.html">Helper Functions</a>
+                </li>
+    </ul>
+                  </li>
+              </ul>
+      </div>
+    </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+      <nav class="wy-nav-top" role="navigation" aria-label="Mobile navigation menu">
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../index.html">Robot Developer Tools for Web</a>
+        
+      </nav>
+      <div class="wy-nav-content">
+        <div class="rst-content"><div role="navigation" aria-label="breadcrumbs navigation">
+  <ul class="wy-breadcrumbs">
+    <li><a href="../index.html" class="icon icon-home" aria-label="Docs"></a></li>
+          <li class="breadcrumb-item">API Reference</li>
+          <li class="breadcrumb-item">Core Classes</li>
+      <li class="breadcrumb-item active">Robot</li>
+    <li class="wy-breadcrumbs-aside">
+          <a href="https://github.com/ranch-hand-robotics/babylon_ros/edit/main/docs/api/robot.md" class="icon icon-github"> Edit on GitHub</a>
+    </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+            <div class="section" itemprop="articleBody">
+              
+                <h1 id="robot-api">Robot API</h1>
+<p>The <code>Robot</code> class represents a complete robot model loaded from URDF, managing all links, joints, and materials.</p>
+<h2 id="constructor">Constructor</h2>
+<div class="highlight"><pre><span></span><code><span class="kd">const</span><span class="w"> </span><span class="nx">robot</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="ow">new</span><span class="w"> </span><span class="nx">Robot</span><span class="p">();</span>
+</code></pre></div>
+<p>Creates a new Robot instance with default materials.</p>
+<h2 id="properties">Properties</h2>
+<h3 id="public-properties">Public Properties</h3>
+<table>
+<thead>
+<tr>
+<th>Property</th>
+<th>Type</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>name</code></td>
+<td><code>string</code></td>
+<td>The robot's name</td>
+</tr>
+<tr>
+<td><code>transform</code></td>
+<td><code>BABYLON.TransformNode \| undefined</code></td>
+<td>Root transform node for the entire robot</td>
+</tr>
+<tr>
+<td><code>links</code></td>
+<td><code>Map&lt;string, Link&gt;</code></td>
+<td>Map of link names to Link objects</td>
+</tr>
+<tr>
+<td><code>joints</code></td>
+<td><code>Map&lt;string, Joint&gt;</code></td>
+<td>Map of joint names to Joint objects</td>
+</tr>
+<tr>
+<td><code>materials</code></td>
+<td><code>Map&lt;string, Material&gt;</code></td>
+<td>Map of material names to Material objects</td>
+</tr>
+</tbody>
+</table>
+<h2 id="methods">Methods</h2>
+<h3 id="lifecycle-methods">Lifecycle Methods</h3>
+<h4 id="createscene-babylonscene-void"><code>create(scene: BABYLON.Scene): void</code></h4>
+<p>Initializes the robot in the 3D scene, creating all transforms, materials, links, and joints.</p>
+<p><strong>Parameters:</strong>
+- <code>scene</code>: BABYLON.Scene - The Babylon.js scene to create the robot in</p>
+<p><strong>Behavior:</strong>
+- Creates a root transform node with ROS to Babylon.js coordinate conversion
+- Initializes all materials in the scene
+- Creates all links with their visual and collision geometries
+- Creates all joints and establishes parent-child relationships
+- Handles orphaned transforms by parenting them to the root</p>
+<p><strong>Example:</strong>
+<div class="highlight"><pre><span></span><code><span class="kd">const</span><span class="w"> </span><span class="nx">robot</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="ow">new</span><span class="w"> </span><span class="nx">Robot</span><span class="p">();</span>
+<span class="nx">robot</span><span class="p">.</span><span class="nx">name</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s2">&quot;my_robot&quot;</span><span class="p">;</span>
+<span class="nx">robot</span><span class="p">.</span><span class="nx">create</span><span class="p">(</span><span class="nx">scene</span><span class="p">);</span>
+</code></pre></div></p>
+<h4 id="dispose-void"><code>dispose(): void</code></h4>
+<p>Cleans up all resources used by the robot, including meshes, materials, and transforms.</p>
+<p><strong>Example:</strong>
+<div class="highlight"><pre><span></span><code><span class="nx">robot</span><span class="p">.</span><span class="nx">dispose</span><span class="p">();</span>
+</code></pre></div></p>
+<h2 id="default-materials">Default Materials</h2>
+<p>Every Robot instance starts with two default materials:</p>
+<h3 id="default-material">Default Material</h3>
+<ul>
+<li><strong>Name</strong>: "default"</li>
+<li><strong>Color</strong>: Gray (0.5, 0.5, 0.5, 1.0)</li>
+<li><strong>Usage</strong>: Applied to robot parts without specific material definitions</li>
+</ul>
+<h3 id="collision-material">Collision Material</h3>
+<ul>
+<li><strong>Name</strong>: "collision"</li>
+<li><strong>Type</strong>: <code>CollisionMaterial</code></li>
+<li><strong>Usage</strong>: Applied to collision geometry (typically semi-transparent)</li>
+</ul>
+<h2 id="transform-hierarchy">Transform Hierarchy</h2>
+<p>The Robot class establishes a proper transform hierarchy:</p>
+<ol>
+<li><strong>Root Transform</strong>: The robot's main transform node with ROS coordinate conversion</li>
+<li><strong>Joint Transforms</strong>: Each joint is parented to its parent link</li>
+<li><strong>Link Transforms</strong>: Each child link is parented to its joint</li>
+<li><strong>Orphaned Links</strong>: Any links without parents are automatically parented to the root</li>
+</ol>
+<h3 id="coordinate-system-conversion">Coordinate System Conversion</h3>
+<p>The robot automatically converts from ROS coordinate system to Babylon.js:
+- <strong>ROS</strong>: X-forward, Y-left, Z-up
+- <strong>Babylon.js</strong>: X-right, Y-up, Z-forward<br />
+- <strong>Conversion</strong>: Rotation of -90° around X-axis</p>
+<h2 id="usage-examples">Usage Examples</h2>
+<h3 id="basic-robot-creation">Basic Robot Creation</h3>
+<div class="highlight"><pre><span></span><code><span class="k">import</span><span class="w"> </span><span class="p">{</span><span class="w"> </span><span class="nx">Robot</span><span class="w"> </span><span class="p">}</span><span class="w"> </span><span class="kr">from</span><span class="w"> </span><span class="s1">&#39;@ranchhandrobotics/babylon_ros&#39;</span><span class="p">;</span>
+
+<span class="kd">const</span><span class="w"> </span><span class="nx">robot</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="ow">new</span><span class="w"> </span><span class="nx">Robot</span><span class="p">();</span>
+<span class="nx">robot</span><span class="p">.</span><span class="nx">name</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s2">&quot;my_robot&quot;</span><span class="p">;</span>
+
+<span class="c1">// Create in scene</span>
+<span class="nx">robot</span><span class="p">.</span><span class="nx">create</span><span class="p">(</span><span class="nx">scene</span><span class="p">);</span>
+
+<span class="c1">// Later cleanup</span>
+<span class="nx">robot</span><span class="p">.</span><span class="nx">dispose</span><span class="p">();</span>
+</code></pre></div>
+<h3 id="accessing-robot-components">Accessing Robot Components</h3>
+<div class="highlight"><pre><span></span><code><span class="c1">// Access specific link</span>
+<span class="kd">const</span><span class="w"> </span><span class="nx">baseLink</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="nx">robot</span><span class="p">.</span><span class="nx">links</span><span class="p">.</span><span class="nx">get</span><span class="p">(</span><span class="s2">&quot;base_link&quot;</span><span class="p">);</span>
+
+<span class="c1">// Access specific joint</span>
+<span class="kd">const</span><span class="w"> </span><span class="nx">wheelJoint</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="nx">robot</span><span class="p">.</span><span class="nx">joints</span><span class="p">.</span><span class="nx">get</span><span class="p">(</span><span class="s2">&quot;wheel_joint&quot;</span><span class="p">);</span>
+
+<span class="c1">// Access material</span>
+<span class="kd">const</span><span class="w"> </span><span class="nx">redMaterial</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="nx">robot</span><span class="p">.</span><span class="nx">materials</span><span class="p">.</span><span class="nx">get</span><span class="p">(</span><span class="s2">&quot;red_plastic&quot;</span><span class="p">);</span>
+
+<span class="c1">// Iterate through all links</span>
+<span class="k">for</span><span class="w"> </span><span class="p">(</span><span class="kd">const</span><span class="w"> </span><span class="p">[</span><span class="nx">name</span><span class="p">,</span><span class="w"> </span><span class="nx">link</span><span class="p">]</span><span class="w"> </span><span class="k">of</span><span class="w"> </span><span class="nx">robot</span><span class="p">.</span><span class="nx">links</span><span class="p">)</span><span class="w"> </span><span class="p">{</span>
+<span class="w">    </span><span class="nx">console</span><span class="p">.</span><span class="nx">log</span><span class="p">(</span><span class="sb">`Link: </span><span class="si">${</span><span class="nx">name</span><span class="si">}</span><span class="sb">`</span><span class="p">);</span>
+<span class="p">}</span>
+
+<span class="c1">// Iterate through all joints</span>
+<span class="k">for</span><span class="w"> </span><span class="p">(</span><span class="kd">const</span><span class="w"> </span><span class="p">[</span><span class="nx">name</span><span class="p">,</span><span class="w"> </span><span class="nx">joint</span><span class="p">]</span><span class="w"> </span><span class="k">of</span><span class="w"> </span><span class="nx">robot</span><span class="p">.</span><span class="nx">joints</span><span class="p">)</span><span class="w"> </span><span class="p">{</span>
+<span class="w">    </span><span class="nx">console</span><span class="p">.</span><span class="nx">log</span><span class="p">(</span><span class="sb">`Joint: </span><span class="si">${</span><span class="nx">name</span><span class="si">}</span><span class="sb">, Type: </span><span class="si">${</span><span class="nx">joint</span><span class="p">.</span><span class="kr">type</span><span class="si">}</span><span class="sb">`</span><span class="p">);</span>
+<span class="p">}</span>
+</code></pre></div>
+<h3 id="working-with-robot-transform">Working with Robot Transform</h3>
+<div class="highlight"><pre><span></span><code><span class="c1">// Move entire robot</span>
+<span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="nx">robot</span><span class="p">.</span><span class="nx">transform</span><span class="p">)</span><span class="w"> </span><span class="p">{</span>
+<span class="w">    </span><span class="nx">robot</span><span class="p">.</span><span class="nx">transform</span><span class="p">.</span><span class="nx">position</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="ow">new</span><span class="w"> </span><span class="nx">BABYLON</span><span class="p">.</span><span class="nx">Vector3</span><span class="p">(</span><span class="mf">1</span><span class="p">,</span><span class="w"> </span><span class="mf">0</span><span class="p">,</span><span class="w"> </span><span class="mf">0</span><span class="p">);</span>
+<span class="w">    </span><span class="nx">robot</span><span class="p">.</span><span class="nx">transform</span><span class="p">.</span><span class="nx">rotation</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="ow">new</span><span class="w"> </span><span class="nx">BABYLON</span><span class="p">.</span><span class="nx">Vector3</span><span class="p">(</span><span class="mf">0</span><span class="p">,</span><span class="w"> </span><span class="nb">Math</span><span class="p">.</span><span class="nx">PI</span><span class="o">/</span><span class="mf">4</span><span class="p">,</span><span class="w"> </span><span class="mf">0</span><span class="p">);</span>
+<span class="p">}</span>
+
+<span class="c1">// Get robot bounding box</span>
+<span class="kd">let</span><span class="w"> </span><span class="nx">min</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="ow">new</span><span class="w"> </span><span class="nx">BABYLON</span><span class="p">.</span><span class="nx">Vector3</span><span class="p">(</span><span class="kc">Infinity</span><span class="p">,</span><span class="w"> </span><span class="kc">Infinity</span><span class="p">,</span><span class="w"> </span><span class="kc">Infinity</span><span class="p">);</span>
+<span class="kd">let</span><span class="w"> </span><span class="nx">max</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="ow">new</span><span class="w"> </span><span class="nx">BABYLON</span><span class="p">.</span><span class="nx">Vector3</span><span class="p">(</span><span class="o">-</span><span class="kc">Infinity</span><span class="p">,</span><span class="w"> </span><span class="o">-</span><span class="kc">Infinity</span><span class="p">,</span><span class="w"> </span><span class="o">-</span><span class="kc">Infinity</span><span class="p">);</span>
+
+<span class="k">for</span><span class="w"> </span><span class="p">(</span><span class="kd">const</span><span class="w"> </span><span class="p">[</span><span class="nx">name</span><span class="p">,</span><span class="w"> </span><span class="nx">link</span><span class="p">]</span><span class="w"> </span><span class="k">of</span><span class="w"> </span><span class="nx">robot</span><span class="p">.</span><span class="nx">links</span><span class="p">)</span><span class="w"> </span><span class="p">{</span>
+<span class="w">    </span><span class="k">for</span><span class="w"> </span><span class="p">(</span><span class="kd">const</span><span class="w"> </span><span class="nx">visual</span><span class="w"> </span><span class="k">of</span><span class="w"> </span><span class="nx">link</span><span class="p">.</span><span class="nx">visuals</span><span class="p">)</span><span class="w"> </span><span class="p">{</span>
+<span class="w">        </span><span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="nx">visual</span><span class="p">.</span><span class="nx">mesh</span><span class="p">)</span><span class="w"> </span><span class="p">{</span>
+<span class="w">            </span><span class="kd">const</span><span class="w"> </span><span class="nx">boundingInfo</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="nx">visual</span><span class="p">.</span><span class="nx">mesh</span><span class="p">.</span><span class="nx">getBoundingInfo</span><span class="p">();</span>
+<span class="w">            </span><span class="nx">BABYLON</span><span class="p">.</span><span class="nx">Vector3</span><span class="p">.</span><span class="nx">MinimizeInPlace</span><span class="p">(</span><span class="nx">min</span><span class="p">,</span><span class="w"> </span><span class="nx">boundingInfo</span><span class="p">.</span><span class="nx">boundingBox</span><span class="p">.</span><span class="nx">minimumWorld</span><span class="p">);</span>
+<span class="w">            </span><span class="nx">BABYLON</span><span class="p">.</span><span class="nx">Vector3</span><span class="p">.</span><span class="nx">MaximizeInPlace</span><span class="p">(</span><span class="nx">max</span><span class="p">,</span><span class="w"> </span><span class="nx">boundingInfo</span><span class="p">.</span><span class="nx">boundingBox</span><span class="p">.</span><span class="nx">maximumWorld</span><span class="p">);</span>
+<span class="w">        </span><span class="p">}</span>
+<span class="w">    </span><span class="p">}</span>
+<span class="p">}</span>
+</code></pre></div>
+<h2 id="integration-with-urdf">Integration with URDF</h2>
+<p>The Robot class is typically populated from URDF data:</p>
+<div class="highlight"><pre><span></span><code><span class="k">import</span><span class="w"> </span><span class="o">*</span><span class="w"> </span><span class="kr">as</span><span class="w"> </span><span class="nx">urdf</span><span class="w"> </span><span class="kr">from</span><span class="w"> </span><span class="s1">&#39;./urdf&#39;</span><span class="p">;</span>
+
+<span class="c1">// Parse URDF and populate robot</span>
+<span class="kd">const</span><span class="w"> </span><span class="nx">urdfDoc</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="ow">new</span><span class="w"> </span><span class="nx">DOMParser</span><span class="p">().</span><span class="nx">parseFromString</span><span class="p">(</span><span class="nx">urdfText</span><span class="p">,</span><span class="w"> </span><span class="s1">&#39;text/xml&#39;</span><span class="p">);</span>
+<span class="kd">const</span><span class="w"> </span><span class="nx">robot</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="nx">urdf</span><span class="p">.</span><span class="nx">loadRobot</span><span class="p">(</span><span class="nx">urdfDoc</span><span class="p">,</span><span class="w"> </span><span class="nx">scene</span><span class="p">,</span><span class="w"> </span><span class="p">{});</span><span class="w"> </span><span class="c1">// Returns populated Robot instance</span>
+</code></pre></div>
+<h2 id="common-base-links">Common Base Links</h2>
+<p>The Robot class handles various naming conventions for base links:
+- <code>base_link</code>: Standard mobile robot base
+- <code>base_footprint</code>: Common for wheeled robots like TurtleBot
+- <code>world</code>: Used by some manufacturers like Unitree</p>
+<h2 id="error-handling">Error Handling</h2>
+<p>The Robot class provides robust error handling:
+- Handles missing parent/child relationships gracefully
+- Automatically parents orphaned transforms
+- Provides safe disposal of all resources
+- Logs warnings for malformed robot structures</p>
+<h2 id="performance-considerations">Performance Considerations</h2>
+<ul>
+<li>Large robots with many links/joints are handled efficiently</li>
+<li>Transform hierarchy is optimized for rendering performance  </li>
+<li>Material sharing reduces memory usage</li>
+<li>Proper disposal prevents memory leaks</li>
+</ul>
+<h2 id="thread-safety">Thread Safety</h2>
+<p>The Robot class is designed for single-threaded use in browser environments. All operations should be performed on the main thread.</p>
+              
+            </div>
+          </div><footer>
+    <div class="rst-footer-buttons" role="navigation" aria-label="Footer Navigation">
+        <a href="robot-scene.html" class="btn btn-neutral float-left" title="RobotScene"><span class="icon icon-circle-arrow-left"></span> Previous</a>
+        <a href="joint.html" class="btn btn-neutral float-right" title="Joint">Next <span class="icon icon-circle-arrow-right"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <!-- Copyright etc -->
+  </div>
+
+  Built with <a href="https://www.mkdocs.org/">MkDocs</a> using a <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>.
+</footer>
+          
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+
+  <div class="rst-versions" role="note" aria-label="Versions">
+  <span class="rst-current-version" data-toggle="rst-current-version">
+    
+        <span>
+          <a href="https://github.com/ranch-hand-robotics/babylon_ros" class="fa fa-github" style="color: #fcfcfc"> GitHub</a>
+        </span>
+    
+    
+      <span><a href="robot-scene.html" style="color: #fcfcfc">&laquo; Previous</a></span>
+    
+    
+      <span><a href="joint.html" style="color: #fcfcfc">Next &raquo;</a></span>
+    
+  </span>
+</div>
+    <script src="../js/jquery-3.6.0.min.js"></script>
+    <script>var base_url = "..";</script>
+    <script src="../js/theme_extra.js"></script>
+    <script src="../js/theme.js"></script>
+      <script src="../search/main.js"></script>
+    <script>
+        jQuery(function () {
+            SphinxRtdTheme.Navigation.enable(true);
+        });
+    </script>
+
+</body>
+</html>
