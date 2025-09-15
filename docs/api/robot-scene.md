@@ -131,6 +131,31 @@ robotScene.setGridProperties({
 });
 ```
 
+#### `setMirrorProperties(options: object): void`
+
+Sets mirror reflection properties for customizing the ground mirror appearance.
+
+**Parameters:**
+- `options`: object - Mirror configuration options
+  - `reflectionLevel?: number` - Strength of reflections (0-1)
+  - `alpha?: number` - Mirror transparency (0-1)
+  - `tintColor?: string` - Hex color for mirror tinting
+  - `blurKernel?: number` - Blur amount for softer reflections (0+)
+  - `roughness?: number` - Material roughness (0-1)
+  - `enabled?: boolean` - Enable/disable mirror entirely
+
+**Example:**
+```typescript
+robotScene.setMirrorProperties({
+  reflectionLevel: 0.3,
+  alpha: 0.4,
+  tintColor: "#001100",
+  blurKernel: 16,
+  roughness: 0.6,
+  enabled: true
+});
+```
+
 #### `setVisualConfig(config: object): void`
 
 Sets all visual properties at once for convenient bulk configuration.
@@ -144,6 +169,12 @@ Sets all visual properties at once for convenient bulk configuration.
   - `gridMinorOpacity?: number` - Minor grid line opacity (0-1)
   - `gridRatio?: number` - Grid line ratio
   - `majorUnitFrequency?: number` - Major grid line frequency
+  - `mirrorReflectionLevel?: number` - Mirror reflection strength (0-1)
+  - `mirrorAlpha?: number` - Mirror transparency (0-1)
+  - `mirrorTintColor?: string` - Mirror tint color (hex)
+  - `mirrorBlurKernel?: number` - Mirror blur amount (0+)
+  - `mirrorRoughness?: number` - Mirror roughness (0-1)
+  - `mirrorEnabled?: boolean` - Enable/disable mirror
 
 **Returns:** void
 
@@ -156,7 +187,13 @@ robotScene.setVisualConfig({
   gridMainColor: "#003300",
   gridMinorOpacity: 0.25,
   gridRatio: 1.2,
-  majorUnitFrequency: 8
+  majorUnitFrequency: 8,
+  mirrorReflectionLevel: 0.4,
+  mirrorAlpha: 0.6,
+  mirrorTintColor: "#002200",
+  mirrorBlurKernel: 20,
+  mirrorRoughness: 0.3,
+  mirrorEnabled: true
 });
 ```
 
@@ -270,7 +307,12 @@ robotScene.setVisualConfig({
   gridMainColor: "#002200",
   gridMinorOpacity: 0.3,
   gridRatio: 1.0,
-  majorUnitFrequency: 10
+  majorUnitFrequency: 10,
+  mirrorReflectionLevel: 0.3,
+  mirrorAlpha: 0.5,
+  mirrorTintColor: "#001100",
+  mirrorBlurKernel: 16,
+  mirrorEnabled: true
 });
 
 // Or set properties individually
@@ -280,6 +322,13 @@ robotScene.setGridProperties({
   lineColor: "#FF6600",
   mainColor: "#330000",
   minorOpacity: 0.4
+});
+robotScene.setMirrorProperties({
+  reflectionLevel: 0.2,
+  alpha: 0.3,
+  tintColor: "#001122",
+  blurKernel: 24,
+  roughness: 0.4
 });
 
 // Reset camera to frame the robot

@@ -441,6 +441,53 @@ export class RobotScene {
   }
 
   /**
+   * Sets mirror reflection properties
+   * @param options Mirror configuration options
+   */
+  public setMirrorProperties(options: {
+    reflectionLevel?: number;
+    alpha?: number;
+    tintColor?: string;
+    blurKernel?: number;
+    roughness?: number;
+    enabled?: boolean;
+  }): void {
+    if (!this.scene) return;
+
+    const mirrorGround = this.scene.getMeshByName("mirrorGround");
+    if (!mirrorGround || !mirrorGround.material || !(mirrorGround.material instanceof BABYLON.StandardMaterial)) {
+      return;
+    }
+
+    const mirrorMaterial = mirrorGround.material as BABYLON.StandardMaterial;
+
+    if (options.enabled !== undefined) {
+      mirrorGround.setEnabled(options.enabled);
+      if (!options.enabled) return; // Skip other settings if disabled
+    }
+
+    if (options.reflectionLevel !== undefined && this.mirrorTexture) {
+      this.mirrorTexture.level = Math.max(0, Math.min(1, options.reflectionLevel));
+    }
+
+    if (options.alpha !== undefined) {
+      mirrorMaterial.alpha = Math.max(0, Math.min(1, options.alpha));
+    }
+
+    if (options.tintColor !== undefined) {
+      mirrorMaterial.diffuseColor = BABYLON.Color3.FromHexString(options.tintColor);
+    }
+
+    if (options.blurKernel !== undefined && this.mirrorTexture) {
+      this.mirrorTexture.blurKernel = Math.max(0, options.blurKernel);
+    }
+
+    if (options.roughness !== undefined) {
+      mirrorMaterial.roughness = Math.max(0, Math.min(1, options.roughness));
+    }
+  }
+
+  /**
    * Sets all visual properties at once
    * @param config Complete visual configuration
    */
@@ -452,6 +499,12 @@ export class RobotScene {
     gridMinorOpacity?: number;
     gridRatio?: number;
     majorUnitFrequency?: number;
+    mirrorReflectionLevel?: number;
+    mirrorAlpha?: number;
+    mirrorTintColor?: string;
+    mirrorBlurKernel?: number;
+    mirrorRoughness?: number;
+    mirrorEnabled?: boolean;
   }): void {
     if (config.cameraRadius !== undefined) {
       this.setCameraRadius(config.cameraRadius);
@@ -471,6 +524,19 @@ export class RobotScene {
 
     if (Object.keys(gridOptions).length > 0) {
       this.setGridProperties(gridOptions);
+    }
+
+    // Set mirror properties if any are provided
+    const mirrorOptions: Parameters<typeof this.setMirrorProperties>[0] = {};
+    if (config.mirrorReflectionLevel !== undefined) mirrorOptions.reflectionLevel = config.mirrorReflectionLevel;
+    if (config.mirrorAlpha !== undefined) mirrorOptions.alpha = config.mirrorAlpha;
+    if (config.mirrorTintColor !== undefined) mirrorOptions.tintColor = config.mirrorTintColor;
+    if (config.mirrorBlurKernel !== undefined) mirrorOptions.blurKernel = config.mirrorBlurKernel;
+    if (config.mirrorRoughness !== undefined) mirrorOptions.roughness = config.mirrorRoughness;
+    if (config.mirrorEnabled !== undefined) mirrorOptions.enabled = config.mirrorEnabled;
+
+    if (Object.keys(mirrorOptions).length > 0) {
+      this.setMirrorProperties(mirrorOptions);
     }
   }
   
