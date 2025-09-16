@@ -20,8 +20,8 @@ https://ranch-hand-robotics.github.io/babylon_ros/docs/urdf-viewer.html?urdf=YOU
 ```
 
 **Example URLs:**
-- **Mule Robot**: `https://ranch-hand-robotics.github.io/babylon_ros/docs/urdf-viewer.html?urdf=https://raw.githubusercontent.com/Ranch-Hand-Robotics/babylon_ros/main/test/testdata/mule.urdf`
-- **R2 Robot**: `https://ranch-hand-robotics.github.io/babylon_ros/docs/urdf-viewer.html?urdf=https://raw.githubusercontent.com/Ranch-Hand-Robotics/babylon_ros/main/test/testdata/r2.urdf`
+- **Mule Robot**: `https://ranch-hand-robotics.github.io/babylon_ros/urdf-viewer.html?urdf=https://raw.githubusercontent.com/Ranch-Hand-Robotics/babylon_ros/main/test/testdata/mule.urdf`
+- **R2 Robot**: `https://ranch-hand-robotics.github.io/babylon_ros/urdf-viewer.html?urdf=https://raw.githubusercontent.com/Ranch-Hand-Robotics/babylon_ros/main/test/testdata/r2.urdf`
 
 This makes it easy to embed live robot visualizations in any README by simply linking to the viewer with your URDF file URL.
 
@@ -53,29 +53,28 @@ Here’s a simple example which renders a the Test Page included in this package
 <!DOCTYPE html>
 <html lang="en">
 <head>
-        <meta charset="UTF-8">
-        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <style nonce="${nonce}">
-    html,
-    body {
-    overflow: hidden;
-    width: 100%;
-    height: 100%;
-    margin: 0;
-    padding: 0;
-    }
+        html,
+        body {
+            overflow: hidden;
+            width: 100%;
+            height: 100%;
+            margin: 0;
+            padding: 0;
+        }
 
-    #renderCanvas {
-    width: 100%;
-    height: 100%;
-    touch-action: none;
-    }
-</style>
-<title>URDF Preview</title>
+        #renderCanvas {
+            width: 100%;
+            height: 100%;
+            touch-action: none;
+        }
+    </style>
+    <title>URDF Preview</title>
 </head>
 <body>
     <canvas id="renderCanvas" touch-action="none"></canvas>    
-    <script src="../node_modules/babylonjs/babylon.js"></script>
     <script src="./ros.js"></script>
     <script>
         
