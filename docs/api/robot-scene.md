@@ -82,6 +82,121 @@ Resets the camera to the default position and target based on the robot's boundi
 robotScene.resetCamera();
 ```
 
+#### `setCameraRadius(radius: number): void`
+
+Sets the camera distance from its target.
+
+**Parameters:**
+- `radius`: number - The camera distance from its target
+
+**Example:**
+```typescript
+robotScene.setCameraRadius(5.0);
+```
+
+### Visual Configuration
+
+#### `setBackgroundColor(hexColor: string): void`
+
+Sets the scene background color using a hex color string.
+
+**Parameters:**
+- `hexColor`: string - Hex color string (e.g., "#FF0000" or "FF0000")
+
+**Example:**
+```typescript
+robotScene.setBackgroundColor("#1a1a1a");
+```
+
+#### `setGridProperties(options: object): void`
+
+Sets the grid material properties for customizing the ground grid appearance.
+
+**Parameters:**
+- `options`: object - Grid configuration options
+  - `lineColor?: string` - Hex color for grid lines
+  - `mainColor?: string` - Hex color for grid background
+  - `minorOpacity?: number` - Opacity of minor grid lines (0-1)
+  - `gridRatio?: number` - Ratio between major and minor grid lines
+  - `majorUnitFrequency?: number` - Frequency of major grid lines
+
+**Example:**
+```typescript
+robotScene.setGridProperties({
+  lineColor: "#00FF00",
+  mainColor: "#004400",
+  minorOpacity: 0.3,
+  gridRatio: 1.0,
+  majorUnitFrequency: 10
+});
+```
+
+#### `setMirrorProperties(options: object): void`
+
+Sets mirror reflection properties for customizing the ground mirror appearance.
+
+**Parameters:**
+- `options`: object - Mirror configuration options
+  - `reflectionLevel?: number` - Strength of reflections (0-1)
+  - `alpha?: number` - Mirror transparency (0-1)
+  - `tintColor?: string` - Hex color for mirror tinting
+  - `blurKernel?: number` - Blur amount for softer reflections (0+)
+  - `roughness?: number` - Material roughness (0-1)
+  - `enabled?: boolean` - Enable/disable mirror entirely
+
+**Example:**
+```typescript
+robotScene.setMirrorProperties({
+  reflectionLevel: 0.3,
+  alpha: 0.4,
+  tintColor: "#001100",
+  blurKernel: 16,
+  roughness: 0.6,
+  enabled: true
+});
+```
+
+#### `setVisualConfig(config: object): void`
+
+Sets all visual properties at once for convenient bulk configuration.
+
+**Parameters:**
+- `config`: object - Complete visual configuration
+  - `cameraRadius?: number` - Camera distance from target
+  - `backgroundColor?: string` - Scene background color (hex)
+  - `gridLineColor?: string` - Grid line color (hex)
+  - `gridMainColor?: string` - Grid background color (hex)
+  - `gridMinorOpacity?: number` - Minor grid line opacity (0-1)
+  - `gridRatio?: number` - Grid line ratio
+  - `majorUnitFrequency?: number` - Major grid line frequency
+  - `mirrorReflectionLevel?: number` - Mirror reflection strength (0-1)
+  - `mirrorAlpha?: number` - Mirror transparency (0-1)
+  - `mirrorTintColor?: string` - Mirror tint color (hex)
+  - `mirrorBlurKernel?: number` - Mirror blur amount (0+)
+  - `mirrorRoughness?: number` - Mirror roughness (0-1)
+  - `mirrorEnabled?: boolean` - Enable/disable mirror
+
+**Returns:** void
+
+**Example:**
+```typescript
+robotScene.setVisualConfig({
+  cameraRadius: 8.0,
+  backgroundColor: "#2a2a2a",
+  gridLineColor: "#00AA00",
+  gridMainColor: "#003300",
+  gridMinorOpacity: 0.25,
+  gridRatio: 1.2,
+  majorUnitFrequency: 8,
+  mirrorReflectionLevel: 0.4,
+  mirrorAlpha: 0.6,
+  mirrorTintColor: "#002200",
+  mirrorBlurKernel: 20,
+  mirrorRoughness: 0.3,
+  mirrorEnabled: true
+});
+```
+
 ### Screenshot and Export
 
 #### `takeScreenshot(width?: number, height?: number): Promise<string>`
@@ -184,11 +299,67 @@ robotScene.createUI();
 const urdfContent = await fetch('path/to/robot.urdf').then(r => r.text());
 await robotScene.applyURDF(urdfContent);
 
+// Configure visual appearance using the new API
+robotScene.setVisualConfig({
+  cameraRadius: 6.0,
+  backgroundColor: "#1e1e1e",
+  gridLineColor: "#00AA00",
+  gridMainColor: "#002200",
+  gridMinorOpacity: 0.3,
+  gridRatio: 1.0,
+  majorUnitFrequency: 10,
+  mirrorReflectionLevel: 0.3,
+  mirrorAlpha: 0.5,
+  mirrorTintColor: "#001100",
+  mirrorBlurKernel: 16,
+  mirrorEnabled: true
+});
+
+// Or set properties individually
+robotScene.setBackgroundColor("#2a2a2a");
+robotScene.setCameraRadius(8.0);
+robotScene.setGridProperties({
+  lineColor: "#FF6600",
+  mainColor: "#330000",
+  minorOpacity: 0.4
+});
+robotScene.setMirrorProperties({
+  reflectionLevel: 0.2,
+  alpha: 0.3,
+  tintColor: "#001122",
+  blurKernel: 24,
+  roughness: 0.4
+});
+
 // Reset camera to frame the robot
 robotScene.resetCamera();
 
 // Take a screenshot
 const screenshot = await robotScene.takeScreenshot(1920, 1080);
+```
+
+### Migration from Direct Property Access
+
+If you were previously accessing properties directly, you can now use the new API methods:
+
+```typescript
+// OLD WAY (not recommended)
+currentRobotScene.camera.radius = message.cameraRadius;
+currentRobotScene.scene.clearColor = BABYLON.Color4.FromHexString(message.backgroundColor);
+let gm = currentRobotScene.ground.material as Materials.GridMaterial;
+gm.lineColor = BABYLON.Color3.FromHexString(message.gridMainColor);
+gm.mainColor = BABYLON.Color3.FromHexString(message.gridLineColor);
+
+// NEW WAY (recommended)
+currentRobotScene.setVisualConfig({
+  cameraRadius: message.cameraRadius,
+  backgroundColor: message.backgroundColor,
+  gridLineColor: message.gridMainColor,
+  gridMainColor: message.gridLineColor,
+  gridMinorOpacity: parseFloat(message.gridMinorOpacity),
+  gridRatio: parseFloat(message.gridRatio),
+  majorUnitFrequency: parseFloat(message.majorUnitFrequency)
+});
 ```
 
 ## Performance Considerations

@@ -28,6 +28,7 @@ export class RobotScene {
   
   public ground : BABYLON.GroundMesh | undefined = undefined;
   public camera : BABYLON.ArcRotateCamera | undefined = undefined;
+  private mirrorTexture : BABYLON.MirrorTexture | undefined = undefined;
   private statusLabel = new GUI.TextBlock();
   public readyToRender : Boolean = false;
 
@@ -62,6 +63,9 @@ export class RobotScene {
   private gridUnitsVisible: boolean = false;
   private currentGridUnit: string = "1m"; // "10cm", "1m"
   private gridUnitLabels: BABYLON.AbstractMesh[] = [];
+  
+  // Enhanced visuals properties
+  private enhancedVisualsEnabled: boolean = true;
       
 
   clearStatus() {
@@ -381,6 +385,160 @@ export class RobotScene {
       }
     }
   }
+
+  /**
+   * Sets the camera radius (distance from target)
+   * @param radius The camera distance from its target
+   */
+  public setCameraRadius(radius: number): void {
+    if (this.camera) {
+      this.camera.radius = radius;
+    }
+  }
+
+  /**
+   * Sets the scene background color
+   * @param hexColor Hex color string (e.g., "#FF0000" or "FF0000")
+   */
+  public setBackgroundColor(hexColor: string): void {
+    if (this.scene) {
+      this.scene.clearColor = BABYLON.Color4.FromHexString(hexColor);
+    }
+  }
+
+  /**
+   * Sets the grid material properties
+   * @param options Grid configuration options
+   */
+  public setGridProperties(options: {
+    lineColor?: string;
+    mainColor?: string;
+    minorOpacity?: number;
+    gridRatio?: number;
+    majorUnitFrequency?: number;
+  }): void {
+    if (!this.ground?.material || !(this.ground.material instanceof Materials.GridMaterial)) {
+      return;
+    }
+
+    const gridMaterial = this.ground.material as Materials.GridMaterial;
+
+    if (options.lineColor !== undefined) {
+      gridMaterial.lineColor = BABYLON.Color3.FromHexString(options.lineColor);
+    }
+    if (options.mainColor !== undefined) {
+      gridMaterial.mainColor = BABYLON.Color3.FromHexString(options.mainColor);
+    }
+    if (options.minorOpacity !== undefined) {
+      gridMaterial.minorUnitVisibility = options.minorOpacity;
+    }
+    if (options.gridRatio !== undefined) {
+      gridMaterial.gridRatio = options.gridRatio;
+    }
+    if (options.majorUnitFrequency !== undefined) {
+      gridMaterial.majorUnitFrequency = options.majorUnitFrequency;
+    }
+  }
+
+  /**
+   * Sets mirror reflection properties
+   * @param options Mirror configuration options
+   */
+  public setMirrorProperties(options: {
+    reflectionLevel?: number;
+    alpha?: number;
+    tintColor?: string;
+    blurKernel?: number;
+    roughness?: number;
+    enabled?: boolean;
+  }): void {
+    if (!this.scene) return;
+
+    const mirrorGround = this.scene.getMeshByName("mirrorGround");
+    if (!mirrorGround || !mirrorGround.material || !(mirrorGround.material instanceof BABYLON.StandardMaterial)) {
+      return;
+    }
+
+    const mirrorMaterial = mirrorGround.material as BABYLON.StandardMaterial;
+
+    if (options.enabled !== undefined) {
+      mirrorGround.setEnabled(options.enabled);
+      if (!options.enabled) return; // Skip other settings if disabled
+    }
+
+    if (options.reflectionLevel !== undefined && this.mirrorTexture) {
+      this.mirrorTexture.level = Math.max(0, Math.min(1, options.reflectionLevel));
+    }
+
+    if (options.alpha !== undefined) {
+      mirrorMaterial.alpha = Math.max(0, Math.min(1, options.alpha));
+    }
+
+    if (options.tintColor !== undefined) {
+      mirrorMaterial.diffuseColor = BABYLON.Color3.FromHexString(options.tintColor);
+    }
+
+    if (options.blurKernel !== undefined && this.mirrorTexture) {
+      this.mirrorTexture.blurKernel = Math.max(0, options.blurKernel);
+    }
+
+    if (options.roughness !== undefined) {
+      mirrorMaterial.roughness = Math.max(0, Math.min(1, options.roughness));
+    }
+  }
+
+  /**
+   * Sets all visual properties at once
+   * @param config Complete visual configuration
+   */
+  public setVisualConfig(config: {
+    cameraRadius?: number;
+    backgroundColor?: string;
+    gridLineColor?: string;
+    gridMainColor?: string;
+    gridMinorOpacity?: number;
+    gridRatio?: number;
+    majorUnitFrequency?: number;
+    mirrorReflectionLevel?: number;
+    mirrorAlpha?: number;
+    mirrorTintColor?: string;
+    mirrorBlurKernel?: number;
+    mirrorRoughness?: number;
+    mirrorEnabled?: boolean;
+  }): void {
+    if (config.cameraRadius !== undefined) {
+      this.setCameraRadius(config.cameraRadius);
+    }
+
+    if (config.backgroundColor !== undefined) {
+      this.setBackgroundColor(config.backgroundColor);
+    }
+
+    // Set grid properties if any are provided
+    const gridOptions: Parameters<typeof this.setGridProperties>[0] = {};
+    if (config.gridLineColor !== undefined) gridOptions.lineColor = config.gridLineColor;
+    if (config.gridMainColor !== undefined) gridOptions.mainColor = config.gridMainColor;
+    if (config.gridMinorOpacity !== undefined) gridOptions.minorOpacity = config.gridMinorOpacity;
+    if (config.gridRatio !== undefined) gridOptions.gridRatio = config.gridRatio;
+    if (config.majorUnitFrequency !== undefined) gridOptions.majorUnitFrequency = config.majorUnitFrequency;
+
+    if (Object.keys(gridOptions).length > 0) {
+      this.setGridProperties(gridOptions);
+    }
+
+    // Set mirror properties if any are provided
+    const mirrorOptions: Parameters<typeof this.setMirrorProperties>[0] = {};
+    if (config.mirrorReflectionLevel !== undefined) mirrorOptions.reflectionLevel = config.mirrorReflectionLevel;
+    if (config.mirrorAlpha !== undefined) mirrorOptions.alpha = config.mirrorAlpha;
+    if (config.mirrorTintColor !== undefined) mirrorOptions.tintColor = config.mirrorTintColor;
+    if (config.mirrorBlurKernel !== undefined) mirrorOptions.blurKernel = config.mirrorBlurKernel;
+    if (config.mirrorRoughness !== undefined) mirrorOptions.roughness = config.mirrorRoughness;
+    if (config.mirrorEnabled !== undefined) mirrorOptions.enabled = config.mirrorEnabled;
+
+    if (Object.keys(mirrorOptions).length > 0) {
+      this.setMirrorProperties(mirrorOptions);
+    }
+  }
   
   createButton(toolbar: GUI.StackPanel, name : string, text : string, scene : BABYLON.Scene, onClick : () => void) {
     const button = GUI.Button.CreateSimpleButton(name, text);
@@ -543,6 +701,18 @@ export class RobotScene {
       this.toggleGridUnits("1m");
     });
     this.menuPanel.addControl(gridUnits1mButton);
+
+    // Add enhanced visuals toggle
+    const enhancedVisualsButton = this.createMenuButton("enhancedVisuals", "Enhanced Mode", () => {
+      this.toggleEnhancedVisuals();
+    });
+    this.menuPanel.addControl(enhancedVisualsButton);
+
+    // Add mirror refresh button for debugging
+    const refreshMirrorButton = this.createMenuButton("refreshMirror", "Refresh Mirror", () => {
+      this.refreshMirror();
+    });
+    this.menuPanel.addControl(refreshMirrorButton);
   }
 
   toggleMenu() {
@@ -564,15 +734,33 @@ export class RobotScene {
     }
 
     // Use larger texture size for better text quality and to prevent clipping
-    var dynamicTexture = new BABYLON.DynamicTexture("DynamicTexture", 128, this.scene, true);
+    var dynamicTexture = new BABYLON.DynamicTexture("DynamicTexture", 512, this.scene, true);
     dynamicTexture.hasAlpha = true;
-    // Center the text and use appropriate font size
-    dynamicTexture.drawText(text, null, null, "bold 36px Arial", color, "transparent", true);
+    
+    // Enhanced text rendering with improved visibility
+    const canvas = dynamicTexture.getContext() as CanvasRenderingContext2D;
+    canvas.font = "bold 60px Arial";
+    canvas.textAlign = "center";
+    canvas.textBaseline = "middle";
+    
+    // Draw very bright, clean text without outlines
+    canvas.fillStyle = color;
+    canvas.fillText(text, 256, 256);
+    
+    dynamicTexture.update();
+    
     var plane = BABYLON.MeshBuilder.CreatePlane("TextPlane", {size: size}, this.scene);
     let material = new BABYLON.StandardMaterial("TextPlaneMaterial", this.scene);
     material.backFaceCulling = false;
     material.specularColor = new BABYLON.Color3(0, 0, 0);
     material.diffuseTexture = dynamicTexture;
+    material.alphaMode = BABYLON.Engine.ALPHA_PREMULTIPLIED;
+    
+    // Add maximum emissive color to make text glow very brightly
+    material.emissiveColor = new BABYLON.Color3(0.8, 0.8, 0.8);
+    
+    // Disable lighting so text always appears at maximum brightness
+    material.disableLighting = true;
 
     plane.material = material;
     return plane;
@@ -724,10 +912,10 @@ export class RobotScene {
         break;
     }
 
-    // Create labels for all axes using the helper function
-    this.createAxisLabels('x', range, increment, unit, labelSize, 'red');
-    this.createAxisLabels('y', range, increment, unit, labelSize, 'green');
-    this.createAxisLabels('z', range, increment, unit, labelSize, 'blue');
+    // Create labels for all axes using the helper function with maximum brightness colors
+    this.createAxisLabels('x', range, increment, unit, labelSize, '#FFAAAA'); // Maximum bright red
+    this.createAxisLabels('y', range, increment, unit, labelSize, '#AAFFAA'); // Maximum bright green
+    this.createAxisLabels('z', range, increment, unit, labelSize, '#AACCFF'); // Maximum bright blue
 
     this.gridUnitsVisible = true;
   }
@@ -740,6 +928,43 @@ export class RobotScene {
     } else {
       // Show the requested unit
       this.createGridUnits(unit);
+    }
+  }
+
+  toggleEnhancedVisuals() {
+    if (!this.scene) return;
+    
+    this.enhancedVisualsEnabled = !this.enhancedVisualsEnabled;
+    
+    // Toggle mirror ground visibility
+    const mirrorGround = this.scene.getMeshByName("mirrorGround");
+    if (mirrorGround) {
+      mirrorGround.setEnabled(this.enhancedVisualsEnabled);
+    }
+    
+    // Toggle edge fade effects
+    const edgeFade = this.scene.getMeshByName("edgeFade");
+    if (edgeFade) {
+      edgeFade.setEnabled(this.enhancedVisualsEnabled);
+    }
+    
+    // Toggle background sphere
+    const backgroundSphere = this.scene.getMeshByName("backgroundSphere");
+    if (backgroundSphere) {
+      backgroundSphere.setEnabled(this.enhancedVisualsEnabled);
+    }
+    
+    // Adjust ground material opacity based on enhanced mode
+    if (this.ground && this.ground.material instanceof Materials.GridMaterial) {
+      this.ground.material.opacity = this.enhancedVisualsEnabled ? 0.6 : 0.8;
+    }
+    
+    // Update mirror reflections when enabling enhanced visuals
+    if (this.enhancedVisualsEnabled && this.currentRobot) {
+      // Use a small delay to ensure the mirror ground is properly enabled first
+      setTimeout(() => {
+        this.updateMirrorReflections();
+      }, 100);
     }
   }
   
@@ -917,6 +1142,8 @@ export class RobotScene {
                     // Use a small delay to ensure all transforms are updated
                     setTimeout(() => {
                       this.frameModel();
+                      // Update mirror reflections after all meshes are loaded and framed
+                      this.updateMirrorReflections();
                     }, 100);
                   }
                 });
@@ -928,10 +1155,16 @@ export class RobotScene {
         
         this.currentRobot.create(this.scene);
         
+        // Update mirror reflections with robot meshes (with delay to ensure meshes are ready)
+        setTimeout(() => {
+          this.updateMirrorReflections();
+        }, 50);
+        
         // If there are no meshes to load, frame immediately (for primitive geometries only)
         if (this.pendingMeshLoads === 0 && !this.hasBeenFramed) {
           setTimeout(() => {
             this.frameModel();
+            this.updateMirrorReflections(); // Update again after framing
           }, 100);
         }
       }
@@ -1094,6 +1327,239 @@ export class RobotScene {
     return `data:image/png;base64,${base64Data}`;
   }
 
+  /**
+   * Creates enhanced lighting system for better visual quality
+   */
+  private createEnhancedLighting(): void {
+    if (!this.scene) return;
+
+    // Main directional light (sun-like)
+    const directionalLight = new BABYLON.DirectionalLight("directionalLight", new BABYLON.Vector3(-1, -1, -1), this.scene);
+    directionalLight.position = new BABYLON.Vector3(20, 20, 20);
+    directionalLight.intensity = 1.0;
+
+    // Ambient hemispheric light for soft fill
+    const hemisphericLight = new BABYLON.HemisphericLight("hemisphericLight", new BABYLON.Vector3(0, 1, 0), this.scene);
+    hemisphericLight.intensity = 0.4;
+
+    // Subtle accent lights for depth
+    const accentLight1 = new BABYLON.HemisphericLight("accentLight1", new BABYLON.Vector3(1, 0.5, 0), this.scene);
+    accentLight1.intensity = 0.2;
+    accentLight1.diffuse = new BABYLON.Color3(1, 0.9, 0.8);
+
+    const accentLight2 = new BABYLON.HemisphericLight("accentLight2", new BABYLON.Vector3(-0.5, 0, 1), this.scene);
+    accentLight2.intensity = 0.15;
+    accentLight2.diffuse = new BABYLON.Color3(0.8, 0.9, 1);
+  }
+
+  /**
+   * Creates enhanced ground with improved mirroring and visual effects
+   */
+  private createEnhancedGround(): void {
+    if (!this.scene) return;
+
+    // Create main ground plane
+    this.ground = BABYLON.MeshBuilder.CreateGround("ground", {width: 100, height: 100}, this.scene);
+    this.ground.isPickable = false;
+
+    // Enhanced grid material with better visual properties
+    const groundMaterial = new Materials.GridMaterial("groundMaterial", this.scene);
+    groundMaterial.majorUnitFrequency = 10;
+    groundMaterial.minorUnitVisibility = 0.3;
+    groundMaterial.gridRatio = 1;
+    groundMaterial.opacity = 0.6;
+    groundMaterial.useMaxLine = true;
+    
+    // Dynamic grid colors based on distance
+    const primaryColor = new BABYLON.Color3(0.2, 0.8, 0.3); // Brighter green
+    const secondaryColor = new BABYLON.Color3(0.1, 0.4, 0.15); // Darker green
+    
+    groundMaterial.lineColor = primaryColor;
+    groundMaterial.mainColor = secondaryColor;
+    
+    this.ground.material = groundMaterial;
+
+    // Create enhanced mirror ground for reflections
+    const mirrorGround = BABYLON.MeshBuilder.CreateGround("mirrorGround", {width: 100, height: 100}, this.scene);
+    mirrorGround.position.y = -0.01; // Slightly below main ground
+    mirrorGround.isPickable = false;
+
+    // Mirror material with subtle, blurred reflection
+    const mirrorMaterial = new BABYLON.StandardMaterial("mirrorMaterial", this.scene);
+    this.mirrorTexture = new BABYLON.MirrorTexture("mirrorTexture", 256, this.scene, true); // Lower resolution for softer look
+    
+    // Standard ground reflection plane
+    this.mirrorTexture.mirrorPlane = new BABYLON.Plane(0, -1, 0, 0);
+    this.mirrorTexture.renderList = []; // Will be populated with robot meshes later
+    
+    // Add blur effect to the mirror texture
+    this.mirrorTexture.blurKernel = 32; // Blur the reflection for softer appearance
+    
+    mirrorMaterial.reflectionTexture = this.mirrorTexture;
+    mirrorMaterial.reflectionTexture.level = 0.5; // Much lower reflection strength for subtlety
+    mirrorMaterial.alpha = 0.5; // More transparent
+    mirrorMaterial.diffuseColor = new BABYLON.Color3(0.05, 0.1, 0.05); // Slightly tinted dark green
+    
+    // Add some roughness to further soften the reflection
+    mirrorMaterial.roughness = 0.5;
+    mirrorMaterial.backFaceCulling = false;
+    
+    mirrorGround.material = mirrorMaterial;
+
+    // Create edge fade effect
+    this.createGroundEdgeEffects();
+  }
+
+  /**
+   * Creates fade-out effects at the edges of the ground
+   */
+  private createGroundEdgeEffects(): void {
+    if (!this.scene) return;
+
+    // Create edge fade planes
+    const edgeSize = 100;
+    const fadeHeight = 0.1;
+    
+    // Create fade material
+    const fadeMaterial = new BABYLON.StandardMaterial("fadeMaterial", this.scene);
+    fadeMaterial.diffuseColor = new BABYLON.Color3(0.05, 0.2, 0.08);
+    fadeMaterial.alpha = 0.3;
+    fadeMaterial.alphaMode = BABYLON.Engine.ALPHA_PREMULTIPLIED;
+    
+    // Create dynamic texture for gradient effect
+    const fadeTexture = new BABYLON.DynamicTexture("fadeTexture", {width: 512, height: 512}, this.scene);
+    const fadeContext = fadeTexture.getContext();
+    
+    // Create radial gradient
+    const gradient = fadeContext.createRadialGradient(256, 256, 0, 256, 256, 256);
+    gradient.addColorStop(0, "rgba(5, 50, 20, 0)");
+    gradient.addColorStop(0.7, "rgba(5, 50, 20, 0)");
+    gradient.addColorStop(0.9, "rgba(5, 50, 20, 0.3)");
+    gradient.addColorStop(1, "rgba(5, 50, 20, 0.8)");
+    
+    fadeContext.fillStyle = gradient;
+    fadeContext.fillRect(0, 0, 512, 512);
+    fadeTexture.update();
+    
+    fadeMaterial.diffuseTexture = fadeTexture;
+    
+    // Create edge fade plane
+    const edgeFade = BABYLON.MeshBuilder.CreateGround("edgeFade", {width: edgeSize * 1.2, height: edgeSize * 1.2}, this.scene);
+    edgeFade.position.y = 0.005;
+    edgeFade.material = fadeMaterial;
+    edgeFade.isPickable = false;
+  }
+
+  /**
+   * Creates enhanced background with gradient and atmosphere
+   */
+  private createEnhancedBackground(): void {
+    if (!this.scene) return;
+
+    // Create gradient background
+    const backgroundSphere = BABYLON.MeshBuilder.CreateSphere("backgroundSphere", {diameter: 500}, this.scene);
+    const backgroundMaterial = new BABYLON.StandardMaterial("backgroundMaterial", this.scene);
+    
+    // Create dynamic gradient texture
+    const gradientTexture = new BABYLON.DynamicTexture("gradientTexture", {width: 512, height: 512}, this.scene);
+    const gradientContext = gradientTexture.getContext();
+    
+    // Create vertical gradient from dark at bottom to lighter at top
+    const backgroundGradient = gradientContext.createLinearGradient(0, 0, 0, 512);
+    backgroundGradient.addColorStop(0, "#0a0a0a"); // Very dark at top
+    backgroundGradient.addColorStop(0.3, "#1a1a1a"); // Dark
+    backgroundGradient.addColorStop(0.7, "#2a2a2a"); // Medium dark
+    backgroundGradient.addColorStop(1, "#3a3a3a"); // Lighter at bottom
+    
+    gradientContext.fillStyle = backgroundGradient;
+    gradientContext.fillRect(0, 0, 512, 512);
+    gradientTexture.update();
+    
+    backgroundMaterial.diffuseTexture = gradientTexture;
+    backgroundMaterial.disableLighting = true;
+    backgroundMaterial.backFaceCulling = false;
+    
+    backgroundSphere.material = backgroundMaterial;
+    backgroundSphere.isPickable = false;
+    backgroundSphere.infiniteDistance = true;
+  }
+
+  /**
+   * Updates the mirror reflections to include current robot meshes
+   */
+  private updateMirrorReflections(): void {
+    if (!this.scene || !this.currentRobot || !this.mirrorTexture) {
+      return;
+    }
+    
+    // Clear existing render list
+    this.mirrorTexture.renderList = [];
+    let meshCount = 0;
+    
+    // Method 1: Add robot meshes via the robot's link structure
+    let linkIndex = 0;
+    this.currentRobot.links.forEach((link, linkName) => {
+      link.visuals.forEach((visual, visualIndex) => {
+        if (visual.geometry && visual.geometry.meshes) {
+          visual.geometry.meshes.forEach((mesh, meshIndex) => {
+            this.mirrorTexture!.renderList!.push(mesh);
+            meshCount++;
+          });
+        }
+      });
+      linkIndex++;
+    });
+    
+    // Method 2: Also try to find all meshes by searching the scene
+    // This is a fallback in case the robot structure doesn't capture everything
+    const allMeshes = this.scene.meshes.filter(mesh => 
+      mesh.name !== "ground" && 
+      mesh.name !== "mirrorGround" &&
+      mesh.name !== "edgeFade" &&
+      mesh.name !== "backgroundSphere" &&
+      // Exclude world axis meshes - they should not be mirrored as they are reference coordinates
+      mesh.name !== "axisX" &&
+      mesh.name !== "axisY" &&
+      mesh.name !== "axisZ" &&
+      !mesh.name.startsWith("TextPlane") && // Exclude axis labels
+      mesh.isVisible &&
+      // Additional check: exclude any mesh that's a child of the world axis
+      (!this.worldAxis || !this.isChildOfWorldAxis(mesh))
+    );
+    
+    allMeshes.forEach(mesh => {
+      if (!this.mirrorTexture!.renderList!.includes(mesh)) {
+        this.mirrorTexture!.renderList!.push(mesh);
+        meshCount++;
+      }
+    });
+    
+  }
+
+  /**
+   * Helper method to check if a mesh is a child of the world axis
+   */
+  private isChildOfWorldAxis(mesh: BABYLON.AbstractMesh): boolean {
+    if (!this.worldAxis) return false;
+    
+    let parent = mesh.parent;
+    while (parent) {
+      if (parent === this.worldAxis) {
+        return true;
+      }
+      parent = parent.parent;
+    }
+    return false;
+  }
+
+  /**
+   * Public method to manually refresh mirror reflections (for debugging)
+   */
+  public refreshMirror(): void {
+    console.log("Manually refreshing mirror...");
+    this.updateMirrorReflections();
+  }
+
   public async createScene(canvas: HTMLCanvasElement) {
     let e: any = new BABYLON.Engine(canvas, true); // Generate the BABYLON 3D engine
     this.engine = e;
@@ -1104,43 +1570,24 @@ export class RobotScene {
       BABYLON.SceneLoader.RegisterPlugin(new ColladaFileLoader.DAEFileLoader());
     }
 
-    // This creates a basic Babylon Scene object (non-mesh)
-      // Create a default ground and skybox.
-    const environment = this.scene.createDefaultEnvironment({
-      createGround: true,
-      createSkybox: false,
-      enableGroundMirror: true,
-      groundMirrorSizeRatio: 0.15
-    });
-
+    // Enhanced scene setup with improved visual effects
     this.scene.useRightHandedSystem = true;
-    this.scene.clearColor = BABYLON.Color4.FromColor3(BABYLON.Color3.Black());
-
     
-    // This creates and positions a free camera (non-mesh)
+    // Create sophisticated lighting setup
+    this.createEnhancedLighting();
+    
+    // Create custom ground with enhanced mirroring and effects
+    this.createEnhancedGround();
+    
+    // Set up camera with improved settings
     this.camera = new BABYLON.ArcRotateCamera("camera1", - Math.PI / 3, 5 * Math.PI / 12, 1, new BABYLON.Vector3(0, 0, 0), this.scene);
     this.camera.wheelDeltaPercentage = 0.01;
-    this.camera.minZ = 0.1;
-
-    const light = new BABYLON.HemisphericLight("light", new BABYLON.Vector3(0, 1, 0), this.scene);
-    const light2 = new BABYLON.HemisphericLight("light2", new BABYLON.Vector3(1, 0, 0), this.scene);
-    const light3 = new BABYLON.HemisphericLight("light3", new BABYLON.Vector3(0, 0, 1), this.scene);
-
-    // This attaches the camera to the canvas
+    this.camera.minZ = 0.05;
+    this.camera.maxZ = 1000;
     this.camera.attachControl(canvas, true);
-
-    var groundMaterial = new Materials.GridMaterial("groundMaterial", this.scene);
-    groundMaterial.majorUnitFrequency = 5;
-    groundMaterial.minorUnitVisibility = 0.5;
-    groundMaterial.gridRatio = 1;
-    groundMaterial.opacity = 0.8;
-    groundMaterial.useMaxLine = true;
-    groundMaterial.lineColor = BABYLON.Color3.Green();
-    groundMaterial.mainColor = BABYLON.Color3.Green();
-
-    this.ground = BABYLON.MeshBuilder.CreateGround("ground", {width: 50, height: 50}, this.scene);
-    this.ground.material = groundMaterial;
-    this.ground.isPickable = false;
+    
+    // Enhanced scene background with gradient
+    this.createEnhancedBackground();
   }
 }
 
