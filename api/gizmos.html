@@ -1,0 +1,585 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+    <meta charset="utf-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+      <link rel="shortcut icon" href="../img/favicon.ico" />
+    <title>Gizmos - Robot Developer Tools for Web</title>
+    <link rel="stylesheet" href="../css/theme.css" />
+    <link rel="stylesheet" href="../css/theme_extra.css" />
+        <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/styles/github.min.css" />
+    
+      <script>
+        // Current page data
+        var mkdocs_page_name = "Gizmos";
+        var mkdocs_page_input_path = "api/gizmos.md";
+        var mkdocs_page_url = null;
+      </script>
+    
+    <!--[if lt IE 9]>
+      <script src="../js/html5shiv.min.js"></script>
+    <![endif]-->
+      <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/highlight.min.js"></script>
+      <script>hljs.highlightAll();</script> 
+</head>
+
+<body class="wy-body-for-nav" role="document">
+
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side stickynav">
+    <div class="wy-side-scroll">
+      <div class="wy-side-nav-search">
+          <a href="../index.html" class="icon icon-home"> Robot Developer Tools for Web
+        </a><div role="search">
+  <form id ="rtd-search-form" class="wy-form" action="../search.html" method="get">
+      <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" title="Type search term here" />
+  </form>
+</div>
+      </div>
+
+      <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <ul>
+                <li class="toctree-l1"><a class="reference internal" href="../index.html">Home</a>
+                </li>
+              </ul>
+              <ul>
+                <li class="toctree-l1"><a class="reference internal" href="../installation.html">Installation</a>
+                </li>
+              </ul>
+              <ul>
+                <li class="toctree-l1"><a class="reference internal" href="../urdf.html">URDF Viewer</a>
+                </li>
+              </ul>
+              <p class="caption"><span class="caption-text">API Reference</span></p>
+              <ul class="current">
+                  <li class="toctree-l1"><a class="reference internal" href="../api-overview.html">Overview</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" >Core Classes</a>
+    <ul>
+                <li class="toctree-l2"><a class="reference internal" href="robot-scene.html">RobotScene</a>
+                </li>
+                <li class="toctree-l2"><a class="reference internal" href="robot.html">Robot</a>
+                </li>
+                <li class="toctree-l2"><a class="reference internal" href="joint.html">Joint</a>
+                </li>
+                <li class="toctree-l2"><a class="reference internal" href="link.html">Link</a>
+                </li>
+                <li class="toctree-l2"><a class="reference internal" href="visual.html">Visual</a>
+                </li>
+                <li class="toctree-l2"><a class="reference internal" href="material.html">Material</a>
+                </li>
+    </ul>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" >Geometry System</a>
+    <ul>
+                <li class="toctree-l2"><a class="reference internal" href="geometry.html">Geometry Types</a>
+                </li>
+    </ul>
+                  </li>
+                  <li class="toctree-l1 current"><a class="reference internal current" >Interactive Tools</a>
+    <ul class="current">
+                <li class="toctree-l2 current"><a class="reference internal current" href="#">Gizmos</a>
+    <ul class="current">
+    <li class="toctree-l3"><a class="reference internal" href="#jointpositiongizmo">JointPositionGizmo</a>
+        <ul>
+    <li class="toctree-l4"><a class="reference internal" href="#constructor">Constructor</a>
+    </li>
+    <li class="toctree-l4"><a class="reference internal" href="#properties">Properties</a>
+    </li>
+    <li class="toctree-l4"><a class="reference internal" href="#usage-example">Usage Example</a>
+    </li>
+        </ul>
+    </li>
+    <li class="toctree-l3"><a class="reference internal" href="#jointrotationgizmo">JointRotationGizmo</a>
+        <ul>
+    <li class="toctree-l4"><a class="reference internal" href="#constructor_1">Constructor</a>
+    </li>
+    <li class="toctree-l4"><a class="reference internal" href="#properties_1">Properties</a>
+    </li>
+    <li class="toctree-l4"><a class="reference internal" href="#usage-example_1">Usage Example</a>
+    </li>
+        </ul>
+    </li>
+    <li class="toctree-l3"><a class="reference internal" href="#gizmo-color-conventions">Gizmo Color Conventions</a>
+    </li>
+    <li class="toctree-l3"><a class="reference internal" href="#automatic-gizmo-creation">Automatic Gizmo Creation</a>
+    </li>
+    <li class="toctree-l3"><a class="reference internal" href="#gizmo-interaction">Gizmo Interaction</a>
+        <ul>
+    <li class="toctree-l4"><a class="reference internal" href="#drag-events">Drag Events</a>
+    </li>
+    <li class="toctree-l4"><a class="reference internal" href="#snapping-events">Snapping Events</a>
+    </li>
+        </ul>
+    </li>
+    <li class="toctree-l3"><a class="reference internal" href="#joint-limits-enforcement">Joint Limits Enforcement</a>
+        <ul>
+    <li class="toctree-l4"><a class="reference internal" href="#rotation-limits">Rotation Limits</a>
+    </li>
+    <li class="toctree-l4"><a class="reference internal" href="#position-limits">Position Limits</a>
+    </li>
+        </ul>
+    </li>
+    <li class="toctree-l3"><a class="reference internal" href="#material-states">Material States</a>
+    </li>
+    <li class="toctree-l3"><a class="reference internal" href="#performance-considerations">Performance Considerations</a>
+        <ul>
+    <li class="toctree-l4"><a class="reference internal" href="#utility-layer-management">Utility Layer Management</a>
+    </li>
+    <li class="toctree-l4"><a class="reference internal" href="#selective-gizmo-activation">Selective Gizmo Activation</a>
+    </li>
+        </ul>
+    </li>
+    <li class="toctree-l3"><a class="reference internal" href="#integration-with-robotscene">Integration with RobotScene</a>
+    </li>
+    </ul>
+                </li>
+    </ul>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" >Utilities</a>
+    <ul>
+                <li class="toctree-l2"><a class="reference internal" href="utilities.html">Helper Functions</a>
+                </li>
+    </ul>
+                  </li>
+              </ul>
+      </div>
+    </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+      <nav class="wy-nav-top" role="navigation" aria-label="Mobile navigation menu">
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../index.html">Robot Developer Tools for Web</a>
+        
+      </nav>
+      <div class="wy-nav-content">
+        <div class="rst-content"><div role="navigation" aria-label="breadcrumbs navigation">
+  <ul class="wy-breadcrumbs">
+    <li><a href="../index.html" class="icon icon-home" aria-label="Docs"></a></li>
+          <li class="breadcrumb-item">API Reference</li>
+          <li class="breadcrumb-item">Interactive Tools</li>
+      <li class="breadcrumb-item active">Gizmos</li>
+    <li class="wy-breadcrumbs-aside">
+          <a href="https://github.com/ranch-hand-robotics/babylon_ros/edit/main/docs/api/gizmos.md" class="icon icon-github"> Edit on GitHub</a>
+    </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+            <div class="section" itemprop="articleBody">
+              
+                <h1 id="gizmos-api">Gizmos API</h1>
+<p>Interactive manipulation tools for robot joints, providing visual controls for position and rotation adjustments.</p>
+<h2 id="jointpositiongizmo">JointPositionGizmo</h2>
+<p>A specialized gizmo for manipulating joint positions along their motion axis.</p>
+<h3 id="constructor">Constructor</h3>
+<div class="highlight"><pre><span></span><code><span class="kd">const</span><span class="w"> </span><span class="nx">positionGizmo</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="ow">new</span><span class="w"> </span><span class="nx">JointPositionGizmo</span><span class="p">(</span><span class="nx">joint</span><span class="p">,</span><span class="w"> </span><span class="nx">color</span><span class="p">,</span><span class="w"> </span><span class="nx">utilityLayer</span><span class="p">);</span>
+</code></pre></div>
+<p><strong>Parameters:</strong>
+- <code>joint</code>: Joint - The joint to manipulate
+- <code>color</code>: BABYLON.Color3 - Gizmo color
+- <code>utilityLayer</code>: BABYLON.UtilityLayerRenderer - Rendering layer</p>
+<h3 id="properties">Properties</h3>
+<table>
+<thead>
+<tr>
+<th>Property</th>
+<th>Type</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>dragBehavior</code></td>
+<td><code>BABYLON.PointerDragBehavior</code></td>
+<td>Handles drag interactions</td>
+</tr>
+<tr>
+<td><code>snapDistance</code></td>
+<td><code>number</code></td>
+<td>Distance snapping increment (default: 0)</td>
+</tr>
+<tr>
+<td><code>onSnapObservable</code></td>
+<td><code>BABYLON.Observable</code></td>
+<td>Event fired when snapping occurs</td>
+</tr>
+<tr>
+<td><code>associatedJoint</code></td>
+<td><code>Joint \| undefined</code></td>
+<td>The joint being manipulated</td>
+</tr>
+<tr>
+<td><code>coloredMaterial</code></td>
+<td><code>BABYLON.StandardMaterial</code></td>
+<td>Default appearance material</td>
+</tr>
+<tr>
+<td><code>hoverMaterial</code></td>
+<td><code>BABYLON.StandardMaterial</code></td>
+<td>Hover state material</td>
+</tr>
+<tr>
+<td><code>disableMaterial</code></td>
+<td><code>BABYLON.StandardMaterial</code></td>
+<td>Disabled state material</td>
+</tr>
+</tbody>
+</table>
+<h3 id="usage-example">Usage Example</h3>
+<div class="highlight"><pre><span></span><code><span class="k">import</span><span class="w"> </span><span class="p">{</span><span class="w"> </span><span class="nx">JointPositionGizmo</span><span class="w"> </span><span class="p">}</span><span class="w"> </span><span class="kr">from</span><span class="w"> </span><span class="s1">&#39;@ranchhandrobotics/babylon_ros&#39;</span><span class="p">;</span>
+
+<span class="c1">// Create position gizmo for a prismatic joint</span>
+<span class="kd">const</span><span class="w"> </span><span class="nx">linearJoint</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="nx">robot</span><span class="p">.</span><span class="nx">joints</span><span class="p">.</span><span class="nx">get</span><span class="p">(</span><span class="s2">&quot;linear_actuator&quot;</span><span class="p">);</span>
+<span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="nx">linearJoint</span><span class="w"> </span><span class="o">&amp;&amp;</span><span class="w"> </span><span class="nx">linearJoint</span><span class="p">.</span><span class="kr">type</span><span class="w"> </span><span class="o">===</span><span class="w"> </span><span class="nx">JointType</span><span class="p">.</span><span class="nx">Prismatic</span><span class="p">)</span><span class="w"> </span><span class="p">{</span>
+<span class="w">    </span><span class="kd">const</span><span class="w"> </span><span class="nx">positionGizmo</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="ow">new</span><span class="w"> </span><span class="nx">JointPositionGizmo</span><span class="p">(</span>
+<span class="w">        </span><span class="nx">linearJoint</span><span class="p">,</span>
+<span class="w">        </span><span class="nx">BABYLON</span><span class="p">.</span><span class="nx">Color3</span><span class="p">.</span><span class="nx">Blue</span><span class="p">(),</span><span class="w"> </span><span class="c1">// Blue color for Z-axis</span>
+<span class="w">        </span><span class="nx">utilityLayer</span>
+<span class="w">    </span><span class="p">);</span>
+
+<span class="w">    </span><span class="c1">// Configure snapping</span>
+<span class="w">    </span><span class="nx">positionGizmo</span><span class="p">.</span><span class="nx">snapDistance</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mf">0.01</span><span class="p">;</span><span class="w"> </span><span class="c1">// 1cm increments</span>
+
+<span class="w">    </span><span class="c1">// Listen for position changes</span>
+<span class="w">    </span><span class="nx">positionGizmo</span><span class="p">.</span><span class="nx">dragBehavior</span><span class="p">.</span><span class="nx">onDragObservable</span><span class="p">.</span><span class="nx">add</span><span class="p">(()</span><span class="w"> </span><span class="p">=&gt;</span><span class="w"> </span><span class="p">{</span>
+<span class="w">        </span><span class="nx">console</span><span class="p">.</span><span class="nx">log</span><span class="p">(</span><span class="sb">`Joint position: </span><span class="si">${</span><span class="nx">linearJoint</span><span class="p">.</span><span class="nx">transform</span><span class="o">?</span><span class="p">.</span><span class="nx">position</span><span class="si">}</span><span class="sb">`</span><span class="p">);</span>
+<span class="w">    </span><span class="p">});</span>
+
+<span class="w">    </span><span class="c1">// Attach to joint</span>
+<span class="w">    </span><span class="nx">positionGizmo</span><span class="p">.</span><span class="nx">attachedNode</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="nx">linearJoint</span><span class="p">.</span><span class="nx">transform</span><span class="p">;</span>
+<span class="p">}</span>
+</code></pre></div>
+<h2 id="jointrotationgizmo">JointRotationGizmo</h2>
+<p>A specialized gizmo for manipulating joint rotations around their axis.</p>
+<h3 id="constructor_1">Constructor</h3>
+<div class="highlight"><pre><span></span><code><span class="kd">const</span><span class="w"> </span><span class="nx">rotationGizmo</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="ow">new</span><span class="w"> </span><span class="nx">JointRotationGizmo</span><span class="p">(</span><span class="nx">joint</span><span class="p">,</span><span class="w"> </span><span class="nx">color</span><span class="p">,</span><span class="w"> </span><span class="nx">utilityLayer</span><span class="p">);</span>
+</code></pre></div>
+<p><strong>Parameters:</strong>
+- <code>joint</code>: Joint - The joint to manipulate<br />
+- <code>color</code>: BABYLON.Color3 - Gizmo color
+- <code>utilityLayer</code>: BABYLON.UtilityLayerRenderer - Rendering layer</p>
+<h3 id="properties_1">Properties</h3>
+<table>
+<thead>
+<tr>
+<th>Property</th>
+<th>Type</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>dragBehavior</code></td>
+<td><code>BABYLON.PointerDragBehavior</code></td>
+<td>Handles drag interactions</td>
+</tr>
+<tr>
+<td><code>snapDistance</code></td>
+<td><code>number</code></td>
+<td>Angular snapping increment in radians (default: 0)</td>
+</tr>
+<tr>
+<td><code>onSnapObservable</code></td>
+<td><code>BABYLON.Observable</code></td>
+<td>Event fired when snapping occurs</td>
+</tr>
+<tr>
+<td><code>angle</code></td>
+<td><code>number</code></td>
+<td>Accumulated rotation angle (reset on drag start)</td>
+</tr>
+<tr>
+<td><code>sensitivity</code></td>
+<td><code>number</code></td>
+<td>Drag sensitivity multiplier (default: 1)</td>
+</tr>
+<tr>
+<td><code>enableLimits</code></td>
+<td><code>boolean</code></td>
+<td>Whether to enforce joint limits (default: true)</td>
+</tr>
+<tr>
+<td><code>associatedJoint</code></td>
+<td><code>Joint \| undefined</code></td>
+<td>The joint being manipulated</td>
+</tr>
+<tr>
+<td><code>MaxDragAngle</code></td>
+<td><code>number</code> (static)</td>
+<td>Maximum camera angle for interaction</td>
+</tr>
+</tbody>
+</table>
+<h3 id="usage-example_1">Usage Example</h3>
+<div class="highlight"><pre><span></span><code><span class="k">import</span><span class="w"> </span><span class="p">{</span><span class="w"> </span><span class="nx">JointRotationGizmo</span><span class="w"> </span><span class="p">}</span><span class="w"> </span><span class="kr">from</span><span class="w"> </span><span class="s1">&#39;@ranchhandrobotics/babylon_ros&#39;</span><span class="p">;</span>
+
+<span class="c1">// Create rotation gizmo for a revolute joint</span>
+<span class="kd">const</span><span class="w"> </span><span class="nx">shoulderJoint</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="nx">robot</span><span class="p">.</span><span class="nx">joints</span><span class="p">.</span><span class="nx">get</span><span class="p">(</span><span class="s2">&quot;shoulder_joint&quot;</span><span class="p">);</span>
+<span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="nx">shoulderJoint</span><span class="w"> </span><span class="o">&amp;&amp;</span><span class="w"> </span><span class="nx">shoulderJoint</span><span class="p">.</span><span class="kr">type</span><span class="w"> </span><span class="o">===</span><span class="w"> </span><span class="nx">JointType</span><span class="p">.</span><span class="nx">Revolute</span><span class="p">)</span><span class="w"> </span><span class="p">{</span>
+<span class="w">    </span><span class="kd">const</span><span class="w"> </span><span class="nx">rotationGizmo</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="ow">new</span><span class="w"> </span><span class="nx">JointRotationGizmo</span><span class="p">(</span>
+<span class="w">        </span><span class="nx">shoulderJoint</span><span class="p">,</span>
+<span class="w">        </span><span class="nx">BABYLON</span><span class="p">.</span><span class="nx">Color3</span><span class="p">.</span><span class="nx">Red</span><span class="p">(),</span><span class="w"> </span><span class="c1">// Red color for X-axis rotation</span>
+<span class="w">        </span><span class="nx">utilityLayer</span>
+<span class="w">    </span><span class="p">);</span>
+
+<span class="w">    </span><span class="c1">// Configure snapping to 15-degree increments</span>
+<span class="w">    </span><span class="nx">rotationGizmo</span><span class="p">.</span><span class="nx">snapDistance</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="nb">Math</span><span class="p">.</span><span class="nx">PI</span><span class="w"> </span><span class="o">/</span><span class="w"> </span><span class="mf">12</span><span class="p">;</span><span class="w"> </span><span class="c1">// 15 degrees</span>
+
+<span class="w">    </span><span class="c1">// Enable joint limits</span>
+<span class="w">    </span><span class="nx">rotationGizmo</span><span class="p">.</span><span class="nx">enableLimits</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="kc">true</span><span class="p">;</span>
+
+<span class="w">    </span><span class="c1">// Adjust sensitivity for finer control</span>
+<span class="w">    </span><span class="nx">rotationGizmo</span><span class="p">.</span><span class="nx">sensitivity</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mf">0.5</span><span class="p">;</span>
+
+<span class="w">    </span><span class="c1">// Listen for rotation changes</span>
+<span class="w">    </span><span class="nx">rotationGizmo</span><span class="p">.</span><span class="nx">dragBehavior</span><span class="p">.</span><span class="nx">onDragObservable</span><span class="p">.</span><span class="nx">add</span><span class="p">(()</span><span class="w"> </span><span class="p">=&gt;</span><span class="w"> </span><span class="p">{</span>
+<span class="w">        </span><span class="nx">console</span><span class="p">.</span><span class="nx">log</span><span class="p">(</span><span class="sb">`Joint angle: </span><span class="si">${</span><span class="nx">rotationGizmo</span><span class="p">.</span><span class="nx">angle</span><span class="si">}</span><span class="sb"> radians`</span><span class="p">);</span>
+<span class="w">    </span><span class="p">});</span>
+
+<span class="w">    </span><span class="c1">// Attach to joint</span>
+<span class="w">    </span><span class="nx">rotationGizmo</span><span class="p">.</span><span class="nx">attachedNode</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="nx">shoulderJoint</span><span class="p">.</span><span class="nx">transform</span><span class="p">;</span>
+<span class="p">}</span>
+</code></pre></div>
+<h2 id="gizmo-color-conventions">Gizmo Color Conventions</h2>
+<p>Standard color coding for different axes and joint types:</p>
+<div class="highlight"><pre><span></span><code><span class="c1">// Axis-based colors (following RGB = XYZ convention)</span>
+<span class="kd">const</span><span class="w"> </span><span class="nx">xAxisColor</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="nx">BABYLON</span><span class="p">.</span><span class="nx">Color3</span><span class="p">.</span><span class="nx">Red</span><span class="p">();</span><span class="w">    </span><span class="c1">// X-axis: Red</span>
+<span class="kd">const</span><span class="w"> </span><span class="nx">yAxisColor</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="nx">BABYLON</span><span class="p">.</span><span class="nx">Color3</span><span class="p">.</span><span class="nx">Green</span><span class="p">();</span><span class="w">  </span><span class="c1">// Y-axis: Green  </span>
+<span class="kd">const</span><span class="w"> </span><span class="nx">zAxisColor</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="nx">BABYLON</span><span class="p">.</span><span class="nx">Color3</span><span class="p">.</span><span class="nx">Blue</span><span class="p">();</span><span class="w">   </span><span class="c1">// Z-axis: Blue</span>
+
+<span class="c1">// Joint type colors</span>
+<span class="kd">const</span><span class="w"> </span><span class="nx">revoluteColor</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="nx">BABYLON</span><span class="p">.</span><span class="nx">Color3</span><span class="p">.</span><span class="nx">Yellow</span><span class="p">();</span><span class="w">   </span><span class="c1">// Revolute joints</span>
+<span class="kd">const</span><span class="w"> </span><span class="nx">prismaticColor</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="nx">BABYLON</span><span class="p">.</span><span class="nx">Color3</span><span class="p">.</span><span class="nx">Cyan</span><span class="p">();</span><span class="w">    </span><span class="c1">// Prismatic joints</span>
+<span class="kd">const</span><span class="w"> </span><span class="nx">continuousColor</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="nx">BABYLON</span><span class="p">.</span><span class="nx">Color3</span><span class="p">.</span><span class="nx">Magenta</span><span class="p">();</span><span class="w"> </span><span class="c1">// Continuous joints</span>
+</code></pre></div>
+<h2 id="automatic-gizmo-creation">Automatic Gizmo Creation</h2>
+<p>The RobotScene class provides automatic gizmo creation based on joint properties:</p>
+<div class="highlight"><pre><span></span><code><span class="c1">// Automatic gizmo creation in RobotScene</span>
+<span class="nx">addExerciseGizmoToJoint</span><span class="p">(</span><span class="nx">joint</span><span class="o">:</span><span class="w"> </span><span class="kt">Joint</span><span class="p">,</span><span class="w"> </span><span class="nx">scene</span><span class="o">:</span><span class="w"> </span><span class="kt">BABYLON.Scene</span><span class="p">,</span><span class="w"> </span><span class="nx">layer</span><span class="o">:</span><span class="w"> </span><span class="kt">BABYLON.UtilityLayerRenderer</span><span class="p">)</span><span class="w"> </span><span class="p">{</span>
+<span class="w">    </span><span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="nx">joint</span><span class="p">.</span><span class="kr">type</span><span class="w"> </span><span class="o">===</span><span class="w"> </span><span class="nx">JointType</span><span class="p">.</span><span class="nx">Fixed</span><span class="p">)</span><span class="w"> </span><span class="p">{</span>
+<span class="w">        </span><span class="k">return</span><span class="p">;</span><span class="w"> </span><span class="c1">// No gizmo for fixed joints</span>
+<span class="w">    </span><span class="p">}</span>
+
+<span class="w">    </span><span class="k">switch</span><span class="w"> </span><span class="p">(</span><span class="nx">joint</span><span class="p">.</span><span class="kr">type</span><span class="p">)</span><span class="w"> </span><span class="p">{</span>
+<span class="w">        </span><span class="k">case</span><span class="w"> </span><span class="nx">JointType.Revolute</span><span class="o">:</span>
+<span class="w">        </span><span class="kt">case</span><span class="w"> </span><span class="nx">JointType</span><span class="p">.</span><span class="nx">Continuous</span><span class="o">:</span>
+<span class="w">            </span><span class="c1">// Create rotation gizmo based on axis</span>
+<span class="w">            </span><span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="nb">Math</span><span class="p">.</span><span class="nx">abs</span><span class="p">(</span><span class="nx">joint</span><span class="p">.</span><span class="nx">axis</span><span class="p">.</span><span class="nx">y</span><span class="p">)</span><span class="w"> </span><span class="o">&gt;</span><span class="w"> </span><span class="mf">0.5</span><span class="p">)</span><span class="w"> </span><span class="p">{</span>
+<span class="w">                </span><span class="c1">// Y-axis rotation - use green gizmo</span>
+<span class="w">                </span><span class="k">this</span><span class="p">.</span><span class="nx">planeRotationGizmo</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="ow">new</span><span class="w"> </span><span class="nx">JointRotationGizmo</span><span class="p">(</span>
+<span class="w">                    </span><span class="nx">joint</span><span class="p">,</span><span class="w"> </span><span class="nx">BABYLON</span><span class="p">.</span><span class="nx">Color3</span><span class="p">.</span><span class="nx">Green</span><span class="p">(),</span><span class="w"> </span><span class="nx">layer</span>
+<span class="w">                </span><span class="p">);</span>
+<span class="w">            </span><span class="p">}</span><span class="w"> </span><span class="k">else</span><span class="w"> </span><span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="nb">Math</span><span class="p">.</span><span class="nx">abs</span><span class="p">(</span><span class="nx">joint</span><span class="p">.</span><span class="nx">axis</span><span class="p">.</span><span class="nx">z</span><span class="p">)</span><span class="w"> </span><span class="o">&gt;</span><span class="w"> </span><span class="mf">0.5</span><span class="p">)</span><span class="w"> </span><span class="p">{</span>
+<span class="w">                </span><span class="c1">// Z-axis rotation - use blue gizmo</span>
+<span class="w">                </span><span class="k">this</span><span class="p">.</span><span class="nx">planeRotationGizmo</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="ow">new</span><span class="w"> </span><span class="nx">JointRotationGizmo</span><span class="p">(</span>
+<span class="w">                    </span><span class="nx">joint</span><span class="p">,</span><span class="w"> </span><span class="nx">BABYLON</span><span class="p">.</span><span class="nx">Color3</span><span class="p">.</span><span class="nx">Blue</span><span class="p">(),</span><span class="w"> </span><span class="nx">layer</span>
+<span class="w">                </span><span class="p">);</span>
+<span class="w">            </span><span class="p">}</span><span class="w"> </span><span class="k">else</span><span class="w"> </span><span class="p">{</span>
+<span class="w">                </span><span class="c1">// X-axis rotation - use red gizmo</span>
+<span class="w">                </span><span class="k">this</span><span class="p">.</span><span class="nx">planeRotationGizmo</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="ow">new</span><span class="w"> </span><span class="nx">JointRotationGizmo</span><span class="p">(</span>
+<span class="w">                    </span><span class="nx">joint</span><span class="p">,</span><span class="w"> </span><span class="nx">BABYLON</span><span class="p">.</span><span class="nx">Color3</span><span class="p">.</span><span class="nx">Red</span><span class="p">(),</span><span class="w"> </span><span class="nx">layer</span>
+<span class="w">                </span><span class="p">);</span>
+<span class="w">            </span><span class="p">}</span>
+<span class="w">            </span><span class="k">break</span><span class="p">;</span>
+
+<span class="w">        </span><span class="k">case</span><span class="w"> </span><span class="nx">JointType</span><span class="p">.</span><span class="nx">Prismatic</span><span class="o">:</span>
+<span class="w">            </span><span class="c1">// Create position gizmo based on axis</span>
+<span class="w">            </span><span class="k">this</span><span class="p">.</span><span class="nx">planePositionGizmo</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="ow">new</span><span class="w"> </span><span class="nx">JointPositionGizmo</span><span class="p">(</span>
+<span class="w">                </span><span class="nx">joint</span><span class="p">,</span><span class="w"> </span><span class="nx">BABYLON</span><span class="p">.</span><span class="nx">Color3</span><span class="p">.</span><span class="nx">Cyan</span><span class="p">(),</span><span class="w"> </span><span class="nx">layer</span>
+<span class="w">            </span><span class="p">);</span>
+<span class="w">            </span><span class="k">break</span><span class="p">;</span>
+<span class="w">    </span><span class="p">}</span>
+<span class="p">}</span>
+</code></pre></div>
+<h2 id="gizmo-interaction">Gizmo Interaction</h2>
+<h3 id="drag-events">Drag Events</h3>
+<p>Both gizmo types provide drag event observables:</p>
+<div class="highlight"><pre><span></span><code><span class="c1">// Position gizmo drag handling</span>
+<span class="nx">positionGizmo</span><span class="p">.</span><span class="nx">dragBehavior</span><span class="p">.</span><span class="nx">onDragStartObservable</span><span class="p">.</span><span class="nx">add</span><span class="p">(()</span><span class="w"> </span><span class="p">=&gt;</span><span class="w"> </span><span class="p">{</span>
+<span class="w">    </span><span class="nx">console</span><span class="p">.</span><span class="nx">log</span><span class="p">(</span><span class="s2">&quot;Started dragging position&quot;</span><span class="p">);</span>
+<span class="p">});</span>
+
+<span class="nx">positionGizmo</span><span class="p">.</span><span class="nx">dragBehavior</span><span class="p">.</span><span class="nx">onDragObservable</span><span class="p">.</span><span class="nx">add</span><span class="p">(()</span><span class="w"> </span><span class="p">=&gt;</span><span class="w"> </span><span class="p">{</span>
+<span class="w">    </span><span class="c1">// Update joint position</span>
+<span class="w">    </span><span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="nx">joint</span><span class="p">.</span><span class="nx">transform</span><span class="p">)</span><span class="w"> </span><span class="p">{</span>
+<span class="w">        </span><span class="kd">const</span><span class="w"> </span><span class="nx">position</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="nx">joint</span><span class="p">.</span><span class="nx">transform</span><span class="p">.</span><span class="nx">position</span><span class="p">;</span>
+<span class="w">        </span><span class="nx">console</span><span class="p">.</span><span class="nx">log</span><span class="p">(</span><span class="sb">`Position: </span><span class="si">${</span><span class="nx">position</span><span class="p">.</span><span class="nx">x</span><span class="si">}</span><span class="sb">, </span><span class="si">${</span><span class="nx">position</span><span class="p">.</span><span class="nx">y</span><span class="si">}</span><span class="sb">, </span><span class="si">${</span><span class="nx">position</span><span class="p">.</span><span class="nx">z</span><span class="si">}</span><span class="sb">`</span><span class="p">);</span>
+<span class="w">    </span><span class="p">}</span>
+<span class="p">});</span>
+
+<span class="nx">positionGizmo</span><span class="p">.</span><span class="nx">dragBehavior</span><span class="p">.</span><span class="nx">onDragEndObservable</span><span class="p">.</span><span class="nx">add</span><span class="p">(()</span><span class="w"> </span><span class="p">=&gt;</span><span class="w"> </span><span class="p">{</span>
+<span class="w">    </span><span class="nx">console</span><span class="p">.</span><span class="nx">log</span><span class="p">(</span><span class="s2">&quot;Finished dragging position&quot;</span><span class="p">);</span>
+<span class="p">});</span>
+
+<span class="c1">// Rotation gizmo drag handling  </span>
+<span class="nx">rotationGizmo</span><span class="p">.</span><span class="nx">dragBehavior</span><span class="p">.</span><span class="nx">onDragObservable</span><span class="p">.</span><span class="nx">add</span><span class="p">(()</span><span class="w"> </span><span class="p">=&gt;</span><span class="w"> </span><span class="p">{</span>
+<span class="w">    </span><span class="nx">console</span><span class="p">.</span><span class="nx">log</span><span class="p">(</span><span class="sb">`Rotation angle: </span><span class="si">${</span><span class="nx">rotationGizmo</span><span class="p">.</span><span class="nx">angle</span><span class="si">}</span><span class="sb"> radians`</span><span class="p">);</span>
+<span class="w">    </span><span class="nx">console</span><span class="p">.</span><span class="nx">log</span><span class="p">(</span><span class="sb">`Rotation degrees: </span><span class="si">${</span><span class="nx">rotationGizmo</span><span class="p">.</span><span class="nx">angle</span><span class="w"> </span><span class="o">*</span><span class="w"> </span><span class="mf">180</span><span class="w"> </span><span class="o">/</span><span class="w"> </span><span class="nb">Math</span><span class="p">.</span><span class="nx">PI</span><span class="si">}</span><span class="sb">°`</span><span class="p">);</span>
+<span class="p">});</span>
+</code></pre></div>
+<h3 id="snapping-events">Snapping Events</h3>
+<p>Handle snapping for precise control:</p>
+<div class="highlight"><pre><span></span><code><span class="c1">// Position snapping</span>
+<span class="nx">positionGizmo</span><span class="p">.</span><span class="nx">snapDistance</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mf">0.005</span><span class="p">;</span><span class="w"> </span><span class="c1">// 5mm increments</span>
+<span class="nx">positionGizmo</span><span class="p">.</span><span class="nx">onSnapObservable</span><span class="p">.</span><span class="nx">add</span><span class="p">((</span><span class="nx">snapInfo</span><span class="p">)</span><span class="w"> </span><span class="p">=&gt;</span><span class="w"> </span><span class="p">{</span>
+<span class="w">    </span><span class="nx">console</span><span class="p">.</span><span class="nx">log</span><span class="p">(</span><span class="sb">`Snapped by </span><span class="si">${</span><span class="nx">snapInfo</span><span class="p">.</span><span class="nx">snapDistance</span><span class="si">}</span><span class="sb"> units`</span><span class="p">);</span>
+<span class="p">});</span>
+
+<span class="c1">// Rotation snapping  </span>
+<span class="nx">rotationGizmo</span><span class="p">.</span><span class="nx">snapDistance</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="nb">Math</span><span class="p">.</span><span class="nx">PI</span><span class="w"> </span><span class="o">/</span><span class="w"> </span><span class="mf">36</span><span class="p">;</span><span class="w"> </span><span class="c1">// 5-degree increments</span>
+<span class="nx">rotationGizmo</span><span class="p">.</span><span class="nx">onSnapObservable</span><span class="p">.</span><span class="nx">add</span><span class="p">((</span><span class="nx">snapInfo</span><span class="p">)</span><span class="w"> </span><span class="p">=&gt;</span><span class="w"> </span><span class="p">{</span>
+<span class="w">    </span><span class="kd">const</span><span class="w"> </span><span class="nx">degrees</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="nx">snapInfo</span><span class="p">.</span><span class="nx">snapDistance</span><span class="w"> </span><span class="o">*</span><span class="w"> </span><span class="mf">180</span><span class="w"> </span><span class="o">/</span><span class="w"> </span><span class="nb">Math</span><span class="p">.</span><span class="nx">PI</span><span class="p">;</span>
+<span class="w">    </span><span class="nx">console</span><span class="p">.</span><span class="nx">log</span><span class="p">(</span><span class="sb">`Snapped by </span><span class="si">${</span><span class="nx">degrees</span><span class="si">}</span><span class="sb"> degrees`</span><span class="p">);</span>
+<span class="p">});</span>
+</code></pre></div>
+<h2 id="joint-limits-enforcement">Joint Limits Enforcement</h2>
+<h3 id="rotation-limits">Rotation Limits</h3>
+<div class="highlight"><pre><span></span><code><span class="kd">const</span><span class="w"> </span><span class="nx">rotationGizmo</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="ow">new</span><span class="w"> </span><span class="nx">JointRotationGizmo</span><span class="p">(</span><span class="nx">joint</span><span class="p">,</span><span class="w"> </span><span class="nx">color</span><span class="p">,</span><span class="w"> </span><span class="nx">layer</span><span class="p">);</span>
+
+<span class="c1">// Enable limit checking</span>
+<span class="nx">rotationGizmo</span><span class="p">.</span><span class="nx">enableLimits</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="kc">true</span><span class="p">;</span>
+
+<span class="c1">// Limits are automatically read from joint properties</span>
+<span class="nx">console</span><span class="p">.</span><span class="nx">log</span><span class="p">(</span><span class="sb">`Joint limits: </span><span class="si">${</span><span class="nx">joint</span><span class="p">.</span><span class="nx">lowerLimit</span><span class="si">}</span><span class="sb"> to </span><span class="si">${</span><span class="nx">joint</span><span class="p">.</span><span class="nx">upperLimit</span><span class="si">}</span><span class="sb"> radians`</span><span class="p">);</span>
+
+<span class="c1">// The gizmo will prevent movement beyond these limits</span>
+<span class="nx">rotationGizmo</span><span class="p">.</span><span class="nx">dragBehavior</span><span class="p">.</span><span class="nx">onDragObservable</span><span class="p">.</span><span class="nx">add</span><span class="p">(()</span><span class="w"> </span><span class="p">=&gt;</span><span class="w"> </span><span class="p">{</span>
+<span class="w">    </span><span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="nx">rotationGizmo</span><span class="p">.</span><span class="nx">enableLimits</span><span class="p">)</span><span class="w"> </span><span class="p">{</span>
+<span class="w">        </span><span class="c1">// Clamp angle to joint limits</span>
+<span class="w">        </span><span class="kd">const</span><span class="w"> </span><span class="nx">clampedAngle</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="nb">Math</span><span class="p">.</span><span class="nx">max</span><span class="p">(</span><span class="nx">joint</span><span class="p">.</span><span class="nx">lowerLimit</span><span class="p">,</span><span class="w"> </span>
+<span class="w">                           </span><span class="nb">Math</span><span class="p">.</span><span class="nx">min</span><span class="p">(</span><span class="nx">joint</span><span class="p">.</span><span class="nx">upperLimit</span><span class="p">,</span><span class="w"> </span><span class="nx">rotationGizmo</span><span class="p">.</span><span class="nx">angle</span><span class="p">));</span>
+
+<span class="w">        </span><span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="nx">clampedAngle</span><span class="w"> </span><span class="o">!==</span><span class="w"> </span><span class="nx">rotationGizmo</span><span class="p">.</span><span class="nx">angle</span><span class="p">)</span><span class="w"> </span><span class="p">{</span>
+<span class="w">            </span><span class="nx">console</span><span class="p">.</span><span class="nx">log</span><span class="p">(</span><span class="s2">&quot;Hit joint limit!&quot;</span><span class="p">);</span>
+<span class="w">        </span><span class="p">}</span>
+<span class="w">    </span><span class="p">}</span>
+<span class="p">});</span>
+</code></pre></div>
+<h3 id="position-limits">Position Limits</h3>
+<div class="highlight"><pre><span></span><code><span class="kd">const</span><span class="w"> </span><span class="nx">positionGizmo</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="ow">new</span><span class="w"> </span><span class="nx">JointPositionGizmo</span><span class="p">(</span><span class="nx">joint</span><span class="p">,</span><span class="w"> </span><span class="nx">color</span><span class="p">,</span><span class="w"> </span><span class="nx">layer</span><span class="p">);</span>
+
+<span class="c1">// For prismatic joints, limits apply to translation distance</span>
+<span class="nx">positionGizmo</span><span class="p">.</span><span class="nx">dragBehavior</span><span class="p">.</span><span class="nx">onDragObservable</span><span class="p">.</span><span class="nx">add</span><span class="p">(()</span><span class="w"> </span><span class="p">=&gt;</span><span class="w"> </span><span class="p">{</span>
+<span class="w">    </span><span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="nx">joint</span><span class="p">.</span><span class="nx">transform</span><span class="p">)</span><span class="w"> </span><span class="p">{</span>
+<span class="w">        </span><span class="kd">const</span><span class="w"> </span><span class="nx">distance</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="nx">joint</span><span class="p">.</span><span class="nx">transform</span><span class="p">.</span><span class="nx">position</span><span class="p">.</span><span class="nx">length</span><span class="p">();</span>
+
+<span class="w">        </span><span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="nx">distance</span><span class="w"> </span><span class="o">&lt;</span><span class="w"> </span><span class="nx">joint</span><span class="p">.</span><span class="nx">lowerLimit</span><span class="w"> </span><span class="o">||</span><span class="w"> </span><span class="nx">distance</span><span class="w"> </span><span class="o">&gt;</span><span class="w"> </span><span class="nx">joint</span><span class="p">.</span><span class="nx">upperLimit</span><span class="p">)</span><span class="w"> </span><span class="p">{</span>
+<span class="w">            </span><span class="nx">console</span><span class="p">.</span><span class="nx">log</span><span class="p">(</span><span class="s2">&quot;Position outside joint limits!&quot;</span><span class="p">);</span>
+<span class="w">        </span><span class="p">}</span>
+<span class="w">    </span><span class="p">}</span>
+<span class="p">});</span>
+</code></pre></div>
+<h2 id="material-states">Material States</h2>
+<p>Gizmos provide different visual states:</p>
+<div class="highlight"><pre><span></span><code><span class="c1">// Access different material states</span>
+<span class="kd">const</span><span class="w"> </span><span class="nx">gizmo</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="ow">new</span><span class="w"> </span><span class="nx">JointRotationGizmo</span><span class="p">(</span><span class="nx">joint</span><span class="p">,</span><span class="w"> </span><span class="nx">color</span><span class="p">,</span><span class="w"> </span><span class="nx">layer</span><span class="p">);</span>
+
+<span class="c1">// Default state - colored material</span>
+<span class="nx">console</span><span class="p">.</span><span class="nx">log</span><span class="p">(</span><span class="nx">gizmo</span><span class="p">.</span><span class="nx">coloredMaterial</span><span class="p">.</span><span class="nx">name</span><span class="p">);</span>
+
+<span class="c1">// Hover state - brighter/highlighted material</span>
+<span class="nx">gizmo</span><span class="p">.</span><span class="nx">_gizmoMesh</span><span class="p">.</span><span class="nx">actionManager</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="ow">new</span><span class="w"> </span><span class="nx">BABYLON</span><span class="p">.</span><span class="nx">ActionManager</span><span class="p">(</span><span class="nx">scene</span><span class="p">);</span>
+<span class="nx">gizmo</span><span class="p">.</span><span class="nx">_gizmoMesh</span><span class="p">.</span><span class="nx">actionManager</span><span class="p">.</span><span class="nx">registerAction</span><span class="p">(</span>
+<span class="w">    </span><span class="ow">new</span><span class="w"> </span><span class="nx">BABYLON</span><span class="p">.</span><span class="nx">ExecuteCodeAction</span><span class="p">(</span><span class="nx">BABYLON</span><span class="p">.</span><span class="nx">ActionManager</span><span class="p">.</span><span class="nx">OnPointerOverTrigger</span><span class="p">,</span><span class="w"> </span><span class="p">()</span><span class="w"> </span><span class="p">=&gt;</span><span class="w"> </span><span class="p">{</span>
+<span class="w">        </span><span class="nx">gizmo</span><span class="p">.</span><span class="nx">_gizmoMesh</span><span class="p">.</span><span class="nx">material</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="nx">gizmo</span><span class="p">.</span><span class="nx">hoverMaterial</span><span class="p">;</span>
+<span class="w">    </span><span class="p">})</span>
+<span class="p">);</span>
+
+<span class="c1">// Disabled state - grayed out material</span>
+<span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="nx">joint</span><span class="p">.</span><span class="kr">type</span><span class="w"> </span><span class="o">===</span><span class="w"> </span><span class="nx">JointType</span><span class="p">.</span><span class="nx">Fixed</span><span class="p">)</span><span class="w"> </span><span class="p">{</span>
+<span class="w">    </span><span class="nx">gizmo</span><span class="p">.</span><span class="nx">_gizmoMesh</span><span class="p">.</span><span class="nx">material</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="nx">gizmo</span><span class="p">.</span><span class="nx">disableMaterial</span><span class="p">;</span>
+<span class="p">}</span>
+</code></pre></div>
+<h2 id="performance-considerations">Performance Considerations</h2>
+<h3 id="utility-layer-management">Utility Layer Management</h3>
+<div class="highlight"><pre><span></span><code><span class="c1">// Use shared utility layer for multiple gizmos</span>
+<span class="kd">const</span><span class="w"> </span><span class="nx">utilityLayer</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="ow">new</span><span class="w"> </span><span class="nx">BABYLON</span><span class="p">.</span><span class="nx">UtilityLayerRenderer</span><span class="p">(</span><span class="nx">scene</span><span class="p">);</span>
+
+<span class="c1">// Create multiple gizmos on same layer</span>
+<span class="kd">const</span><span class="w"> </span><span class="nx">gizmo1</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="ow">new</span><span class="w"> </span><span class="nx">JointRotationGizmo</span><span class="p">(</span><span class="nx">joint1</span><span class="p">,</span><span class="w"> </span><span class="nx">color</span><span class="p">,</span><span class="w"> </span><span class="nx">utilityLayer</span><span class="p">);</span>
+<span class="kd">const</span><span class="w"> </span><span class="nx">gizmo2</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="ow">new</span><span class="w"> </span><span class="nx">JointPositionGizmo</span><span class="p">(</span><span class="nx">joint2</span><span class="p">,</span><span class="w"> </span><span class="nx">color</span><span class="p">,</span><span class="w"> </span><span class="nx">utilityLayer</span><span class="p">);</span>
+
+<span class="c1">// Proper cleanup</span>
+<span class="nx">gizmo1</span><span class="p">.</span><span class="nx">dispose</span><span class="p">();</span>
+<span class="nx">gizmo2</span><span class="p">.</span><span class="nx">dispose</span><span class="p">();</span>
+<span class="nx">utilityLayer</span><span class="p">.</span><span class="nx">dispose</span><span class="p">();</span>
+</code></pre></div>
+<h3 id="selective-gizmo-activation">Selective Gizmo Activation</h3>
+<div class="highlight"><pre><span></span><code><span class="c1">// Only show gizmos for selected joints</span>
+<span class="kd">function</span><span class="w"> </span><span class="nx">showGizmosForJoint</span><span class="p">(</span><span class="nx">selectedJoint</span><span class="o">:</span><span class="w"> </span><span class="kt">Joint</span><span class="p">)</span><span class="w"> </span><span class="p">{</span>
+<span class="w">    </span><span class="c1">// Clear existing gizmos</span>
+<span class="w">    </span><span class="nx">clearAllGizmos</span><span class="p">();</span>
+
+<span class="w">    </span><span class="c1">// Create gizmo only for selected joint</span>
+<span class="w">    </span><span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="nx">selectedJoint</span><span class="p">.</span><span class="kr">type</span><span class="w"> </span><span class="o">!==</span><span class="w"> </span><span class="nx">JointType</span><span class="p">.</span><span class="nx">Fixed</span><span class="p">)</span><span class="w"> </span><span class="p">{</span>
+<span class="w">        </span><span class="nx">createGizmoForJoint</span><span class="p">(</span><span class="nx">selectedJoint</span><span class="p">);</span>
+<span class="w">    </span><span class="p">}</span>
+<span class="p">}</span>
+</code></pre></div>
+<h2 id="integration-with-robotscene">Integration with RobotScene</h2>
+<p>Gizmos are typically managed by the RobotScene class:</p>
+<div class="highlight"><pre><span></span><code><span class="c1">// Toggle joint exercise mode</span>
+<span class="nx">robotScene</span><span class="p">.</span><span class="nx">clearJointExerciseGizmos</span><span class="p">();</span><span class="w"> </span><span class="c1">// Clear existing</span>
+<span class="nx">robotScene</span><span class="p">.</span><span class="nx">addExerciseGizmoToJoint</span><span class="p">(</span><span class="nx">selectedJoint</span><span class="p">,</span><span class="w"> </span><span class="nx">scene</span><span class="p">,</span><span class="w"> </span><span class="nx">utilityLayer</span><span class="p">);</span>
+
+<span class="c1">// Gizmos automatically:</span>
+<span class="c1">// - Choose appropriate type based on joint</span>
+<span class="c1">// - Use proper colors for axes</span>
+<span class="c1">// - Enforce joint limits</span>
+<span class="c1">// - Handle coordinate system conversions</span>
+</code></pre></div>
+              
+            </div>
+          </div><footer>
+    <div class="rst-footer-buttons" role="navigation" aria-label="Footer Navigation">
+        <a href="geometry.html" class="btn btn-neutral float-left" title="Geometry Types"><span class="icon icon-circle-arrow-left"></span> Previous</a>
+        <a href="utilities.html" class="btn btn-neutral float-right" title="Helper Functions">Next <span class="icon icon-circle-arrow-right"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <!-- Copyright etc -->
+  </div>
+
+  Built with <a href="https://www.mkdocs.org/">MkDocs</a> using a <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>.
+</footer>
+          
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+
+  <div class="rst-versions" role="note" aria-label="Versions">
+  <span class="rst-current-version" data-toggle="rst-current-version">
+    
+        <span>
+          <a href="https://github.com/ranch-hand-robotics/babylon_ros" class="fa fa-github" style="color: #fcfcfc"> GitHub</a>
+        </span>
+    
+    
+      <span><a href="geometry.html" style="color: #fcfcfc">&laquo; Previous</a></span>
+    
+    
+      <span><a href="utilities.html" style="color: #fcfcfc">Next &raquo;</a></span>
+    
+  </span>
+</div>
+    <script src="../js/jquery-3.6.0.min.js"></script>
+    <script>var base_url = "..";</script>
+    <script src="../js/theme_extra.js"></script>
+    <script src="../js/theme.js"></script>
+      <script src="../search/main.js"></script>
+    <script>
+        jQuery(function () {
+            SphinxRtdTheme.Navigation.enable(true);
+        });
+    </script>
+
+</body>
+</html>

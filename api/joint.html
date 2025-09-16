@@ -1,0 +1,476 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+    <meta charset="utf-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+      <link rel="shortcut icon" href="../img/favicon.ico" />
+    <title>Joint - Robot Developer Tools for Web</title>
+    <link rel="stylesheet" href="../css/theme.css" />
+    <link rel="stylesheet" href="../css/theme_extra.css" />
+        <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/styles/github.min.css" />
+    
+      <script>
+        // Current page data
+        var mkdocs_page_name = "Joint";
+        var mkdocs_page_input_path = "api/joint.md";
+        var mkdocs_page_url = null;
+      </script>
+    
+    <!--[if lt IE 9]>
+      <script src="../js/html5shiv.min.js"></script>
+    <![endif]-->
+      <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/highlight.min.js"></script>
+      <script>hljs.highlightAll();</script> 
+</head>
+
+<body class="wy-body-for-nav" role="document">
+
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side stickynav">
+    <div class="wy-side-scroll">
+      <div class="wy-side-nav-search">
+          <a href="../index.html" class="icon icon-home"> Robot Developer Tools for Web
+        </a><div role="search">
+  <form id ="rtd-search-form" class="wy-form" action="../search.html" method="get">
+      <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" title="Type search term here" />
+  </form>
+</div>
+      </div>
+
+      <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <ul>
+                <li class="toctree-l1"><a class="reference internal" href="../index.html">Home</a>
+                </li>
+              </ul>
+              <ul>
+                <li class="toctree-l1"><a class="reference internal" href="../installation.html">Installation</a>
+                </li>
+              </ul>
+              <ul>
+                <li class="toctree-l1"><a class="reference internal" href="../urdf.html">URDF Viewer</a>
+                </li>
+              </ul>
+              <p class="caption"><span class="caption-text">API Reference</span></p>
+              <ul class="current">
+                  <li class="toctree-l1"><a class="reference internal" href="../api-overview.html">Overview</a>
+                  </li>
+                  <li class="toctree-l1 current"><a class="reference internal current" >Core Classes</a>
+    <ul class="current">
+                <li class="toctree-l2"><a class="reference internal" href="robot-scene.html">RobotScene</a>
+                </li>
+                <li class="toctree-l2"><a class="reference internal" href="robot.html">Robot</a>
+                </li>
+                <li class="toctree-l2 current"><a class="reference internal current" href="#">Joint</a>
+    <ul class="current">
+    <li class="toctree-l3"><a class="reference internal" href="#jointtype-enum">JointType Enum</a>
+    </li>
+    <li class="toctree-l3"><a class="reference internal" href="#constructor">Constructor</a>
+    </li>
+    <li class="toctree-l3"><a class="reference internal" href="#properties">Properties</a>
+        <ul>
+    <li class="toctree-l4"><a class="reference internal" href="#public-properties">Public Properties</a>
+    </li>
+        </ul>
+    </li>
+    <li class="toctree-l3"><a class="reference internal" href="#methods">Methods</a>
+        <ul>
+    <li class="toctree-l4"><a class="reference internal" href="#lifecycle-methods">Lifecycle Methods</a>
+    </li>
+        </ul>
+    </li>
+    <li class="toctree-l3"><a class="reference internal" href="#usage-examples">Usage Examples</a>
+        <ul>
+    <li class="toctree-l4"><a class="reference internal" href="#creating-a-revolute-joint">Creating a Revolute Joint</a>
+    </li>
+    <li class="toctree-l4"><a class="reference internal" href="#creating-a-prismatic-joint">Creating a Prismatic Joint</a>
+    </li>
+    <li class="toctree-l4"><a class="reference internal" href="#accessing-joint-properties">Accessing Joint Properties</a>
+    </li>
+        </ul>
+    </li>
+    <li class="toctree-l3"><a class="reference internal" href="#joint-types-in-detail">Joint Types in Detail</a>
+        <ul>
+    <li class="toctree-l4"><a class="reference internal" href="#fixed-joints">Fixed Joints</a>
+    </li>
+    <li class="toctree-l4"><a class="reference internal" href="#revolute-joints">Revolute Joints</a>
+    </li>
+    <li class="toctree-l4"><a class="reference internal" href="#continuous-joints">Continuous Joints</a>
+    </li>
+    <li class="toctree-l4"><a class="reference internal" href="#prismatic-joints">Prismatic Joints</a>
+    </li>
+        </ul>
+    </li>
+    <li class="toctree-l3"><a class="reference internal" href="#coordinate-systems">Coordinate Systems</a>
+        <ul>
+    <li class="toctree-l4"><a class="reference internal" href="#origin-and-position">Origin and Position</a>
+    </li>
+    <li class="toctree-l4"><a class="reference internal" href="#roll-pitch-yaw-rpy">Roll-Pitch-Yaw (RPY)</a>
+    </li>
+    <li class="toctree-l4"><a class="reference internal" href="#axis-vector">Axis Vector</a>
+    </li>
+        </ul>
+    </li>
+    <li class="toctree-l3"><a class="reference internal" href="#limits-and-constraints">Limits and Constraints</a>
+        <ul>
+    <li class="toctree-l4"><a class="reference internal" href="#motion-limits">Motion Limits</a>
+    </li>
+    <li class="toctree-l4"><a class="reference internal" href="#limit-examples">Limit Examples</a>
+    </li>
+        </ul>
+    </li>
+    <li class="toctree-l3"><a class="reference internal" href="#integration-with-robot">Integration with Robot</a>
+    </li>
+    <li class="toctree-l3"><a class="reference internal" href="#transform-hierarchy">Transform Hierarchy</a>
+    </li>
+    </ul>
+                </li>
+                <li class="toctree-l2"><a class="reference internal" href="link.html">Link</a>
+                </li>
+                <li class="toctree-l2"><a class="reference internal" href="visual.html">Visual</a>
+                </li>
+                <li class="toctree-l2"><a class="reference internal" href="material.html">Material</a>
+                </li>
+    </ul>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" >Geometry System</a>
+    <ul>
+                <li class="toctree-l2"><a class="reference internal" href="geometry.html">Geometry Types</a>
+                </li>
+    </ul>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" >Interactive Tools</a>
+    <ul>
+                <li class="toctree-l2"><a class="reference internal" href="gizmos.html">Gizmos</a>
+                </li>
+    </ul>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" >Utilities</a>
+    <ul>
+                <li class="toctree-l2"><a class="reference internal" href="utilities.html">Helper Functions</a>
+                </li>
+    </ul>
+                  </li>
+              </ul>
+      </div>
+    </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+      <nav class="wy-nav-top" role="navigation" aria-label="Mobile navigation menu">
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../index.html">Robot Developer Tools for Web</a>
+        
+      </nav>
+      <div class="wy-nav-content">
+        <div class="rst-content"><div role="navigation" aria-label="breadcrumbs navigation">
+  <ul class="wy-breadcrumbs">
+    <li><a href="../index.html" class="icon icon-home" aria-label="Docs"></a></li>
+          <li class="breadcrumb-item">API Reference</li>
+          <li class="breadcrumb-item">Core Classes</li>
+      <li class="breadcrumb-item active">Joint</li>
+    <li class="wy-breadcrumbs-aside">
+          <a href="https://github.com/ranch-hand-robotics/babylon_ros/edit/main/docs/api/joint.md" class="icon icon-github"> Edit on GitHub</a>
+    </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+            <div class="section" itemprop="articleBody">
+              
+                <h1 id="joint-api">Joint API</h1>
+<p>The <code>Joint</code> class represents a robotic joint that connects two links and defines their relative motion constraints.</p>
+<h2 id="jointtype-enum">JointType Enum</h2>
+<div class="highlight"><pre><span></span><code><span class="kd">enum</span><span class="w"> </span><span class="nx">JointType</span><span class="w"> </span><span class="p">{</span>
+<span class="w">    </span><span class="nx">Fixed</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s2">&quot;fixed&quot;</span><span class="p">,</span>
+<span class="w">    </span><span class="nx">Revolute</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s2">&quot;revolute&quot;</span><span class="p">,</span><span class="w"> </span>
+<span class="w">    </span><span class="nx">Continuous</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s2">&quot;continuous&quot;</span><span class="p">,</span>
+<span class="w">    </span><span class="nx">Prismatic</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s2">&quot;prismatic&quot;</span><span class="p">,</span>
+<span class="w">    </span><span class="nx">Floating</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s2">&quot;floating&quot;</span><span class="p">,</span>
+<span class="w">    </span><span class="nx">Planar</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s2">&quot;planar&quot;</span>
+<span class="p">}</span>
+</code></pre></div>
+<p>Defines the types of joints supported:
+- <strong>Fixed</strong>: No relative motion allowed
+- <strong>Revolute</strong>: Rotation around a single axis with limits
+- <strong>Continuous</strong>: Unlimited rotation around a single axis<br />
+- <strong>Prismatic</strong>: Linear motion along a single axis
+- <strong>Floating</strong>: 6 degrees of freedom (not commonly used)
+- <strong>Planar</strong>: Motion in a 2D plane (not commonly used)</p>
+<h2 id="constructor">Constructor</h2>
+<div class="highlight"><pre><span></span><code><span class="kd">const</span><span class="w"> </span><span class="nx">joint</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="ow">new</span><span class="w"> </span><span class="nx">Joint</span><span class="p">();</span>
+</code></pre></div>
+<p>Creates a new Joint instance with default values.</p>
+<h2 id="properties">Properties</h2>
+<h3 id="public-properties">Public Properties</h3>
+<table>
+<thead>
+<tr>
+<th>Property</th>
+<th>Type</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>name</code></td>
+<td><code>string</code></td>
+<td>The joint's unique name</td>
+</tr>
+<tr>
+<td><code>type</code></td>
+<td><code>JointType</code></td>
+<td>The type of joint motion</td>
+</tr>
+<tr>
+<td><code>origin</code></td>
+<td><code>BABYLON.Vector3</code></td>
+<td>Position offset from parent link</td>
+</tr>
+<tr>
+<td><code>rpy</code></td>
+<td><code>BABYLON.Vector3</code></td>
+<td>Roll, pitch, yaw rotation (in radians)</td>
+</tr>
+<tr>
+<td><code>axis</code></td>
+<td><code>BABYLON.Vector3</code></td>
+<td>Axis of rotation/translation</td>
+</tr>
+<tr>
+<td><code>transform</code></td>
+<td><code>BABYLON.TransformNode \| undefined</code></td>
+<td>The 3D transform node</td>
+</tr>
+<tr>
+<td><code>parentName</code></td>
+<td><code>string</code></td>
+<td>Name of the parent link</td>
+</tr>
+<tr>
+<td><code>childName</code></td>
+<td><code>string</code></td>
+<td>Name of the child link</td>
+</tr>
+<tr>
+<td><code>parent</code></td>
+<td><code>Link \| undefined</code></td>
+<td>Reference to parent link object</td>
+</tr>
+<tr>
+<td><code>child</code></td>
+<td><code>Link \| undefined</code></td>
+<td>Reference to child link object</td>
+</tr>
+<tr>
+<td><code>lowerLimit</code></td>
+<td><code>number</code></td>
+<td>Lower motion limit (radians or meters)</td>
+</tr>
+<tr>
+<td><code>upperLimit</code></td>
+<td><code>number</code></td>
+<td>Upper motion limit (radians or meters)</td>
+</tr>
+</tbody>
+</table>
+<h2 id="methods">Methods</h2>
+<h3 id="lifecycle-methods">Lifecycle Methods</h3>
+<h4 id="createscene-babylonscene-materialmap-mapstring-material-void"><code>create(scene: BABYLON.Scene, materialMap: Map&lt;string, Material&gt;): void</code></h4>
+<p>Creates the joint's transform node in the 3D scene and applies positioning.</p>
+<p><strong>Parameters:</strong>
+- <code>scene</code>: BABYLON.Scene - The Babylon.js scene
+- <code>materialMap</code>: Map<string, Material> - Available materials (not used by joints)</p>
+<p><strong>Behavior:</strong>
+- Creates a TransformNode with the joint's name
+- Applies the origin position
+- Applies roll-pitch-yaw rotation using utility functions</p>
+<p><strong>Example:</strong>
+<div class="highlight"><pre><span></span><code><span class="nx">joint</span><span class="p">.</span><span class="nx">create</span><span class="p">(</span><span class="nx">scene</span><span class="p">,</span><span class="w"> </span><span class="nx">materialMap</span><span class="p">);</span>
+</code></pre></div></p>
+<h4 id="dispose-void"><code>dispose(): void</code></h4>
+<p>Cleans up the joint's transform node and releases resources.</p>
+<p><strong>Example:</strong>
+<div class="highlight"><pre><span></span><code><span class="nx">joint</span><span class="p">.</span><span class="nx">dispose</span><span class="p">();</span>
+</code></pre></div></p>
+<h2 id="usage-examples">Usage Examples</h2>
+<h3 id="creating-a-revolute-joint">Creating a Revolute Joint</h3>
+<div class="highlight"><pre><span></span><code><span class="k">import</span><span class="w"> </span><span class="p">{</span><span class="w"> </span><span class="nx">Joint</span><span class="p">,</span><span class="w"> </span><span class="nx">JointType</span><span class="w"> </span><span class="p">}</span><span class="w"> </span><span class="kr">from</span><span class="w"> </span><span class="s1">&#39;@ranchhandrobotics/babylon_ros&#39;</span><span class="p">;</span>
+
+<span class="kd">const</span><span class="w"> </span><span class="nx">wheelJoint</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="ow">new</span><span class="w"> </span><span class="nx">Joint</span><span class="p">();</span>
+<span class="nx">wheelJoint</span><span class="p">.</span><span class="nx">name</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s2">&quot;wheel_joint&quot;</span><span class="p">;</span>
+<span class="nx">wheelJoint</span><span class="p">.</span><span class="kr">type</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="nx">JointType</span><span class="p">.</span><span class="nx">Revolute</span><span class="p">;</span>
+<span class="nx">wheelJoint</span><span class="p">.</span><span class="nx">origin</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="ow">new</span><span class="w"> </span><span class="nx">BABYLON</span><span class="p">.</span><span class="nx">Vector3</span><span class="p">(</span><span class="mf">0</span><span class="p">,</span><span class="w"> </span><span class="mf">0</span><span class="p">,</span><span class="w"> </span><span class="mf">0.1</span><span class="p">);</span><span class="w"> </span><span class="c1">// 10cm offset</span>
+<span class="nx">wheelJoint</span><span class="p">.</span><span class="nx">axis</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="ow">new</span><span class="w"> </span><span class="nx">BABYLON</span><span class="p">.</span><span class="nx">Vector3</span><span class="p">(</span><span class="mf">0</span><span class="p">,</span><span class="w"> </span><span class="mf">1</span><span class="p">,</span><span class="w"> </span><span class="mf">0</span><span class="p">);</span><span class="w"> </span><span class="c1">// Y-axis rotation</span>
+<span class="nx">wheelJoint</span><span class="p">.</span><span class="nx">lowerLimit</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="o">-</span><span class="nb">Math</span><span class="p">.</span><span class="nx">PI</span><span class="p">;</span><span class="w"> </span><span class="c1">// -180 degrees</span>
+<span class="nx">wheelJoint</span><span class="p">.</span><span class="nx">upperLimit</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="nb">Math</span><span class="p">.</span><span class="nx">PI</span><span class="p">;</span><span class="w">  </span><span class="c1">// +180 degrees</span>
+
+<span class="nx">wheelJoint</span><span class="p">.</span><span class="nx">create</span><span class="p">(</span><span class="nx">scene</span><span class="p">,</span><span class="w"> </span><span class="nx">materialMap</span><span class="p">);</span>
+</code></pre></div>
+<h3 id="creating-a-prismatic-joint">Creating a Prismatic Joint</h3>
+<div class="highlight"><pre><span></span><code><span class="kd">const</span><span class="w"> </span><span class="nx">linearJoint</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="ow">new</span><span class="w"> </span><span class="nx">Joint</span><span class="p">();</span>
+<span class="nx">linearJoint</span><span class="p">.</span><span class="nx">name</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s2">&quot;linear_actuator&quot;</span><span class="p">;</span>
+<span class="nx">linearJoint</span><span class="p">.</span><span class="kr">type</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="nx">JointType</span><span class="p">.</span><span class="nx">Prismatic</span><span class="p">;</span>
+<span class="nx">linearJoint</span><span class="p">.</span><span class="nx">axis</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="ow">new</span><span class="w"> </span><span class="nx">BABYLON</span><span class="p">.</span><span class="nx">Vector3</span><span class="p">(</span><span class="mf">0</span><span class="p">,</span><span class="w"> </span><span class="mf">0</span><span class="p">,</span><span class="w"> </span><span class="mf">1</span><span class="p">);</span><span class="w"> </span><span class="c1">// Z-axis translation</span>
+<span class="nx">linearJoint</span><span class="p">.</span><span class="nx">lowerLimit</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mf">0</span><span class="p">;</span><span class="w">    </span><span class="c1">// 0 meters</span>
+<span class="nx">linearJoint</span><span class="p">.</span><span class="nx">upperLimit</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mf">0.5</span><span class="p">;</span><span class="w">  </span><span class="c1">// 50cm extension</span>
+
+<span class="nx">linearJoint</span><span class="p">.</span><span class="nx">create</span><span class="p">(</span><span class="nx">scene</span><span class="p">,</span><span class="w"> </span><span class="nx">materialMap</span><span class="p">);</span>
+</code></pre></div>
+<h3 id="accessing-joint-properties">Accessing Joint Properties</h3>
+<div class="highlight"><pre><span></span><code><span class="c1">// Check joint type</span>
+<span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="nx">joint</span><span class="p">.</span><span class="kr">type</span><span class="w"> </span><span class="o">===</span><span class="w"> </span><span class="nx">JointType</span><span class="p">.</span><span class="nx">Revolute</span><span class="p">)</span><span class="w"> </span><span class="p">{</span>
+<span class="w">    </span><span class="nx">console</span><span class="p">.</span><span class="nx">log</span><span class="p">(</span><span class="sb">`Revolute joint with limits: </span><span class="si">${</span><span class="nx">joint</span><span class="p">.</span><span class="nx">lowerLimit</span><span class="si">}</span><span class="sb"> to </span><span class="si">${</span><span class="nx">joint</span><span class="p">.</span><span class="nx">upperLimit</span><span class="si">}</span><span class="sb">`</span><span class="p">);</span>
+<span class="p">}</span>
+
+<span class="c1">// Get joint position in world coordinates</span>
+<span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="nx">joint</span><span class="p">.</span><span class="nx">transform</span><span class="p">)</span><span class="w"> </span><span class="p">{</span>
+<span class="w">    </span><span class="kd">const</span><span class="w"> </span><span class="nx">worldPosition</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="nx">joint</span><span class="p">.</span><span class="nx">transform</span><span class="p">.</span><span class="nx">getAbsolutePosition</span><span class="p">();</span>
+<span class="w">    </span><span class="nx">console</span><span class="p">.</span><span class="nx">log</span><span class="p">(</span><span class="sb">`Joint world position: </span><span class="si">${</span><span class="nx">worldPosition</span><span class="si">}</span><span class="sb">`</span><span class="p">);</span>
+<span class="p">}</span>
+
+<span class="c1">// Check parent-child relationships</span>
+<span class="nx">console</span><span class="p">.</span><span class="nx">log</span><span class="p">(</span><span class="sb">`</span><span class="si">${</span><span class="nx">joint</span><span class="p">.</span><span class="nx">name</span><span class="si">}</span><span class="sb"> connects </span><span class="si">${</span><span class="nx">joint</span><span class="p">.</span><span class="nx">parentName</span><span class="si">}</span><span class="sb"> to </span><span class="si">${</span><span class="nx">joint</span><span class="p">.</span><span class="nx">childName</span><span class="si">}</span><span class="sb">`</span><span class="p">);</span>
+</code></pre></div>
+<h2 id="joint-types-in-detail">Joint Types in Detail</h2>
+<h3 id="fixed-joints">Fixed Joints</h3>
+<div class="highlight"><pre><span></span><code><span class="nx">joint</span><span class="p">.</span><span class="kr">type</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="nx">JointType</span><span class="p">.</span><span class="nx">Fixed</span><span class="p">;</span>
+<span class="c1">// No motion allowed - acts like a rigid connection</span>
+<span class="c1">// Commonly used for sensors, decorative elements</span>
+</code></pre></div>
+<h3 id="revolute-joints">Revolute Joints</h3>
+<div class="highlight"><pre><span></span><code><span class="nx">joint</span><span class="p">.</span><span class="kr">type</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="nx">JointType</span><span class="p">.</span><span class="nx">Revolute</span><span class="p">;</span>
+<span class="nx">joint</span><span class="p">.</span><span class="nx">axis</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="ow">new</span><span class="w"> </span><span class="nx">BABYLON</span><span class="p">.</span><span class="nx">Vector3</span><span class="p">(</span><span class="mf">0</span><span class="p">,</span><span class="w"> </span><span class="mf">1</span><span class="p">,</span><span class="w"> </span><span class="mf">0</span><span class="p">);</span><span class="w"> </span><span class="c1">// Rotation around Y-axis</span>
+<span class="nx">joint</span><span class="p">.</span><span class="nx">lowerLimit</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="o">-</span><span class="nb">Math</span><span class="p">.</span><span class="nx">PI</span><span class="o">/</span><span class="mf">2</span><span class="p">;</span><span class="w"> </span><span class="c1">// -90 degrees</span>
+<span class="nx">joint</span><span class="p">.</span><span class="nx">upperLimit</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="nb">Math</span><span class="p">.</span><span class="nx">PI</span><span class="o">/</span><span class="mf">2</span><span class="p">;</span><span class="w">  </span><span class="c1">// +90 degrees</span>
+<span class="c1">// Common for robot arms, wheels with steering</span>
+</code></pre></div>
+<h3 id="continuous-joints">Continuous Joints</h3>
+<div class="highlight"><pre><span></span><code><span class="nx">joint</span><span class="p">.</span><span class="kr">type</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="nx">JointType</span><span class="p">.</span><span class="nx">Continuous</span><span class="p">;</span>
+<span class="nx">joint</span><span class="p">.</span><span class="nx">axis</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="ow">new</span><span class="w"> </span><span class="nx">BABYLON</span><span class="p">.</span><span class="nx">Vector3</span><span class="p">(</span><span class="mf">0</span><span class="p">,</span><span class="w"> </span><span class="mf">0</span><span class="p">,</span><span class="w"> </span><span class="mf">1</span><span class="p">);</span><span class="w"> </span><span class="c1">// Rotation around Z-axis</span>
+<span class="c1">// No limits - can rotate infinitely</span>
+<span class="c1">// Common for drive wheels, rotating sensors</span>
+</code></pre></div>
+<h3 id="prismatic-joints">Prismatic Joints</h3>
+<div class="highlight"><pre><span></span><code><span class="nx">joint</span><span class="p">.</span><span class="kr">type</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="nx">JointType</span><span class="p">.</span><span class="nx">Prismatic</span><span class="p">;</span>
+<span class="nx">joint</span><span class="p">.</span><span class="nx">axis</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="ow">new</span><span class="w"> </span><span class="nx">BABYLON</span><span class="p">.</span><span class="nx">Vector3</span><span class="p">(</span><span class="mf">1</span><span class="p">,</span><span class="w"> </span><span class="mf">0</span><span class="p">,</span><span class="w"> </span><span class="mf">0</span><span class="p">);</span><span class="w"> </span><span class="c1">// Translation along X-axis</span>
+<span class="nx">joint</span><span class="p">.</span><span class="nx">lowerLimit</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mf">0</span><span class="p">;</span><span class="w">   </span><span class="c1">// Minimum extension</span>
+<span class="nx">joint</span><span class="p">.</span><span class="nx">upperLimit</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mf">1.0</span><span class="p">;</span><span class="w"> </span><span class="c1">// Maximum extension (1 meter)</span>
+<span class="c1">// Common for linear actuators, telescoping parts</span>
+</code></pre></div>
+<h2 id="coordinate-systems">Coordinate Systems</h2>
+<h3 id="origin-and-position">Origin and Position</h3>
+<ul>
+<li><code>origin</code>: Position relative to parent link's coordinate frame</li>
+<li>Applied before rotation</li>
+<li>Units are in meters</li>
+</ul>
+<h3 id="roll-pitch-yaw-rpy">Roll-Pitch-Yaw (RPY)</h3>
+<ul>
+<li><code>rpy.x</code>: Roll around X-axis (radians)</li>
+<li><code>rpy.y</code>: Pitch around Y-axis (radians)  </li>
+<li><code>rpy.z</code>: Yaw around Z-axis (radians)</li>
+<li>Applied in order: Roll, then Pitch, then Yaw</li>
+</ul>
+<h3 id="axis-vector">Axis Vector</h3>
+<ul>
+<li><code>axis</code>: Unit vector defining motion direction</li>
+<li>For revolute/continuous: axis of rotation</li>
+<li>For prismatic: direction of translation</li>
+<li>Common axes:</li>
+<li><code>(1,0,0)</code>: X-axis</li>
+<li><code>(0,1,0)</code>: Y-axis  </li>
+<li><code>(0,0,1)</code>: Z-axis</li>
+</ul>
+<h2 id="limits-and-constraints">Limits and Constraints</h2>
+<h3 id="motion-limits">Motion Limits</h3>
+<ul>
+<li><code>lowerLimit</code>: Minimum allowed position/angle</li>
+<li><code>upperLimit</code>: Maximum allowed position/angle</li>
+<li>Units: radians for revolute/continuous, meters for prismatic</li>
+<li>Fixed joints ignore limits</li>
+</ul>
+<h3 id="limit-examples">Limit Examples</h3>
+<div class="highlight"><pre><span></span><code><span class="c1">// Robot arm elbow joint (120° range)</span>
+<span class="nx">joint</span><span class="p">.</span><span class="nx">lowerLimit</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="o">-</span><span class="nb">Math</span><span class="p">.</span><span class="nx">PI</span><span class="o">/</span><span class="mf">3</span><span class="p">;</span><span class="w">  </span><span class="c1">// -60°</span>
+<span class="nx">joint</span><span class="p">.</span><span class="nx">upperLimit</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="nb">Math</span><span class="p">.</span><span class="nx">PI</span><span class="o">/</span><span class="mf">3</span><span class="p">;</span><span class="w">   </span><span class="c1">// +60°</span>
+
+<span class="c1">// Linear slide (0-30cm extension)</span>
+<span class="nx">joint</span><span class="p">.</span><span class="nx">lowerLimit</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mf">0</span><span class="p">;</span><span class="w">     </span><span class="c1">// Fully retracted</span>
+<span class="nx">joint</span><span class="p">.</span><span class="nx">upperLimit</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mf">0.3</span><span class="p">;</span><span class="w">   </span><span class="c1">// 30cm extended</span>
+</code></pre></div>
+<h2 id="integration-with-robot">Integration with Robot</h2>
+<p>Joints are typically created as part of robot loading:</p>
+<div class="highlight"><pre><span></span><code><span class="c1">// Joints are populated from URDF</span>
+<span class="kd">const</span><span class="w"> </span><span class="nx">robot</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="nx">urdf</span><span class="p">.</span><span class="nx">loadRobot</span><span class="p">(</span><span class="nx">urdfDoc</span><span class="p">,</span><span class="w"> </span><span class="nx">scene</span><span class="p">,</span><span class="w"> </span><span class="p">{});</span>
+
+<span class="c1">// Access joint after loading</span>
+<span class="kd">const</span><span class="w"> </span><span class="nx">joint</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="nx">robot</span><span class="p">.</span><span class="nx">joints</span><span class="p">.</span><span class="nx">get</span><span class="p">(</span><span class="s2">&quot;wheel_joint&quot;</span><span class="p">);</span>
+<span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="nx">joint</span><span class="p">)</span><span class="w"> </span><span class="p">{</span>
+<span class="w">    </span><span class="nx">console</span><span class="p">.</span><span class="nx">log</span><span class="p">(</span><span class="sb">`Joint type: </span><span class="si">${</span><span class="nx">joint</span><span class="p">.</span><span class="kr">type</span><span class="si">}</span><span class="sb">`</span><span class="p">);</span>
+<span class="w">    </span><span class="nx">console</span><span class="p">.</span><span class="nx">log</span><span class="p">(</span><span class="sb">`Connects: </span><span class="si">${</span><span class="nx">joint</span><span class="p">.</span><span class="nx">parentName</span><span class="si">}</span><span class="sb"> -&gt; </span><span class="si">${</span><span class="nx">joint</span><span class="p">.</span><span class="nx">childName</span><span class="si">}</span><span class="sb">`</span><span class="p">);</span>
+<span class="p">}</span>
+</code></pre></div>
+<h2 id="transform-hierarchy">Transform Hierarchy</h2>
+<p>The joint transform establishes the kinematic chain:
+1. <strong>Parent Link</strong> → <strong>Joint Transform</strong> → <strong>Child Link</strong>
+2. Joint motion affects all child transforms
+3. Multiple joints can create complex kinematic chains</p>
+<div class="highlight"><pre><span></span><code><span class="c1">// Example kinematic chain</span>
+<span class="c1">// base_link -&gt; shoulder_joint -&gt; upper_arm -&gt; elbow_joint -&gt; forearm</span>
+<span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="nx">joint</span><span class="p">.</span><span class="nx">parent</span><span class="w"> </span><span class="o">&amp;&amp;</span><span class="w"> </span><span class="nx">joint</span><span class="p">.</span><span class="nx">child</span><span class="p">)</span><span class="w"> </span><span class="p">{</span>
+<span class="w">    </span><span class="nx">console</span><span class="p">.</span><span class="nx">log</span><span class="p">(</span><span class="sb">`Chain: </span><span class="si">${</span><span class="nx">joint</span><span class="p">.</span><span class="nx">parent</span><span class="p">.</span><span class="nx">name</span><span class="si">}</span><span class="sb"> -&gt; </span><span class="si">${</span><span class="nx">joint</span><span class="p">.</span><span class="nx">name</span><span class="si">}</span><span class="sb"> -&gt; </span><span class="si">${</span><span class="nx">joint</span><span class="p">.</span><span class="nx">child</span><span class="p">.</span><span class="nx">name</span><span class="si">}</span><span class="sb">`</span><span class="p">);</span>
+<span class="p">}</span>
+</code></pre></div>
+              
+            </div>
+          </div><footer>
+    <div class="rst-footer-buttons" role="navigation" aria-label="Footer Navigation">
+        <a href="robot.html" class="btn btn-neutral float-left" title="Robot"><span class="icon icon-circle-arrow-left"></span> Previous</a>
+        <a href="link.html" class="btn btn-neutral float-right" title="Link">Next <span class="icon icon-circle-arrow-right"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <!-- Copyright etc -->
+  </div>
+
+  Built with <a href="https://www.mkdocs.org/">MkDocs</a> using a <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>.
+</footer>
+          
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+
+  <div class="rst-versions" role="note" aria-label="Versions">
+  <span class="rst-current-version" data-toggle="rst-current-version">
+    
+        <span>
+          <a href="https://github.com/ranch-hand-robotics/babylon_ros" class="fa fa-github" style="color: #fcfcfc"> GitHub</a>
+        </span>
+    
+    
+      <span><a href="robot.html" style="color: #fcfcfc">&laquo; Previous</a></span>
+    
+    
+      <span><a href="link.html" style="color: #fcfcfc">Next &raquo;</a></span>
+    
+  </span>
+</div>
+    <script src="../js/jquery-3.6.0.min.js"></script>
+    <script>var base_url = "..";</script>
+    <script src="../js/theme_extra.js"></script>
+    <script src="../js/theme.js"></script>
+      <script src="../search/main.js"></script>
+    <script>
+        jQuery(function () {
+            SphinxRtdTheme.Navigation.enable(true);
+        });
+    </script>
+
+</body>
+</html>

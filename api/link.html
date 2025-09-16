@@ -1,0 +1,505 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+    <meta charset="utf-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+      <link rel="shortcut icon" href="../img/favicon.ico" />
+    <title>Link - Robot Developer Tools for Web</title>
+    <link rel="stylesheet" href="../css/theme.css" />
+    <link rel="stylesheet" href="../css/theme_extra.css" />
+        <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/styles/github.min.css" />
+    
+      <script>
+        // Current page data
+        var mkdocs_page_name = "Link";
+        var mkdocs_page_input_path = "api/link.md";
+        var mkdocs_page_url = null;
+      </script>
+    
+    <!--[if lt IE 9]>
+      <script src="../js/html5shiv.min.js"></script>
+    <![endif]-->
+      <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/highlight.min.js"></script>
+      <script>hljs.highlightAll();</script> 
+</head>
+
+<body class="wy-body-for-nav" role="document">
+
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side stickynav">
+    <div class="wy-side-scroll">
+      <div class="wy-side-nav-search">
+          <a href="../index.html" class="icon icon-home"> Robot Developer Tools for Web
+        </a><div role="search">
+  <form id ="rtd-search-form" class="wy-form" action="../search.html" method="get">
+      <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" title="Type search term here" />
+  </form>
+</div>
+      </div>
+
+      <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <ul>
+                <li class="toctree-l1"><a class="reference internal" href="../index.html">Home</a>
+                </li>
+              </ul>
+              <ul>
+                <li class="toctree-l1"><a class="reference internal" href="../installation.html">Installation</a>
+                </li>
+              </ul>
+              <ul>
+                <li class="toctree-l1"><a class="reference internal" href="../urdf.html">URDF Viewer</a>
+                </li>
+              </ul>
+              <p class="caption"><span class="caption-text">API Reference</span></p>
+              <ul class="current">
+                  <li class="toctree-l1"><a class="reference internal" href="../api-overview.html">Overview</a>
+                  </li>
+                  <li class="toctree-l1 current"><a class="reference internal current" >Core Classes</a>
+    <ul class="current">
+                <li class="toctree-l2"><a class="reference internal" href="robot-scene.html">RobotScene</a>
+                </li>
+                <li class="toctree-l2"><a class="reference internal" href="robot.html">Robot</a>
+                </li>
+                <li class="toctree-l2"><a class="reference internal" href="joint.html">Joint</a>
+                </li>
+                <li class="toctree-l2 current"><a class="reference internal current" href="#">Link</a>
+    <ul class="current">
+    <li class="toctree-l3"><a class="reference internal" href="#constructor">Constructor</a>
+    </li>
+    <li class="toctree-l3"><a class="reference internal" href="#properties">Properties</a>
+        <ul>
+    <li class="toctree-l4"><a class="reference internal" href="#public-properties">Public Properties</a>
+    </li>
+        </ul>
+    </li>
+    <li class="toctree-l3"><a class="reference internal" href="#methods">Methods</a>
+        <ul>
+    <li class="toctree-l4"><a class="reference internal" href="#lifecycle-methods">Lifecycle Methods</a>
+    </li>
+        </ul>
+    </li>
+    <li class="toctree-l3"><a class="reference internal" href="#usage-examples">Usage Examples</a>
+        <ul>
+    <li class="toctree-l4"><a class="reference internal" href="#basic-link-creation">Basic Link Creation</a>
+    </li>
+    <li class="toctree-l4"><a class="reference internal" href="#link-with-multiple-visuals">Link with Multiple Visuals</a>
+    </li>
+    <li class="toctree-l4"><a class="reference internal" href="#link-with-collision-geometry">Link with Collision Geometry</a>
+    </li>
+        </ul>
+    </li>
+    <li class="toctree-l3"><a class="reference internal" href="#visual-vs-collision-geometry">Visual vs Collision Geometry</a>
+        <ul>
+    <li class="toctree-l4"><a class="reference internal" href="#visual-geometries">Visual Geometries</a>
+    </li>
+    <li class="toctree-l4"><a class="reference internal" href="#collision-geometries">Collision Geometries</a>
+    </li>
+        </ul>
+    </li>
+    <li class="toctree-l3"><a class="reference internal" href="#transform-hierarchy">Transform Hierarchy</a>
+    </li>
+    <li class="toctree-l3"><a class="reference internal" href="#material-handling">Material Handling</a>
+        <ul>
+    <li class="toctree-l4"><a class="reference internal" href="#default-material">Default Material</a>
+    </li>
+    <li class="toctree-l4"><a class="reference internal" href="#material-priority">Material Priority</a>
+    </li>
+    <li class="toctree-l4"><a class="reference internal" href="#collision-materials">Collision Materials</a>
+    </li>
+        </ul>
+    </li>
+    <li class="toctree-l3"><a class="reference internal" href="#accessing-link-components">Accessing Link Components</a>
+        <ul>
+    <li class="toctree-l4"><a class="reference internal" href="#iterating-through-visuals">Iterating Through Visuals</a>
+    </li>
+    <li class="toctree-l4"><a class="reference internal" href="#checking-link-properties">Checking Link Properties</a>
+    </li>
+    <li class="toctree-l4"><a class="reference internal" href="#enablingdisabling-collision-visualization">Enabling/Disabling Collision Visualization</a>
+    </li>
+        </ul>
+    </li>
+    <li class="toctree-l3"><a class="reference internal" href="#integration-with-robot">Integration with Robot</a>
+    </li>
+    <li class="toctree-l3"><a class="reference internal" href="#common-link-types">Common Link Types</a>
+        <ul>
+    <li class="toctree-l4"><a class="reference internal" href="#base-links">Base Links</a>
+    </li>
+    <li class="toctree-l4"><a class="reference internal" href="#arm-links">Arm Links</a>
+    </li>
+    <li class="toctree-l4"><a class="reference internal" href="#sensor-links">Sensor Links</a>
+    </li>
+        </ul>
+    </li>
+    <li class="toctree-l3"><a class="reference internal" href="#performance-considerations">Performance Considerations</a>
+    </li>
+    <li class="toctree-l3"><a class="reference internal" href="#error-handling">Error Handling</a>
+    </li>
+    </ul>
+                </li>
+                <li class="toctree-l2"><a class="reference internal" href="visual.html">Visual</a>
+                </li>
+                <li class="toctree-l2"><a class="reference internal" href="material.html">Material</a>
+                </li>
+    </ul>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" >Geometry System</a>
+    <ul>
+                <li class="toctree-l2"><a class="reference internal" href="geometry.html">Geometry Types</a>
+                </li>
+    </ul>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" >Interactive Tools</a>
+    <ul>
+                <li class="toctree-l2"><a class="reference internal" href="gizmos.html">Gizmos</a>
+                </li>
+    </ul>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" >Utilities</a>
+    <ul>
+                <li class="toctree-l2"><a class="reference internal" href="utilities.html">Helper Functions</a>
+                </li>
+    </ul>
+                  </li>
+              </ul>
+      </div>
+    </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+      <nav class="wy-nav-top" role="navigation" aria-label="Mobile navigation menu">
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../index.html">Robot Developer Tools for Web</a>
+        
+      </nav>
+      <div class="wy-nav-content">
+        <div class="rst-content"><div role="navigation" aria-label="breadcrumbs navigation">
+  <ul class="wy-breadcrumbs">
+    <li><a href="../index.html" class="icon icon-home" aria-label="Docs"></a></li>
+          <li class="breadcrumb-item">API Reference</li>
+          <li class="breadcrumb-item">Core Classes</li>
+      <li class="breadcrumb-item active">Link</li>
+    <li class="wy-breadcrumbs-aside">
+          <a href="https://github.com/ranch-hand-robotics/babylon_ros/edit/main/docs/api/link.md" class="icon icon-github"> Edit on GitHub</a>
+    </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+            <div class="section" itemprop="articleBody">
+              
+                <h1 id="link-api">Link API</h1>
+<p>The <code>Link</code> class represents a physical component of a robot, containing visual and collision geometries with materials and transforms.</p>
+<h2 id="constructor">Constructor</h2>
+<div class="highlight"><pre><span></span><code><span class="kd">const</span><span class="w"> </span><span class="nx">link</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="ow">new</span><span class="w"> </span><span class="nx">Link</span><span class="p">();</span>
+</code></pre></div>
+<p>Creates a new Link instance with empty visual and collision arrays.</p>
+<h2 id="properties">Properties</h2>
+<h3 id="public-properties">Public Properties</h3>
+<table>
+<thead>
+<tr>
+<th>Property</th>
+<th>Type</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>name</code></td>
+<td><code>string</code></td>
+<td>The link's unique name</td>
+</tr>
+<tr>
+<td><code>material</code></td>
+<td><code>Material \| undefined</code></td>
+<td>Default material for the link</td>
+</tr>
+<tr>
+<td><code>transform</code></td>
+<td><code>BABYLON.TransformNode \| undefined</code></td>
+<td>The 3D transform node</td>
+</tr>
+<tr>
+<td><code>visuals</code></td>
+<td><code>Array&lt;Visual&gt;</code></td>
+<td>Array of visual geometry components</td>
+</tr>
+<tr>
+<td><code>collisions</code></td>
+<td><code>Array&lt;Visual&gt;</code></td>
+<td>Array of collision geometry components</td>
+</tr>
+</tbody>
+</table>
+<h2 id="methods">Methods</h2>
+<h3 id="lifecycle-methods">Lifecycle Methods</h3>
+<h4 id="createscene-babylonscene-materialmap-mapstring-material-void"><code>create(scene: BABYLON.Scene, materialMap: Map&lt;string, Material&gt;): void</code></h4>
+<p>Creates the link in the 3D scene, including all visual and collision geometries.</p>
+<p><strong>Parameters:</strong>
+- <code>scene</code>: BABYLON.Scene - The Babylon.js scene
+- <code>materialMap</code>: Map<string, Material> - Available materials for the link</p>
+<p><strong>Behavior:</strong>
+- Creates a TransformNode for the link
+- Creates all visual geometries and parents them to the link transform
+- Creates all collision geometries with collision material and disables them by default
+- Establishes proper parent-child relationships</p>
+<p><strong>Example:</strong>
+<div class="highlight"><pre><span></span><code><span class="nx">link</span><span class="p">.</span><span class="nx">create</span><span class="p">(</span><span class="nx">scene</span><span class="p">,</span><span class="w"> </span><span class="nx">materialMap</span><span class="p">);</span>
+</code></pre></div></p>
+<h4 id="dispose-void"><code>dispose(): void</code></h4>
+<p>Cleans up all resources used by the link, including geometries, materials, and transforms.</p>
+<p><strong>Example:</strong>
+<div class="highlight"><pre><span></span><code><span class="nx">link</span><span class="p">.</span><span class="nx">dispose</span><span class="p">();</span>
+</code></pre></div></p>
+<h2 id="usage-examples">Usage Examples</h2>
+<h3 id="basic-link-creation">Basic Link Creation</h3>
+<div class="highlight"><pre><span></span><code><span class="k">import</span><span class="w"> </span><span class="p">{</span><span class="w"> </span><span class="nx">Link</span><span class="w"> </span><span class="p">}</span><span class="w"> </span><span class="kr">from</span><span class="w"> </span><span class="s1">&#39;@ranchhandrobotics/babylon_ros&#39;</span><span class="p">;</span>
+<span class="k">import</span><span class="w"> </span><span class="p">{</span><span class="w"> </span><span class="nx">Visual</span><span class="w"> </span><span class="p">}</span><span class="w"> </span><span class="kr">from</span><span class="w"> </span><span class="s1">&#39;@ranchhandrobotics/babylon_ros&#39;</span><span class="p">;</span>
+
+<span class="kd">const</span><span class="w"> </span><span class="nx">baseLink</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="ow">new</span><span class="w"> </span><span class="nx">Link</span><span class="p">();</span>
+<span class="nx">baseLink</span><span class="p">.</span><span class="nx">name</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s2">&quot;base_link&quot;</span><span class="p">;</span>
+
+<span class="c1">// Add visual geometry</span>
+<span class="kd">const</span><span class="w"> </span><span class="nx">visual</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="ow">new</span><span class="w"> </span><span class="nx">Visual</span><span class="p">();</span>
+<span class="nx">visual</span><span class="p">.</span><span class="nx">geometry</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="ow">new</span><span class="w"> </span><span class="nx">BoxGeometry</span><span class="p">(</span><span class="mf">1</span><span class="p">,</span><span class="w"> </span><span class="mf">1</span><span class="p">,</span><span class="w"> </span><span class="mf">0.2</span><span class="p">);</span><span class="w"> </span><span class="c1">// 1x1x0.2m box</span>
+<span class="nx">baseLink</span><span class="p">.</span><span class="nx">visuals</span><span class="p">.</span><span class="nx">push</span><span class="p">(</span><span class="nx">visual</span><span class="p">);</span>
+
+<span class="c1">// Create in scene</span>
+<span class="nx">baseLink</span><span class="p">.</span><span class="nx">create</span><span class="p">(</span><span class="nx">scene</span><span class="p">,</span><span class="w"> </span><span class="nx">materialMap</span><span class="p">);</span>
+</code></pre></div>
+<h3 id="link-with-multiple-visuals">Link with Multiple Visuals</h3>
+<div class="highlight"><pre><span></span><code><span class="kd">const</span><span class="w"> </span><span class="nx">armLink</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="ow">new</span><span class="w"> </span><span class="nx">Link</span><span class="p">();</span>
+<span class="nx">armLink</span><span class="p">.</span><span class="nx">name</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s2">&quot;upper_arm&quot;</span><span class="p">;</span>
+
+<span class="c1">// Main arm structure</span>
+<span class="kd">const</span><span class="w"> </span><span class="nx">mainVisual</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="ow">new</span><span class="w"> </span><span class="nx">Visual</span><span class="p">();</span>
+<span class="nx">mainVisual</span><span class="p">.</span><span class="nx">geometry</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="ow">new</span><span class="w"> </span><span class="nx">CylinderGeometry</span><span class="p">(</span><span class="mf">0.5</span><span class="p">,</span><span class="w"> </span><span class="mf">0.05</span><span class="p">,</span><span class="w"> </span><span class="mf">0.05</span><span class="p">);</span><span class="w"> </span><span class="c1">// 50cm long, 5cm radius</span>
+
+<span class="c1">// Joint connector</span>
+<span class="kd">const</span><span class="w"> </span><span class="nx">connectorVisual</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="ow">new</span><span class="w"> </span><span class="nx">Visual</span><span class="p">();</span><span class="w"> </span>
+<span class="nx">connectorVisual</span><span class="p">.</span><span class="nx">geometry</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="ow">new</span><span class="w"> </span><span class="nx">SphereGeometry</span><span class="p">(</span><span class="mf">0.08</span><span class="p">);</span><span class="w"> </span><span class="c1">// 8cm radius sphere</span>
+<span class="nx">connectorVisual</span><span class="p">.</span><span class="nx">origin</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="ow">new</span><span class="w"> </span><span class="nx">BABYLON</span><span class="p">.</span><span class="nx">Vector3</span><span class="p">(</span><span class="mf">0</span><span class="p">,</span><span class="w"> </span><span class="mf">0</span><span class="p">,</span><span class="w"> </span><span class="mf">0.25</span><span class="p">);</span><span class="w"> </span><span class="c1">// At end of arm</span>
+
+<span class="nx">armLink</span><span class="p">.</span><span class="nx">visuals</span><span class="p">.</span><span class="nx">push</span><span class="p">(</span><span class="nx">mainVisual</span><span class="p">);</span>
+<span class="nx">armLink</span><span class="p">.</span><span class="nx">visuals</span><span class="p">.</span><span class="nx">push</span><span class="p">(</span><span class="nx">connectorVisual</span><span class="p">);</span>
+
+<span class="nx">armLink</span><span class="p">.</span><span class="nx">create</span><span class="p">(</span><span class="nx">scene</span><span class="p">,</span><span class="w"> </span><span class="nx">materialMap</span><span class="p">);</span>
+</code></pre></div>
+<h3 id="link-with-collision-geometry">Link with Collision Geometry</h3>
+<div class="highlight"><pre><span></span><code><span class="kd">const</span><span class="w"> </span><span class="nx">chassisLink</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="ow">new</span><span class="w"> </span><span class="nx">Link</span><span class="p">();</span>
+<span class="nx">chassisLink</span><span class="p">.</span><span class="nx">name</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s2">&quot;chassis&quot;</span><span class="p">;</span>
+
+<span class="c1">// Visual geometry (detailed mesh)</span>
+<span class="kd">const</span><span class="w"> </span><span class="nx">visual</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="ow">new</span><span class="w"> </span><span class="nx">Visual</span><span class="p">();</span>
+<span class="nx">visual</span><span class="p">.</span><span class="nx">geometry</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="ow">new</span><span class="w"> </span><span class="nx">MeshGeometry</span><span class="p">(</span><span class="s2">&quot;chassis_detailed.dae&quot;</span><span class="p">);</span>
+<span class="nx">chassisLink</span><span class="p">.</span><span class="nx">visuals</span><span class="p">.</span><span class="nx">push</span><span class="p">(</span><span class="nx">visual</span><span class="p">);</span>
+
+<span class="c1">// Collision geometry (simplified box)</span>
+<span class="kd">const</span><span class="w"> </span><span class="nx">collision</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="ow">new</span><span class="w"> </span><span class="nx">Visual</span><span class="p">();</span>
+<span class="nx">collision</span><span class="p">.</span><span class="nx">geometry</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="ow">new</span><span class="w"> </span><span class="nx">BoxGeometry</span><span class="p">(</span><span class="mf">2</span><span class="p">,</span><span class="w"> </span><span class="mf">1</span><span class="p">,</span><span class="w"> </span><span class="mf">0.5</span><span class="p">);</span><span class="w"> </span><span class="c1">// Simplified bounding box</span>
+<span class="nx">chassisLink</span><span class="p">.</span><span class="nx">collisions</span><span class="p">.</span><span class="nx">push</span><span class="p">(</span><span class="nx">collision</span><span class="p">);</span>
+
+<span class="nx">chassisLink</span><span class="p">.</span><span class="nx">create</span><span class="p">(</span><span class="nx">scene</span><span class="p">,</span><span class="w"> </span><span class="nx">materialMap</span><span class="p">);</span>
+</code></pre></div>
+<h2 id="visual-vs-collision-geometry">Visual vs Collision Geometry</h2>
+<h3 id="visual-geometries">Visual Geometries</h3>
+<ul>
+<li><strong>Purpose</strong>: What users see - detailed, textured models</li>
+<li><strong>Rendering</strong>: Always visible by default</li>
+<li><strong>Performance</strong>: Can be complex meshes with high polygon counts</li>
+<li><strong>Materials</strong>: Use specified materials with textures and colors</li>
+</ul>
+<h3 id="collision-geometries">Collision Geometries</h3>
+<ul>
+<li><strong>Purpose</strong>: Physics simulation and collision detection</li>
+<li><strong>Rendering</strong>: Hidden by default (can be toggled for debugging)</li>
+<li><strong>Performance</strong>: Should be simple shapes for fast collision detection</li>
+<li><strong>Materials</strong>: Automatically use "collision" material (semi-transparent)</li>
+</ul>
+<div class="highlight"><pre><span></span><code><span class="c1">// Visual: Detailed robot arm mesh</span>
+<span class="kd">const</span><span class="w"> </span><span class="nx">visual</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="ow">new</span><span class="w"> </span><span class="nx">Visual</span><span class="p">();</span>
+<span class="nx">visual</span><span class="p">.</span><span class="nx">geometry</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="ow">new</span><span class="w"> </span><span class="nx">MeshGeometry</span><span class="p">(</span><span class="s2">&quot;detailed_arm.dae&quot;</span><span class="p">);</span>
+
+<span class="c1">// Collision: Simple cylinder approximation  </span>
+<span class="kd">const</span><span class="w"> </span><span class="nx">collision</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="ow">new</span><span class="w"> </span><span class="nx">Visual</span><span class="p">();</span>
+<span class="nx">collision</span><span class="p">.</span><span class="nx">geometry</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="ow">new</span><span class="w"> </span><span class="nx">CylinderGeometry</span><span class="p">(</span><span class="mf">0.5</span><span class="p">,</span><span class="w"> </span><span class="mf">0.08</span><span class="p">,</span><span class="w"> </span><span class="mf">0.08</span><span class="p">);</span>
+
+<span class="nx">link</span><span class="p">.</span><span class="nx">visuals</span><span class="p">.</span><span class="nx">push</span><span class="p">(</span><span class="nx">visual</span><span class="p">);</span>
+<span class="nx">link</span><span class="p">.</span><span class="nx">collisions</span><span class="p">.</span><span class="nx">push</span><span class="p">(</span><span class="nx">collision</span><span class="p">);</span>
+</code></pre></div>
+<h2 id="transform-hierarchy">Transform Hierarchy</h2>
+<p>Links establish the structural hierarchy of the robot:</p>
+<div class="highlight"><pre><span></span><code><span class="c1">// Link transforms are managed automatically</span>
+<span class="c1">// Parent joint -&gt; Link transform -&gt; Child visuals/collisions</span>
+
+<span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="nx">link</span><span class="p">.</span><span class="nx">transform</span><span class="p">)</span><span class="w"> </span><span class="p">{</span>
+<span class="w">    </span><span class="c1">// Move entire link (affects all visuals and collisions)</span>
+<span class="w">    </span><span class="nx">link</span><span class="p">.</span><span class="nx">transform</span><span class="p">.</span><span class="nx">position</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="ow">new</span><span class="w"> </span><span class="nx">BABYLON</span><span class="p">.</span><span class="nx">Vector3</span><span class="p">(</span><span class="mf">1</span><span class="p">,</span><span class="w"> </span><span class="mf">0</span><span class="p">,</span><span class="w"> </span><span class="mf">0</span><span class="p">);</span>
+
+<span class="w">    </span><span class="c1">// All child visuals inherit this transformation</span>
+<span class="w">    </span><span class="nx">console</span><span class="p">.</span><span class="nx">log</span><span class="p">(</span><span class="sb">`Link has </span><span class="si">${</span><span class="nx">link</span><span class="p">.</span><span class="nx">visuals</span><span class="p">.</span><span class="nx">length</span><span class="si">}</span><span class="sb"> visuals`</span><span class="p">);</span>
+<span class="w">    </span><span class="nx">console</span><span class="p">.</span><span class="nx">log</span><span class="p">(</span><span class="sb">`Link has </span><span class="si">${</span><span class="nx">link</span><span class="p">.</span><span class="nx">collisions</span><span class="p">.</span><span class="nx">length</span><span class="si">}</span><span class="sb"> collision shapes`</span><span class="p">);</span>
+<span class="p">}</span>
+</code></pre></div>
+<h2 id="material-handling">Material Handling</h2>
+<h3 id="default-material">Default Material</h3>
+<div class="highlight"><pre><span></span><code><span class="c1">// Link can have a default material</span>
+<span class="nx">link</span><span class="p">.</span><span class="nx">material</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="nx">materialMap</span><span class="p">.</span><span class="nx">get</span><span class="p">(</span><span class="s2">&quot;aluminum&quot;</span><span class="p">);</span>
+
+<span class="c1">// Individual visuals can override the link material</span>
+<span class="nx">visual</span><span class="p">.</span><span class="nx">material</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="nx">materialMap</span><span class="p">.</span><span class="nx">get</span><span class="p">(</span><span class="s2">&quot;red_plastic&quot;</span><span class="p">);</span>
+</code></pre></div>
+<h3 id="material-priority">Material Priority</h3>
+<ol>
+<li><strong>Visual material</strong>: If specified, takes highest priority</li>
+<li><strong>Link material</strong>: Used if visual has no specific material  </li>
+<li><strong>Default material</strong>: Used as fallback if neither is specified</li>
+</ol>
+<h3 id="collision-materials">Collision Materials</h3>
+<div class="highlight"><pre><span></span><code><span class="c1">// Collision geometries automatically use collision material</span>
+<span class="c1">// This provides semi-transparent rendering for debugging</span>
+<span class="kd">const</span><span class="w"> </span><span class="nx">collision</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="ow">new</span><span class="w"> </span><span class="nx">Visual</span><span class="p">();</span>
+<span class="nx">collision</span><span class="p">.</span><span class="nx">geometry</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="ow">new</span><span class="w"> </span><span class="nx">BoxGeometry</span><span class="p">(</span><span class="mf">1</span><span class="p">,</span><span class="w"> </span><span class="mf">1</span><span class="p">,</span><span class="w"> </span><span class="mf">1</span><span class="p">);</span>
+<span class="c1">// collision.material is automatically set to &quot;collision&quot; material</span>
+</code></pre></div>
+<h2 id="accessing-link-components">Accessing Link Components</h2>
+<h3 id="iterating-through-visuals">Iterating Through Visuals</h3>
+<div class="highlight"><pre><span></span><code><span class="k">for</span><span class="w"> </span><span class="p">(</span><span class="kd">const</span><span class="w"> </span><span class="nx">visual</span><span class="w"> </span><span class="k">of</span><span class="w"> </span><span class="nx">link</span><span class="p">.</span><span class="nx">visuals</span><span class="p">)</span><span class="w"> </span><span class="p">{</span>
+<span class="w">    </span><span class="nx">console</span><span class="p">.</span><span class="nx">log</span><span class="p">(</span><span class="sb">`Visual at: </span><span class="si">${</span><span class="nx">visual</span><span class="p">.</span><span class="nx">origin</span><span class="si">}</span><span class="sb">`</span><span class="p">);</span>
+<span class="w">    </span><span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="nx">visual</span><span class="p">.</span><span class="nx">geometry</span><span class="p">)</span><span class="w"> </span><span class="p">{</span>
+<span class="w">        </span><span class="nx">console</span><span class="p">.</span><span class="nx">log</span><span class="p">(</span><span class="sb">`Geometry type: </span><span class="si">${</span><span class="nx">visual</span><span class="p">.</span><span class="nx">geometry</span><span class="p">.</span><span class="kr">constructor</span><span class="p">.</span><span class="nx">name</span><span class="si">}</span><span class="sb">`</span><span class="p">);</span>
+<span class="w">    </span><span class="p">}</span>
+<span class="p">}</span>
+</code></pre></div>
+<h3 id="checking-link-properties">Checking Link Properties</h3>
+<div class="highlight"><pre><span></span><code><span class="c1">// Get link bounding box</span>
+<span class="kd">let</span><span class="w"> </span><span class="nx">min</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="ow">new</span><span class="w"> </span><span class="nx">BABYLON</span><span class="p">.</span><span class="nx">Vector3</span><span class="p">(</span><span class="kc">Infinity</span><span class="p">,</span><span class="w"> </span><span class="kc">Infinity</span><span class="p">,</span><span class="w"> </span><span class="kc">Infinity</span><span class="p">);</span>
+<span class="kd">let</span><span class="w"> </span><span class="nx">max</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="ow">new</span><span class="w"> </span><span class="nx">BABYLON</span><span class="p">.</span><span class="nx">Vector3</span><span class="p">(</span><span class="o">-</span><span class="kc">Infinity</span><span class="p">,</span><span class="w"> </span><span class="o">-</span><span class="kc">Infinity</span><span class="p">,</span><span class="w"> </span><span class="o">-</span><span class="kc">Infinity</span><span class="p">);</span>
+
+<span class="k">for</span><span class="w"> </span><span class="p">(</span><span class="kd">const</span><span class="w"> </span><span class="nx">visual</span><span class="w"> </span><span class="k">of</span><span class="w"> </span><span class="nx">link</span><span class="p">.</span><span class="nx">visuals</span><span class="p">)</span><span class="w"> </span><span class="p">{</span>
+<span class="w">    </span><span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="nx">visual</span><span class="p">.</span><span class="nx">mesh</span><span class="p">)</span><span class="w"> </span><span class="p">{</span>
+<span class="w">        </span><span class="kd">const</span><span class="w"> </span><span class="nx">bounds</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="nx">visual</span><span class="p">.</span><span class="nx">mesh</span><span class="p">.</span><span class="nx">getBoundingInfo</span><span class="p">();</span>
+<span class="w">        </span><span class="nx">BABYLON</span><span class="p">.</span><span class="nx">Vector3</span><span class="p">.</span><span class="nx">MinimizeInPlace</span><span class="p">(</span><span class="nx">min</span><span class="p">,</span><span class="w"> </span><span class="nx">bounds</span><span class="p">.</span><span class="nx">boundingBox</span><span class="p">.</span><span class="nx">minimumWorld</span><span class="p">);</span>
+<span class="w">        </span><span class="nx">BABYLON</span><span class="p">.</span><span class="nx">Vector3</span><span class="p">.</span><span class="nx">MaximizeInPlace</span><span class="p">(</span><span class="nx">max</span><span class="p">,</span><span class="w"> </span><span class="nx">bounds</span><span class="p">.</span><span class="nx">boundingBox</span><span class="p">.</span><span class="nx">maximumWorld</span><span class="p">);</span>
+<span class="w">    </span><span class="p">}</span>
+<span class="p">}</span>
+
+<span class="kd">const</span><span class="w"> </span><span class="nx">size</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="nx">max</span><span class="p">.</span><span class="nx">subtract</span><span class="p">(</span><span class="nx">min</span><span class="p">);</span>
+<span class="nx">console</span><span class="p">.</span><span class="nx">log</span><span class="p">(</span><span class="sb">`Link bounding box: </span><span class="si">${</span><span class="nx">size</span><span class="p">.</span><span class="nx">x</span><span class="si">}</span><span class="sb"> x </span><span class="si">${</span><span class="nx">size</span><span class="p">.</span><span class="nx">y</span><span class="si">}</span><span class="sb"> x </span><span class="si">${</span><span class="nx">size</span><span class="p">.</span><span class="nx">z</span><span class="si">}</span><span class="sb">`</span><span class="p">);</span>
+</code></pre></div>
+<h3 id="enablingdisabling-collision-visualization">Enabling/Disabling Collision Visualization</h3>
+<div class="highlight"><pre><span></span><code><span class="c1">// Show collision geometry for debugging</span>
+<span class="k">for</span><span class="w"> </span><span class="p">(</span><span class="kd">const</span><span class="w"> </span><span class="nx">collision</span><span class="w"> </span><span class="k">of</span><span class="w"> </span><span class="nx">link</span><span class="p">.</span><span class="nx">collisions</span><span class="p">)</span><span class="w"> </span><span class="p">{</span>
+<span class="w">    </span><span class="nx">collision</span><span class="p">.</span><span class="nx">setEnabled</span><span class="p">(</span><span class="kc">true</span><span class="p">);</span>
+<span class="p">}</span>
+
+<span class="c1">// Hide collision geometry</span>
+<span class="k">for</span><span class="w"> </span><span class="p">(</span><span class="kd">const</span><span class="w"> </span><span class="nx">collision</span><span class="w"> </span><span class="k">of</span><span class="w"> </span><span class="nx">link</span><span class="p">.</span><span class="nx">collisions</span><span class="p">)</span><span class="w"> </span><span class="p">{</span>
+<span class="w">    </span><span class="nx">collision</span><span class="p">.</span><span class="nx">setEnabled</span><span class="p">(</span><span class="kc">false</span><span class="p">);</span>
+<span class="p">}</span>
+</code></pre></div>
+<h2 id="integration-with-robot">Integration with Robot</h2>
+<p>Links are typically created as part of robot loading:</p>
+<div class="highlight"><pre><span></span><code><span class="c1">// Links are populated from URDF</span>
+<span class="kd">const</span><span class="w"> </span><span class="nx">robot</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="nx">urdf</span><span class="p">.</span><span class="nx">loadRobot</span><span class="p">(</span><span class="nx">urdfDoc</span><span class="p">,</span><span class="w"> </span><span class="nx">scene</span><span class="p">,</span><span class="w"> </span><span class="p">{});</span>
+
+<span class="c1">// Access specific link</span>
+<span class="kd">const</span><span class="w"> </span><span class="nx">baseLink</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="nx">robot</span><span class="p">.</span><span class="nx">links</span><span class="p">.</span><span class="nx">get</span><span class="p">(</span><span class="s2">&quot;base_link&quot;</span><span class="p">);</span>
+<span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="nx">baseLink</span><span class="p">)</span><span class="w"> </span><span class="p">{</span>
+<span class="w">    </span><span class="nx">console</span><span class="p">.</span><span class="nx">log</span><span class="p">(</span><span class="sb">`Base link has </span><span class="si">${</span><span class="nx">baseLink</span><span class="p">.</span><span class="nx">visuals</span><span class="p">.</span><span class="nx">length</span><span class="si">}</span><span class="sb"> visual components`</span><span class="p">);</span>
+<span class="w">    </span><span class="nx">console</span><span class="p">.</span><span class="nx">log</span><span class="p">(</span><span class="sb">`Base link has </span><span class="si">${</span><span class="nx">baseLink</span><span class="p">.</span><span class="nx">collisions</span><span class="p">.</span><span class="nx">length</span><span class="si">}</span><span class="sb"> collision components`</span><span class="p">);</span>
+<span class="p">}</span>
+
+<span class="c1">// Iterate through all links</span>
+<span class="k">for</span><span class="w"> </span><span class="p">(</span><span class="kd">const</span><span class="w"> </span><span class="p">[</span><span class="nx">name</span><span class="p">,</span><span class="w"> </span><span class="nx">link</span><span class="p">]</span><span class="w"> </span><span class="k">of</span><span class="w"> </span><span class="nx">robot</span><span class="p">.</span><span class="nx">links</span><span class="p">)</span><span class="w"> </span><span class="p">{</span>
+<span class="w">    </span><span class="nx">console</span><span class="p">.</span><span class="nx">log</span><span class="p">(</span><span class="sb">`Link: </span><span class="si">${</span><span class="nx">name</span><span class="si">}</span><span class="sb">`</span><span class="p">);</span>
+<span class="w">    </span><span class="nx">console</span><span class="p">.</span><span class="nx">log</span><span class="p">(</span><span class="sb">`  Visuals: </span><span class="si">${</span><span class="nx">link</span><span class="p">.</span><span class="nx">visuals</span><span class="p">.</span><span class="nx">length</span><span class="si">}</span><span class="sb">`</span><span class="p">);</span>
+<span class="w">    </span><span class="nx">console</span><span class="p">.</span><span class="nx">log</span><span class="p">(</span><span class="sb">`  Collisions: </span><span class="si">${</span><span class="nx">link</span><span class="p">.</span><span class="nx">collisions</span><span class="p">.</span><span class="nx">length</span><span class="si">}</span><span class="sb">`</span><span class="p">);</span>
+<span class="p">}</span>
+</code></pre></div>
+<h2 id="common-link-types">Common Link Types</h2>
+<h3 id="base-links">Base Links</h3>
+<div class="highlight"><pre><span></span><code><span class="c1">// Main chassis or body of the robot</span>
+<span class="kd">const</span><span class="w"> </span><span class="nx">baseLink</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="ow">new</span><span class="w"> </span><span class="nx">Link</span><span class="p">();</span>
+<span class="nx">baseLink</span><span class="p">.</span><span class="nx">name</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s2">&quot;base_link&quot;</span><span class="p">;</span>
+<span class="c1">// Usually contains the main structural geometry</span>
+</code></pre></div>
+<h3 id="arm-links">Arm Links</h3>
+<div class="highlight"><pre><span></span><code><span class="c1">// Robot arm segments</span>
+<span class="kd">const</span><span class="w"> </span><span class="nx">upperArm</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="ow">new</span><span class="w"> </span><span class="nx">Link</span><span class="p">();</span>
+<span class="nx">upperArm</span><span class="p">.</span><span class="nx">name</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s2">&quot;upper_arm&quot;</span><span class="p">;</span>
+<span class="kd">const</span><span class="w"> </span><span class="nx">forearm</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="ow">new</span><span class="w"> </span><span class="nx">Link</span><span class="p">();</span>
+<span class="nx">forearm</span><span class="p">.</span><span class="nx">name</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s2">&quot;forearm&quot;</span><span class="p">;</span>
+</code></pre></div>
+<h3 id="sensor-links">Sensor Links</h3>
+<div class="highlight"><pre><span></span><code><span class="c1">// Camera, LiDAR, or other sensor mounts</span>
+<span class="kd">const</span><span class="w"> </span><span class="nx">cameraLink</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="ow">new</span><span class="w"> </span><span class="nx">Link</span><span class="p">();</span>
+<span class="nx">cameraLink</span><span class="p">.</span><span class="nx">name</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s2">&quot;camera_link&quot;</span><span class="p">;</span>
+<span class="c1">// Often contain simple geometry for sensor housings</span>
+</code></pre></div>
+<h2 id="performance-considerations">Performance Considerations</h2>
+<ul>
+<li><strong>Visual Complexity</strong>: Detailed visuals are rendered, so balance quality vs performance</li>
+<li><strong>Collision Simplicity</strong>: Keep collision geometry simple for fast physics simulation</li>
+<li><strong>Material Sharing</strong>: Reuse materials across links to reduce memory usage</li>
+<li><strong>Proper Disposal</strong>: Always dispose links to prevent memory leaks</li>
+</ul>
+<h2 id="error-handling">Error Handling</h2>
+<p>The Link class provides robust error handling:
+- Handles missing materials gracefully with fallbacks
+- Safely manages transform hierarchy
+- Properly disposes of all child resources
+- Logs warnings for malformed geometry</p>
+              
+            </div>
+          </div><footer>
+    <div class="rst-footer-buttons" role="navigation" aria-label="Footer Navigation">
+        <a href="joint.html" class="btn btn-neutral float-left" title="Joint"><span class="icon icon-circle-arrow-left"></span> Previous</a>
+        <a href="visual.html" class="btn btn-neutral float-right" title="Visual">Next <span class="icon icon-circle-arrow-right"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <!-- Copyright etc -->
+  </div>
+
+  Built with <a href="https://www.mkdocs.org/">MkDocs</a> using a <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>.
+</footer>
+          
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+
+  <div class="rst-versions" role="note" aria-label="Versions">
+  <span class="rst-current-version" data-toggle="rst-current-version">
+    
+        <span>
+          <a href="https://github.com/ranch-hand-robotics/babylon_ros" class="fa fa-github" style="color: #fcfcfc"> GitHub</a>
+        </span>
+    
+    
+      <span><a href="joint.html" style="color: #fcfcfc">&laquo; Previous</a></span>
+    
+    
+      <span><a href="visual.html" style="color: #fcfcfc">Next &raquo;</a></span>
+    
+  </span>
+</div>
+    <script src="../js/jquery-3.6.0.min.js"></script>
+    <script>var base_url = "..";</script>
+    <script src="../js/theme_extra.js"></script>
+    <script src="../js/theme.js"></script>
+      <script src="../search/main.js"></script>
+    <script>
+        jQuery(function () {
+            SphinxRtdTheme.Navigation.enable(true);
+        });
+    </script>
+
+</body>
+</html>
