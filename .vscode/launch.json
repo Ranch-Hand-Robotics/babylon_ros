@@ -7,8 +7,16 @@
     {
       "type": "msedge",
       "request": "launch",
-      "name": "Open viewer.html",
-      "file": "${workspaceFolder}/web/viewer.html"
+      "runtimeExecutable": "C:\\Program Files (x86)\\Microsoft\\Edge\\Application\\msedge.exe",
+      "name": "Open Static Viewer",
+      "url": "file://${workspaceFolder}/web/viewer.html",
+      "webRoot": "${workspaceFolder}/web",
+      "userDataDir": "${workspaceFolder}/.vscode/msedge",
+      "runtimeArgs": [
+        "--disable-web-security",
+        "--disable-features=VizDisplayCompositor",
+        "--allow-file-access-from-files"
+      ]
     }
   ]
 }

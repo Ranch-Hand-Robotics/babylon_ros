@@ -1,3 +1,4 @@
+.vscode/web/msedge/**
 web/*.js*
 docs/ros.js
 docs/ros.js.map
