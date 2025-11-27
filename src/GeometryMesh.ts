@@ -68,7 +68,7 @@ export class Mesh implements IGeometry {
                                 const mat = m.material as BABYLON.StandardMaterial;
                                 if (mat) {
                                     // Ensure proper lighting response
-                                    if (!mat.diffuseColor || mat.diffuseColor.r === 0 && mat.diffuseColor.g === 0 && mat.diffuseColor.b === 0) {
+                                    if (!mat.diffuseColor || (mat.diffuseColor.r === 0 && mat.diffuseColor.g === 0 && mat.diffuseColor.b === 0)) {
                                         mat.diffuseColor = new BABYLON.Color3(0.8, 0.8, 0.8);
                                     }
                                     mat.specularColor = new BABYLON.Color3(0.2, 0.2, 0.2); // Subtle specularity
