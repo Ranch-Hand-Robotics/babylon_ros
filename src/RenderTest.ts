@@ -10,6 +10,8 @@ import {Robot} from './Robot';
 import {Joint} from './Joint';
 import {Link} from './Link';
 import {Visual} from './Visual';
+import {Material} from './Material';
+import {Mesh} from './GeometryMesh';
 import { RobotScene } from './RobotScene';
 
 import * as GUI from 'babylonjs-gui';
@@ -159,6 +161,11 @@ function addTestToRobotScene(robotScene : RobotScene) {
     {name: "inline", url: ""},
   ];
 
+  var fileTestList = [
+    {name: "xyz_cube.stl", url: "https://raw.githubusercontent.com/Ranch-Hand-Robotics/babylon_ros/main/test/testdata/xyz_cube.stl"},
+    {name: "top_plate.obj", url: "https://raw.githubusercontent.com/Ranch-Hand-Robotics/babylon_ros/main/test/testdata/top_plate.obj"},
+  ];
+
   // Add Basic Tests group
   const basicTestsHeader = createTestGroupHeader("Basic Tests");
   testMenuPanel.addControl(basicTestsHeader);
@@ -265,6 +272,65 @@ function addTestToRobotScene(robotScene : RobotScene) {
       const response = await fetch(t.url);
       const urdfText = await response.text();
       robotScene.applyURDF(urdfText);
+    });
+    if (testMenuPanel) {
+      testMenuPanel.addControl(button);
+    }
+  });
+
+  // Add some spacing between groups
+  const spacer2 = new GUI.Rectangle();
+  spacer2.heightInPixels = 15;
+  spacer2.color = "transparent";
+  spacer2.background = "transparent";
+  spacer2.thickness = 0;
+  testMenuPanel.addControl(spacer2);
+
+  // Add File Tests group
+  const fileTestsHeader = createTestGroupHeader("File Tests");
+  testMenuPanel.addControl(fileTestsHeader);
+  
+  const fileTestsSeparator = createTestGroupSeparator();
+  testMenuPanel.addControl(fileTestsSeparator);
+
+  fileTestList.forEach((t) => {
+    const button = createTestMenuButton(t.name, t.name, async () => {
+      toggleTestMenu(); // Close menu after selection
+      
+      if (!robotScene.scene) {
+        return;
+      }
+      
+      // Clear the existing robot before loading new file
+      if (robotScene.currentRobot) {
+        const tempR = robotScene.currentRobot;
+        robotScene.currentRobot = undefined;
+        tempR.dispose();
+      }
+      
+      // Apply scaling for files that use mm as default units
+      // OpenSCAD exports in mm (both STL and OBJ), so scale down to meters for robotics
+      // GLB, GLTF, DAE typically use meters already
+      let scale = new BABYLON.Vector3(1, 1, 1);
+      if (t.url.toLowerCase().endsWith('.stl') || t.url.toLowerCase().endsWith('.obj')) {
+        // STL and OBJ files from OpenSCAD are in mm, scale down to meters
+        scale = new BABYLON.Vector3(0.001, 0.001, 0.001);
+      }
+      
+      let m = new Mesh(t.url, scale);
+      robotScene.currentRobot = new Robot();
+      
+      let visual = new Visual();
+      visual.material = new Material();
+      visual.material.name = "default";
+      visual.material.color = new BABYLON.Color4(1, 1, 1, 1); // Bright white for better visibility
+      visual.geometry = m;
+
+      let link = new Link();
+      link.visuals.push(visual);
+
+      robotScene.currentRobot.links.set("base_link", link);
+      robotScene.currentRobot.create(robotScene.scene);
     });
     if (testMenuPanel) {
       testMenuPanel.addControl(button);

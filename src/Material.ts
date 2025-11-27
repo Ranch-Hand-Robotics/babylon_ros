@@ -32,6 +32,14 @@ export class Material {
             }
             m.diffuseColor = new BABYLON.Color3(this.color.r, this.color.g, this.color.b);
             m.alpha = this.color.a;
+            
+            // Make colorless objects brighter with emissive properties
+            if (this.color.r >= 0.95 && this.color.g >= 0.95 && this.color.b >= 0.95) {
+                m.emissiveColor = new BABYLON.Color3(0.3, 0.3, 0.3);
+                m.specularColor = new BABYLON.Color3(0.8, 0.8, 0.8);
+                m.specularPower = 32;
+            }
+            
             this.material = m;
         }
         if (this.material) {
