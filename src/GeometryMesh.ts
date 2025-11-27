@@ -54,6 +54,29 @@ export class Mesh implements IGeometry {
                             }
                         }
                     });                
+                } else if (this.ext.toLowerCase().indexOf('.obj') !== -1) {
+                    this.meshes.forEach(m => {
+                        if (this.transform != undefined) {
+                            m.parent = this.transform;
+                            
+                            // For OBJ files, preserve materials from MTL file if they exist
+                            // Only override if URDF material is explicitly defined
+                            if (this.material != undefined && this.material.material != undefined) {
+                                m.material = this.material.material;
+                            } else if (m.material) {
+                                // Enhance existing MTL materials for better appearance
+                                const mat = m.material as BABYLON.StandardMaterial;
+                                if (mat) {
+                                    // Ensure proper lighting response
+                                    if (!mat.diffuseColor || mat.diffuseColor.r === 0 && mat.diffuseColor.g === 0 && mat.diffuseColor.b === 0) {
+                                        mat.diffuseColor = new BABYLON.Color3(0.8, 0.8, 0.8);
+                                    }
+                                    mat.specularColor = new BABYLON.Color3(0.2, 0.2, 0.2); // Subtle specularity
+                                    mat.backFaceCulling = true; // Normal culling for clean look
+                                }
+                            }
+                        }
+                    });
                 } 
             }
         }

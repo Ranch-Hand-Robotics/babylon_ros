@@ -1333,23 +1333,35 @@ export class RobotScene {
   private createEnhancedLighting(): void {
     if (!this.scene) return;
 
-    // Main directional light (sun-like)
-    const directionalLight = new BABYLON.DirectionalLight("directionalLight", new BABYLON.Vector3(-1, -1, -1), this.scene);
-    directionalLight.position = new BABYLON.Vector3(20, 20, 20);
-    directionalLight.intensity = 1.0;
+    // Main directional light (sun-like) - key light
+    const directionalLight = new BABYLON.DirectionalLight("directionalLight", new BABYLON.Vector3(-1, -2, -1.5), this.scene);
+    directionalLight.position = new BABYLON.Vector3(10, 20, 15);
+    directionalLight.intensity = 1.2;
+    directionalLight.diffuse = new BABYLON.Color3(1.0, 0.98, 0.95); // Warm white
+    directionalLight.specular = new BABYLON.Color3(1.0, 1.0, 1.0);
 
-    // Ambient hemispheric light for soft fill
+    // Ambient hemispheric light for soft fill - reduces harsh shadows
     const hemisphericLight = new BABYLON.HemisphericLight("hemisphericLight", new BABYLON.Vector3(0, 1, 0), this.scene);
-    hemisphericLight.intensity = 0.4;
+    hemisphericLight.intensity = 0.6;
+    hemisphericLight.diffuse = new BABYLON.Color3(0.9, 0.95, 1.0); // Cool ambient
+    hemisphericLight.groundColor = new BABYLON.Color3(0.4, 0.4, 0.45); // Darker ground reflection
 
-    // Subtle accent lights for depth
-    const accentLight1 = new BABYLON.HemisphericLight("accentLight1", new BABYLON.Vector3(1, 0.5, 0), this.scene);
-    accentLight1.intensity = 0.2;
-    accentLight1.diffuse = new BABYLON.Color3(1, 0.9, 0.8);
+    // Rim light for edge definition and depth
+    const rimLight = new BABYLON.DirectionalLight("rimLight", new BABYLON.Vector3(1, 0.5, 1), this.scene);
+    rimLight.position = new BABYLON.Vector3(-15, 8, -15);
+    rimLight.intensity = 0.5;
+    rimLight.diffuse = new BABYLON.Color3(0.8, 0.85, 1.0); // Cool rim light
 
-    const accentLight2 = new BABYLON.HemisphericLight("accentLight2", new BABYLON.Vector3(-0.5, 0, 1), this.scene);
-    accentLight2.intensity = 0.15;
-    accentLight2.diffuse = new BABYLON.Color3(0.8, 0.9, 1);
+    // Subtle accent light from below to reduce bottom shadows
+    const bottomLight = new BABYLON.HemisphericLight("bottomLight", new BABYLON.Vector3(0, -1, 0), this.scene);
+    bottomLight.intensity = 0.15;
+    bottomLight.diffuse = new BABYLON.Color3(0.6, 0.65, 0.7);
+
+    // Point light for additional local illumination (optional, can be positioned near objects)
+    const pointLight = new BABYLON.PointLight("pointLight", new BABYLON.Vector3(5, 10, 5), this.scene);
+    pointLight.intensity = 0.3;
+    pointLight.diffuse = new BABYLON.Color3(1.0, 0.95, 0.9);
+    pointLight.range = 50;
   }
 
   /**
