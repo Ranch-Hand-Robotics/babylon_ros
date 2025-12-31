@@ -4,6 +4,7 @@ docs/ros.js.map
 
 web/user/**
 .vscode/*.db*
+.vscode/edge-profile/
 **/log
 # Logs
 logs

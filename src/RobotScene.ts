@@ -66,6 +66,12 @@ export class RobotScene {
   
   // Enhanced visuals properties
   private enhancedVisualsEnabled: boolean = true;
+  
+  // Section plane properties
+  private sectionPlane: BABYLON.Mesh | undefined = undefined;
+  private sectionMaterial: BABYLON.StandardMaterial | undefined = undefined;
+  private sectionClipPlane: BABYLON.Plane | undefined = undefined;
+  private sectionEnabled: boolean = false;
       
 
   clearStatus() {
@@ -584,6 +590,7 @@ export class RobotScene {
     this.hamburgerButton.verticalAlignment = GUI.Control.VERTICAL_ALIGNMENT_TOP;
     this.hamburgerButton.leftInPixels = 10;
     this.hamburgerButton.topInPixels = 10;
+    this.hamburgerButton.zIndex = 2;
     
     this.hamburgerButton.onPointerUpObservable.add(() => {
       this.toggleMenu();
@@ -594,7 +601,7 @@ export class RobotScene {
     // Create menu panel container
     this.menuContainer = new GUI.Rectangle("menuContainer");
     this.menuContainer.widthInPixels = 175;
-    this.menuContainer.heightInPixels = 400;
+    this.menuContainer.height = "100%";
     this.menuContainer.cornerRadius = 8;
     this.menuContainer.color = "white";
     this.menuContainer.thickness = 2;
@@ -602,7 +609,8 @@ export class RobotScene {
     this.menuContainer.horizontalAlignment = GUI.Control.HORIZONTAL_ALIGNMENT_LEFT;
     this.menuContainer.verticalAlignment = GUI.Control.VERTICAL_ALIGNMENT_TOP;
     this.menuContainer.leftInPixels = 10;
-    this.menuContainer.topInPixels = 60;
+    this.menuContainer.topInPixels = 0;
+    this.menuContainer.zIndex = 1;
     this.menuContainer.isVisible = false;
     
     this.UILayer.addControl(this.menuContainer);
@@ -613,7 +621,7 @@ export class RobotScene {
     this.menuScrollViewer.color = "transparent";
     this.menuScrollViewer.background = "transparent";
     this.menuScrollViewer.widthInPixels = 175;
-    this.menuScrollViewer.heightInPixels = 400;
+    this.menuScrollViewer.height = "100%";
     this.menuScrollViewer.verticalAlignment = GUI.Control.VERTICAL_ALIGNMENT_TOP;
     
     this.menuContainer.addControl(this.menuScrollViewer);
@@ -713,6 +721,12 @@ export class RobotScene {
       this.refreshMirror();
     });
     this.menuPanel.addControl(refreshMirrorButton);
+
+    // Add section plane toggle button
+    const sectionButton = this.createMenuButton("section", "Cross Section", () => {
+      this.toggleSection();
+    });
+    this.menuPanel.addControl(sectionButton);
   }
 
   toggleMenu() {
@@ -968,6 +982,223 @@ export class RobotScene {
     }
   }
   
+  toggleSection() {
+    if (!this.scene || !this.camera) {
+      return;
+    }
+
+    this.sectionEnabled = !this.sectionEnabled;
+
+    if (this.sectionEnabled) {
+      this.createSectionPlane();
+      this.updateSectionPlane();
+      
+      // Register an observable to update the section plane as the camera moves
+      this.scene.onBeforeRenderObservable.add(this.updateSectionPlaneObserver);
+    } else {
+      this.disposeSectionPlane();
+    }
+  }
+
+  private updateSectionPlaneObserver = () => {
+    if (this.sectionEnabled && this.scene && this.camera) {
+      this.updateSectionPlane();
+    }
+  }
+
+  private createSectionPlane() {
+    if (!this.scene || !this.camera) {
+      return;
+    }
+
+    const bounds = this.computeRobotBounds();
+    const planeSize = bounds ? Math.max(1, bounds.maxDimension * 2.5) : 100;
+
+    // Create a plane mesh to visualize the section (hidden from view)
+    this.sectionPlane = BABYLON.MeshBuilder.CreatePlane("sectionPlane", { size: planeSize }, this.scene);
+    this.sectionPlane.isPickable = false;
+    this.sectionPlane.isVisible = true; 
+    
+    // Create a semi-transparent material for the section plane (not used since plane is hidden)
+    this.sectionMaterial = new BABYLON.StandardMaterial("sectionMaterial", this.scene);
+    this.sectionMaterial.alpha = 0.15;
+    this.sectionMaterial.diffuseColor = new BABYLON.Color3(0.5, 0.7, 1.0); // Light blue
+    this.sectionMaterial.backFaceCulling = false;
+    this.sectionMaterial.wireframe = false;
+    this.sectionMaterial.emissiveColor = new BABYLON.Color3(0.2, 0.3, 0.5);
+
+    this.sectionPlane.material = this.sectionMaterial;
+
+    // Create the clipping plane for cutting through the robot
+    this.sectionClipPlane = new BABYLON.Plane(0, 1, 0, 0);
+  }
+
+  private updateSectionPlane() {
+    if (!this.camera || !this.sectionPlane || !this.sectionClipPlane) {
+      return;
+    }
+
+    // Get the camera's forward direction (direction it's looking)
+    const cameraDirection = BABYLON.Vector3.Normalize(
+      this.camera.target.subtract(this.camera.position)
+    );
+
+    // Dynamically resize the plane based on current robot bounds and camera distance
+    const bounds = this.computeRobotBounds();
+    if (bounds) {
+      // Calculate the distance from camera target to the farthest corner of the robot
+      const corners = [
+        new BABYLON.Vector3(bounds.min.x, bounds.min.y, bounds.min.z),
+        new BABYLON.Vector3(bounds.max.x, bounds.min.y, bounds.min.z),
+        new BABYLON.Vector3(bounds.min.x, bounds.max.y, bounds.min.z),
+        new BABYLON.Vector3(bounds.max.x, bounds.max.y, bounds.min.z),
+        new BABYLON.Vector3(bounds.min.x, bounds.min.y, bounds.max.z),
+        new BABYLON.Vector3(bounds.max.x, bounds.min.y, bounds.max.z),
+        new BABYLON.Vector3(bounds.min.x, bounds.max.y, bounds.max.z),
+        new BABYLON.Vector3(bounds.max.x, bounds.max.y, bounds.max.z),
+      ];
+      
+      let maxDistance = 0;
+      const cameraTarget = this.camera.target;
+      corners.forEach(corner => {
+        const distance = BABYLON.Vector3.Distance(cameraTarget, corner);
+        maxDistance = Math.max(maxDistance, distance);
+      });
+      
+      // Size the plane to be 3x the maximum distance to ensure it covers the robot
+      const newSize = Math.max(maxDistance * 3, bounds.maxDimension * 3);
+      this.sectionPlane.scaling = new BABYLON.Vector3(newSize, newSize, 1);
+    } else {
+      // Fallback to large plane if no bounds available
+      this.sectionPlane.scaling = new BABYLON.Vector3(100, 100, 1);
+    }
+
+    // Position the plane at the world origin, perpendicular to the camera direction
+    const origin = new BABYLON.Vector3(0, 0, 0);
+    this.sectionPlane.position = origin.clone();
+
+    // Make the plane face the camera directly
+    // Reset any Euler rotations to avoid conflicts with quaternions
+    this.sectionPlane.rotation = BABYLON.Vector3.Zero();
+    
+    // Point the plane's normal away from the camera (toward the back)
+    // This makes the front face visible to the camera
+    const targetPoint = origin.add(cameraDirection.scale(-1));
+    this.sectionPlane.lookAt(targetPoint, 0, 0, 0);
+
+    // Update the clipping plane
+    // The clipping plane's normal should point AWAY from the camera (toward the camera but cutting from behind)
+    // This ensures the geometry TOWARD the camera is kept and the geometry AWAY is clipped
+    this.sectionClipPlane.normal = cameraDirection.scale(-1); // Invert to point away from camera
+    // The D coefficient positions the plane along the normal (plane equation: normal·point + d = 0)
+    // Since the plane passes through the origin, d = -normal·origin = 0
+    this.sectionClipPlane.d = -BABYLON.Vector3.Dot(origin, this.sectionClipPlane.normal);
+
+    // Apply the updated clipping plane to all meshes
+    this.applyClippingPlaneToAllMeshes();
+  }
+
+  private applyClippingPlaneToAllMeshes() {
+    if (!this.sectionClipPlane || !this.sectionEnabled) {
+      return;
+    }
+
+    // Apply the clipping plane to all robot meshes
+    if (this.currentRobot) {
+      this.currentRobot.links.forEach((link) => {
+        link.visuals.forEach((visual) => {
+          if (visual.geometry && visual.geometry.meshes) {
+            visual.geometry.meshes.forEach((mesh) => {
+              if (mesh && mesh instanceof BABYLON.Mesh && mesh.material) {
+                // Apply clipPlane to the material regardless of type
+                (mesh.material as any).clipPlane = this.sectionClipPlane;
+              }
+            });
+          }
+        });
+      });
+
+      // Also apply to collision meshes
+      this.currentRobot.links.forEach((link) => {
+        link.collisions.forEach((collision) => {
+          if (collision.geometry && collision.geometry.meshes) {
+            collision.geometry.meshes.forEach((mesh) => {
+              if (mesh && mesh instanceof BABYLON.Mesh && mesh.material) {
+                // Apply clipPlane to the material regardless of type
+                (mesh.material as any).clipPlane = this.sectionClipPlane;
+              }
+            });
+          }
+        });
+      });
+    }
+  }
+
+  private disposeSectionPlane() {
+    if (this.sectionPlane) {
+      this.sectionPlane.dispose();
+      this.sectionPlane = undefined;
+    }
+
+    if (this.sectionMaterial) {
+      this.sectionMaterial.dispose();
+      this.sectionMaterial = undefined;
+    }
+
+    // Remove clipping plane from all meshes
+    if (this.scene) {
+      this.scene.meshes.forEach((mesh) => {
+        if (mesh && mesh instanceof BABYLON.Mesh && mesh.material) {
+          (mesh.material as any).clipPlane = null;
+        }
+      });
+    }
+
+    this.sectionClipPlane = undefined;
+  }
+
+  private computeRobotBounds(): {
+    min: BABYLON.Vector3;
+    max: BABYLON.Vector3;
+    center: BABYLON.Vector3;
+    size: BABYLON.Vector3;
+    maxDimension: number;
+  } | null {
+    if (!this.currentRobot) {
+      return null;
+    }
+
+    const robotMeshes: BABYLON.AbstractMesh[] = [];
+    this.currentRobot.links.forEach((link) => {
+      link.visuals.forEach((visual) => {
+        if (visual.geometry && visual.geometry.meshes) {
+          robotMeshes.push(...visual.geometry.meshes);
+        }
+      });
+    });
+
+    if (robotMeshes.length === 0) {
+      return null;
+    }
+
+    let min = new BABYLON.Vector3(Number.MAX_VALUE, Number.MAX_VALUE, Number.MAX_VALUE);
+    let max = new BABYLON.Vector3(-Number.MAX_VALUE, -Number.MAX_VALUE, -Number.MAX_VALUE);
+
+    robotMeshes.forEach((mesh) => {
+      const boundingInfo = mesh.getBoundingInfo();
+      const meshMin = boundingInfo.boundingBox.minimumWorld;
+      const meshMax = boundingInfo.boundingBox.maximumWorld;
+      
+      min = BABYLON.Vector3.Minimize(min, meshMin);
+      max = BABYLON.Vector3.Maximize(max, meshMax);
+    });
+
+    const center = BABYLON.Vector3.Center(min, max);
+    const size = max.subtract(min);
+    const maxDimension = Math.max(size.x, size.y, size.z);
+
+    return { min, max, center, size, maxDimension };
+  }
   
   createUI() {
     if (!this.scene) {
@@ -1137,6 +1368,11 @@ export class RobotScene {
                   this.pendingMeshLoads--;
                   resolve();
                   
+                  // Apply clipping plane if section is enabled
+                  if (this.sectionEnabled) {
+                    this.applyClippingPlaneToAllMeshes();
+                  }
+                  
                   // If all meshes are loaded and this is the first time, frame the model
                   if (this.pendingMeshLoads === 0 && !this.hasBeenFramed) {
                     // Use a small delay to ensure all transforms are updated
@@ -1256,43 +1492,15 @@ export class RobotScene {
    * Automatically frame the camera to show the entire robot model
    */
   private frameModel(): void {
-    if (!this.scene || !this.camera || !this.currentRobot) {
+    if (!this.scene || !this.camera) {
       return;
     }
 
-    // Get all meshes in the scene (excluding ground, world axis, etc.)
-    const robotMeshes: BABYLON.AbstractMesh[] = [];
-    
-    // Collect all meshes from robot links
-    this.currentRobot.links.forEach((link) => {
-      link.visuals.forEach((visual) => {
-        if (visual.geometry && visual.geometry.meshes) {
-          robotMeshes.push(...visual.geometry.meshes);
-        }
-      });
-    });
-
-    if (robotMeshes.length === 0) {
+    const bounds = this.computeRobotBounds();
+    if (!bounds) {
       return;
     }
-
-    // Calculate the bounding box of all robot meshes
-    let min = new BABYLON.Vector3(Number.MAX_VALUE, Number.MAX_VALUE, Number.MAX_VALUE);
-    let max = new BABYLON.Vector3(-Number.MAX_VALUE, -Number.MAX_VALUE, -Number.MAX_VALUE);
-
-    robotMeshes.forEach((mesh) => {
-      const boundingInfo = mesh.getBoundingInfo();
-      const meshMin = boundingInfo.boundingBox.minimumWorld;
-      const meshMax = boundingInfo.boundingBox.maximumWorld;
-      
-      min = BABYLON.Vector3.Minimize(min, meshMin);
-      max = BABYLON.Vector3.Maximize(max, meshMax);
-    });
-
-    // Calculate the center and size of the bounding box
-    const center = BABYLON.Vector3.Center(min, max);
-    const size = max.subtract(min);
-    const maxDimension = Math.max(size.x, size.y, size.z);
+    const { center, maxDimension } = bounds;
 
     // Set camera target to the center of the model
     this.camera.setTarget(center);
