@@ -851,14 +851,14 @@ export class RobotScene {
         start: -range,
         end: range,
         skipOrigin: true,
-        getPosition: (value: number) => new BABYLON.Vector3(0, 0, -value),
+        getPosition: (value: number) => new BABYLON.Vector3(0, 0, value),
         getRotation: () => new BABYLON.Vector3(-Math.PI/2, 0, 0)
       },
       y: {
         start: -range,
         end: range,
         skipOrigin: true,
-        getPosition: (value: number) => new BABYLON.Vector3(value, 0, 0),
+        getPosition: (value: number) => new BABYLON.Vector3(-value, 0, 0),
         getRotation: () => new BABYLON.Vector3(-Math.PI/2, Math.PI/2, 0)
       },
       z: {
