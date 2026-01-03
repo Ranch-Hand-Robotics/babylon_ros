@@ -756,8 +756,9 @@ export class RobotScene {
     material.diffuseTexture = dynamicTexture;
     material.alphaMode = BABYLON.Engine.ALPHA_PREMULTIPLIED;
     
-    // Add maximum emissive color to make text glow very brightly
-    material.emissiveColor = new BABYLON.Color3(0.8, 0.8, 0.8);
+    // Make text self-illuminating with full brightness based on texture color
+    material.emissiveTexture = dynamicTexture;
+    material.emissiveColor = new BABYLON.Color3(1, 1, 1); // Full white to show texture colors
     
     // Disable lighting so text always appears at maximum brightness
     material.disableLighting = true;
@@ -783,7 +784,7 @@ export class RobotScene {
     axisX.color = new BABYLON.Color3(1, 0, 0);
     axisX.parent = this.worldAxis;
   
-    var xChar = this.makeTextPlane("X", "red", this.worldAxisSize / 10);
+    var xChar = this.makeTextPlane("X", "red", this.worldAxisSize);
     if (xChar !== undefined) {
       xChar.position = new BABYLON.Vector3(0.9 * this.worldAxisSize, -0.05 * this.worldAxisSize, 0);
       xChar.parent = this.worldAxis;
@@ -796,7 +797,7 @@ export class RobotScene {
     axisY.color = new BABYLON.Color3(0, 1, 0);
     axisY.parent = this.worldAxis;
   
-    var yChar = this.makeTextPlane("Y", "green", this.worldAxisSize / 10);
+    var yChar = this.makeTextPlane("Y", "green", this.worldAxisSize);
     if (yChar !== undefined) {
       yChar.position = new BABYLON.Vector3(-0.05 * this.worldAxisSize, 0.9 * this.worldAxisSize, 0);
       yChar.parent = this.worldAxis;
@@ -809,7 +810,7 @@ export class RobotScene {
     axisZ.color = new BABYLON.Color3(0, 0, 1);
     axisZ.parent = this.worldAxis;
   
-    var zChar = this.makeTextPlane("Z", "blue", this.worldAxisSize / 10);
+    var zChar = this.makeTextPlane("Z", "blue", this.worldAxisSize);
     if (zChar !== undefined) {
       zChar.position = new BABYLON.Vector3(0, 0.05 * this.worldAxisSize, 0.9 * this.worldAxisSize);
       zChar.rotation =  new BABYLON.Vector3(-Math.PI/2, 0, 0);
@@ -850,14 +851,14 @@ export class RobotScene {
         start: -range,
         end: range,
         skipOrigin: true,
-        getPosition: (value: number) => new BABYLON.Vector3(0, 0, value),
+        getPosition: (value: number) => new BABYLON.Vector3(0, 0, -value),
         getRotation: () => new BABYLON.Vector3(-Math.PI/2, 0, 0)
       },
       y: {
         start: -range,
         end: range,
         skipOrigin: true,
-        getPosition: (value: number) => new BABYLON.Vector3(-value, 0, 0),
+        getPosition: (value: number) => new BABYLON.Vector3(value, 0, 0),
         getRotation: () => new BABYLON.Vector3(-Math.PI/2, Math.PI/2, 0)
       },
       z: {
@@ -913,8 +914,8 @@ export class RobotScene {
     }
 
     // Create labels for all axes using the helper function with maximum brightness colors
-    this.createAxisLabels('x', range, increment, unit, labelSize, '#FFAAAA'); // Maximum bright red
-    this.createAxisLabels('y', range, increment, unit, labelSize, '#AAFFAA'); // Maximum bright green
+    this.createAxisLabels('x', range, increment, unit, labelSize, '#AAFFAA'); // Maximum bright green
+    this.createAxisLabels('y', range, increment, unit, labelSize, '#FFAAAA'); // Maximum bright red
     this.createAxisLabels('z', range, increment, unit, labelSize, '#AACCFF'); // Maximum bright blue
 
     this.gridUnitsVisible = true;
@@ -1393,7 +1394,7 @@ export class RobotScene {
 
     // Create enhanced mirror ground for reflections
     const mirrorGround = BABYLON.MeshBuilder.CreateGround("mirrorGround", {width: 100, height: 100}, this.scene);
-    mirrorGround.position.y = -0.01; // Slightly below main ground
+    mirrorGround.position.y = -0.001; // Minimal offset to avoid z-fighting without visible gap
     mirrorGround.isPickable = false;
 
     // Mirror material with subtle, blurred reflection
@@ -1596,7 +1597,15 @@ export class RobotScene {
     this.camera.wheelDeltaPercentage = 0.01;
     this.camera.minZ = 0.05;
     this.camera.maxZ = 1000;
+    
     this.camera.attachControl(canvas, true);
+    
+    // Configure mouse button behavior and panning speed
+    const pointersInput = this.camera.inputs.attached.pointers as BABYLON.ArcRotateCameraPointersInput;
+    if (pointersInput) {
+      // Slow down panning (higher = slower, more control)
+      pointersInput.panningSensibility = 2000;
+    }
     
     // Enhanced scene background with gradient
     this.createEnhancedBackground();
