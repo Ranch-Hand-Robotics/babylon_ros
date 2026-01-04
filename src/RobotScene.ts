@@ -785,7 +785,7 @@ export class RobotScene {
     axisX.color = new BABYLON.Color3(1, 0, 0);
     axisX.parent = this.worldAxis;
   
-    var xChar = this.makeTextPlane("X", "red", this.worldAxisSize);
+    var xChar = this.makeTextPlane("X", "red", this.worldAxisSize * 0.5);
     if (xChar !== undefined) {
       xChar.position = new BABYLON.Vector3(0.9 * this.worldAxisSize, 0, 0);
       xChar.rotation.y = Math.PI;
@@ -800,7 +800,7 @@ export class RobotScene {
     axisY.color = new BABYLON.Color3(0, 1, 0);
     axisY.parent = this.worldAxis;
   
-    var yChar = this.makeTextPlane("Y", "green", this.worldAxisSize);
+    var yChar = this.makeTextPlane("Y", "green", this.worldAxisSize * 0.5);
     if (yChar !== undefined) {
       yChar.position = new BABYLON.Vector3(0, 0, -0.9 * this.worldAxisSize);
       yChar.rotation.y = Math.PI;
@@ -815,7 +815,7 @@ export class RobotScene {
     axisZ.color = new BABYLON.Color3(0, 0, 1);
     axisZ.parent = this.worldAxis;
   
-    var zChar = this.makeTextPlane("Z", "blue", this.worldAxisSize);
+    var zChar = this.makeTextPlane("Z", "blue", this.worldAxisSize * 0.5);
     if (zChar !== undefined) {
       zChar.position = new BABYLON.Vector3(0, 0.9 * this.worldAxisSize, 0);
       zChar.rotation.y = Math.PI;
