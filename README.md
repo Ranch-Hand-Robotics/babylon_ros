@@ -31,6 +31,7 @@ This makes it easy to embed live robot visualizations in any README by simply li
 - 🤖 **URDF and Xacro Object Model**: Loads and validates URDF and Xacro files into an object model you can access
 - 🌐 **Web Rendering Interface**: Access your robot's visualization from any device with a web browser
 - 📸 **Screenshot API**: Capture clean screenshots of your robot scenes without UI elements as base64 PNG images
+- 📊 **Progress Tracking**: Monitor mesh/asset loading progress with callback API for custom progress bars
 
 ## Non-Features
 - **No Real-time Visualization**: This package does not provide real-time visualization capabilities. It is focused on static visualization and interaction.
