@@ -1182,7 +1182,7 @@ export class RobotScene {
         
         this.currentRobot = await urdf.deserializeUrdfToRobot(urdfText);
         
-        // Count total meshes first
+        // First pass: Count total meshes to enable accurate progress reporting
         this.currentRobot.links.forEach((link) => {
           link.visuals.forEach((visual) => {
             if (visual.geometry && visual.geometry instanceof Mesh) {
@@ -1196,7 +1196,7 @@ export class RobotScene {
           this.onProgressCallback(0, this.totalMeshes, 0);
         }
         
-        // Count and setup callbacks for mesh loading
+        // Second pass: Set up progress tracking callbacks for each mesh
         let meshIndex = 0;
         this.currentRobot.links.forEach((link) => {
           link.visuals.forEach((visual) => {
@@ -1206,6 +1206,8 @@ export class RobotScene {
               this.meshLoadProgress.set(meshId, 0);
               
               // Set up progress callback for individual mesh
+              // Note: setLoadProgressCallback only exists on Mesh geometry, not on primitive geometries
+              // The optional chaining ensures we only call it when available
               visual.geometry.setLoadProgressCallback?.((event: BABYLON.ISceneLoaderProgressEvent) => {
                 // Track progress for this specific mesh (0-100)
                 const meshProgress = event.lengthComputable && event.total > 0
