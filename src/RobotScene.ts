@@ -37,7 +37,8 @@ export class RobotScene {
   private jointRotationGizmos : BABYLON.RotationGizmo[] = [];
   private linkRotationGizmos : BABYLON.RotationGizmo[] = [];
   private worldAxis : BABYLON.TransformNode | undefined = undefined;
-  private worldAxisSize = 8.0;
+  private worldAxisSize = 1.2;
+  private worldAxisLabels : BABYLON.Mesh[] = []; // Store X, Y, Z labels
   private selectedVisual : Visual | undefined = undefined;
   private hoveredJoint : Joint | undefined = undefined;
   private utilLayer : BABYLON.UtilityLayerRenderer | undefined = undefined;
@@ -49,7 +50,7 @@ export class RobotScene {
   private meshLoadPromises: Promise<void>[] = [];
   private savedFramingTarget: BABYLON.Vector3 = new BABYLON.Vector3(0, 0, 0);
   private savedFramingRadius: number = 1;
-  private savedFramingAlpha: number = -Math.PI / 3;
+  private savedFramingAlpha: number = 2 * Math.PI / 3;
   private savedFramingBeta: number = 5 * Math.PI / 12;
   
   // Hamburger menu properties
@@ -378,7 +379,7 @@ export class RobotScene {
         this.camera.beta = this.savedFramingBeta;
       } else {
         // Fall back to default position if no framing has been done
-        this.camera.alpha = -Math.PI / 3;
+        this.camera.alpha = 2 * Math.PI / 3;
         this.camera.beta = 5 * Math.PI / 12;
         this.camera.target = new BABYLON.Vector3(0, 0, 0);
         this.camera.radius = 1;
@@ -784,10 +785,12 @@ export class RobotScene {
     axisX.color = new BABYLON.Color3(1, 0, 0);
     axisX.parent = this.worldAxis;
   
-    var xChar = this.makeTextPlane("X", "red", this.worldAxisSize);
+    var xChar = this.makeTextPlane("X", "red", this.worldAxisSize * 0.5);
     if (xChar !== undefined) {
-      xChar.position = new BABYLON.Vector3(0.9 * this.worldAxisSize, -0.05 * this.worldAxisSize, 0);
-      xChar.parent = this.worldAxis;
+      xChar.position = new BABYLON.Vector3(0.9 * this.worldAxisSize, 0, 0);
+      xChar.rotation.y = Math.PI;
+      xChar.billboardMode = BABYLON.Mesh.BILLBOARDMODE_ALL;
+      this.worldAxisLabels.push(xChar);
     } 
   
     var axisY = BABYLON.MeshBuilder.CreateLines("axisY", {points: [
@@ -797,10 +800,12 @@ export class RobotScene {
     axisY.color = new BABYLON.Color3(0, 1, 0);
     axisY.parent = this.worldAxis;
   
-    var yChar = this.makeTextPlane("Y", "green", this.worldAxisSize);
+    var yChar = this.makeTextPlane("Y", "green", this.worldAxisSize * 0.5);
     if (yChar !== undefined) {
-      yChar.position = new BABYLON.Vector3(-0.05 * this.worldAxisSize, 0.9 * this.worldAxisSize, 0);
-      yChar.parent = this.worldAxis;
+      yChar.position = new BABYLON.Vector3(0, 0, -0.9 * this.worldAxisSize);
+      yChar.rotation.y = Math.PI;
+      yChar.billboardMode = BABYLON.Mesh.BILLBOARDMODE_ALL;
+      this.worldAxisLabels.push(yChar);
     }
       
     var axisZ = BABYLON.MeshBuilder.CreateLines("axisZ", { points: [
@@ -810,11 +815,12 @@ export class RobotScene {
     axisZ.color = new BABYLON.Color3(0, 0, 1);
     axisZ.parent = this.worldAxis;
   
-    var zChar = this.makeTextPlane("Z", "blue", this.worldAxisSize);
+    var zChar = this.makeTextPlane("Z", "blue", this.worldAxisSize * 0.5);
     if (zChar !== undefined) {
-      zChar.position = new BABYLON.Vector3(0, 0.05 * this.worldAxisSize, 0.9 * this.worldAxisSize);
-      zChar.rotation =  new BABYLON.Vector3(-Math.PI/2, 0, 0);
-      zChar.parent = this.worldAxis;
+      zChar.position = new BABYLON.Vector3(0, 0.9 * this.worldAxisSize, 0);
+      zChar.rotation.y = Math.PI;
+      zChar.billboardMode = BABYLON.Mesh.BILLBOARDMODE_ALL;
+      this.worldAxisLabels.push(zChar);
     }
   
     this.worldAxis.position = new BABYLON.Vector3(0, 0, 0);    
@@ -822,11 +828,13 @@ export class RobotScene {
 
   toggleWorldAxis() {
     if (this.worldAxis != undefined) {
-      if (this.worldAxis.isEnabled()) {
-        this.worldAxis.setEnabled(false);
-      } else {
-        this.worldAxis.setEnabled(true);
-      }
+      const isEnabled = this.worldAxis.isEnabled();
+      this.worldAxis.setEnabled(!isEnabled);
+      
+      // Also toggle axis labels
+      this.worldAxisLabels.forEach(label => {
+        label.setEnabled(!isEnabled);
+      });
     }
   }
 
@@ -845,28 +853,25 @@ export class RobotScene {
     labelSize: number,
     color: string
   ) {
-    // Define axis-specific configuration
+    // Define axis-specific configuration in world space (not rotated)
     const axisConfig = {
       x: {
         start: -range,
         end: range,
         skipOrigin: true,
-        getPosition: (value: number) => new BABYLON.Vector3(0, 0, value),
-        getRotation: () => new BABYLON.Vector3(-Math.PI/2, 0, 0)
+        getPosition: (value: number) => new BABYLON.Vector3(value, 0, 0), // World X
       },
       y: {
         start: -range,
         end: range,
         skipOrigin: true,
-        getPosition: (value: number) => new BABYLON.Vector3(-value, 0, 0),
-        getRotation: () => new BABYLON.Vector3(-Math.PI/2, Math.PI/2, 0)
+        getPosition: (value: number) => new BABYLON.Vector3(0, 0, -value), // World -Z (ROS Y)
       },
       z: {
         start: increment,
         end: range,
         skipOrigin: false,
-        getPosition: (value: number) => new BABYLON.Vector3(0, value, 0),
-        getRotation: () => new BABYLON.Vector3(0, 0, 0)
+        getPosition: (value: number) => new BABYLON.Vector3(0, value, 0), // World Y (ROS Z)
       }
     };
 
@@ -881,7 +886,9 @@ export class RobotScene {
       const label = this.makeTextPlane(labelText, color, labelSize);
       if (label) {
         label.position = config.getPosition(value);
-        label.rotation = config.getRotation();
+        label.rotation.y = Math.PI;
+        label.billboardMode = BABYLON.Mesh.BILLBOARDMODE_ALL; // Always face camera
+        // No parent - labels are in world space
         this.gridUnitLabels.push(label);
       }
     }
@@ -914,8 +921,8 @@ export class RobotScene {
     }
 
     // Create labels for all axes using the helper function with maximum brightness colors
-    this.createAxisLabels('x', range, increment, unit, labelSize, '#AAFFAA'); // Maximum bright green
-    this.createAxisLabels('y', range, increment, unit, labelSize, '#FFAAAA'); // Maximum bright red
+    this.createAxisLabels('x', range, increment, unit, labelSize, '#FFAAAA'); // Maximum bright red
+    this.createAxisLabels('y', range, increment, unit, labelSize, '#AAFFAA'); // Maximum bright green
     this.createAxisLabels('z', range, increment, unit, labelSize, '#AACCFF'); // Maximum bright blue
 
     this.gridUnitsVisible = true;
@@ -1305,7 +1312,7 @@ export class RobotScene {
 
     // Keep the same viewing angles but ensure good framing
     // You can adjust these angles if needed
-    this.camera.alpha = -Math.PI / 3;
+    this.camera.alpha = 2 * Math.PI / 3;
     this.camera.beta = 5 * Math.PI / 12;
     
     // Save the framing information for resetCamera()
@@ -1593,7 +1600,7 @@ export class RobotScene {
     this.createEnhancedGround();
     
     // Set up camera with improved settings
-    this.camera = new BABYLON.ArcRotateCamera("camera1", - Math.PI / 3, 5 * Math.PI / 12, 1, new BABYLON.Vector3(0, 0, 0), this.scene);
+    this.camera = new BABYLON.ArcRotateCamera("camera1", 2 * Math.PI / 3, 5 * Math.PI / 12, 1, new BABYLON.Vector3(0, 0, 0), this.scene);
     this.camera.wheelDeltaPercentage = 0.01;
     this.camera.minZ = 0.05;
     this.camera.maxZ = 1000;
