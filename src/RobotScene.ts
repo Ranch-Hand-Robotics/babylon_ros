@@ -53,6 +53,12 @@ export class RobotScene {
   private savedFramingAlpha: number = 2 * Math.PI / 3;
   private savedFramingBeta: number = 5 * Math.PI / 12;
   
+  // Progress tracking properties
+  private totalMeshes: number = 0;
+  private loadedMeshes: number = 0;
+  private meshLoadProgress: Map<string, number> = new Map();
+  private onProgressCallback?: (loaded: number, total: number, progress: number) => void;
+  
   // Hamburger menu properties
   private hamburgerButton: GUI.Button | undefined = undefined;
   private menuPanel: GUI.StackPanel | undefined = undefined;
@@ -395,6 +401,22 @@ export class RobotScene {
     if (this.camera) {
       this.camera.radius = radius;
     }
+  }
+
+  /**
+   * Sets a callback to receive progress updates during mesh/asset loading
+   * @param callback Function that receives (loadedMeshes, totalMeshes, progressPercentage)
+   * 
+   * @example
+   * ```typescript
+   * robotScene.setLoadProgressCallback((loaded, total, progress) => {
+   *   console.log(`Loading: ${loaded}/${total} meshes (${progress.toFixed(1)}%)`);
+   *   // Update your progress bar UI here
+   * });
+   * ```
+   */
+  public setLoadProgressCallback(callback: (loaded: number, total: number, progress: number) => void): void {
+    this.onProgressCallback = callback;
   }
 
   /**
@@ -1102,6 +1124,28 @@ export class RobotScene {
       }
     }
   }
+
+  /**
+   * Updates and reports the overall loading progress based on individual mesh progress
+   * @private
+   */
+  private updateOverallProgress(): void {
+    if (!this.onProgressCallback || this.totalMeshes === 0) {
+      return;
+    }
+    
+    // Calculate weighted progress across all meshes
+    let totalProgress = 0;
+    this.meshLoadProgress.forEach((progress) => {
+      totalProgress += progress;
+    });
+    
+    // Average progress as a percentage (0-100)
+    const averageProgress = totalProgress / this.totalMeshes;
+    
+    // Call the user's progress callback
+    this.onProgressCallback(this.loadedMeshes, this.totalMeshes, averageProgress);
+  }
   
   public async applyURDF(urdfText: string, vscode: any | undefined = undefined) {
     this.clearAxisGizmos();
@@ -1132,17 +1176,56 @@ export class RobotScene {
         this.meshLoadPromises = [];
         this.pendingMeshLoads = 0;
         this.hasBeenFramed = false;
+        this.totalMeshes = 0;
+        this.loadedMeshes = 0;
+        this.meshLoadProgress.clear();
         
         this.currentRobot = await urdf.deserializeUrdfToRobot(urdfText);
         
+        // Count total meshes first
+        this.currentRobot.links.forEach((link) => {
+          link.visuals.forEach((visual) => {
+            if (visual.geometry && visual.geometry instanceof Mesh) {
+              this.totalMeshes++;
+            }
+          });
+        });
+        
+        // Report initial progress
+        if (this.onProgressCallback && this.totalMeshes > 0) {
+          this.onProgressCallback(0, this.totalMeshes, 0);
+        }
+        
         // Count and setup callbacks for mesh loading
+        let meshIndex = 0;
         this.currentRobot.links.forEach((link) => {
           link.visuals.forEach((visual) => {
             if (visual.geometry && visual.geometry instanceof Mesh) {
               this.pendingMeshLoads++;
+              const meshId = `mesh_${meshIndex++}`;
+              this.meshLoadProgress.set(meshId, 0);
+              
+              // Set up progress callback for individual mesh
+              visual.geometry.setLoadProgressCallback?.((event: BABYLON.ISceneLoaderProgressEvent) => {
+                // Track progress for this specific mesh (0-100)
+                const meshProgress = event.lengthComputable && event.total > 0
+                  ? (event.loaded / event.total) * 100
+                  : 0;
+                this.meshLoadProgress.set(meshId, meshProgress);
+                
+                // Calculate overall progress
+                this.updateOverallProgress();
+              });
+              
               const meshLoadPromise = new Promise<void>((resolve) => {
                 visual.geometry?.setLoadCompleteCallback?.(() => {
                   this.pendingMeshLoads--;
+                  this.loadedMeshes++;
+                  this.meshLoadProgress.set(meshId, 100);
+                  
+                  // Update progress when a mesh completes
+                  this.updateOverallProgress();
+                  
                   resolve();
                   
                   // If all meshes are loaded and this is the first time, frame the model
