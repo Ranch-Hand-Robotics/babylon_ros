@@ -1,0 +1,529 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+    <meta charset="utf-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+      <link rel="shortcut icon" href="../img/favicon.ico" />
+    <title>Visual - Robot Developer Tools for Web</title>
+    <link rel="stylesheet" href="../css/theme.css" />
+    <link rel="stylesheet" href="../css/theme_extra.css" />
+        <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/styles/github.min.css" />
+    
+      <script>
+        // Current page data
+        var mkdocs_page_name = "Visual";
+        var mkdocs_page_input_path = "api/visual.md";
+        var mkdocs_page_url = null;
+      </script>
+    
+    <!--[if lt IE 9]>
+      <script src="../js/html5shiv.min.js"></script>
+    <![endif]-->
+      <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/highlight.min.js"></script>
+      <script>hljs.highlightAll();</script> 
+</head>
+
+<body class="wy-body-for-nav" role="document">
+
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side stickynav">
+    <div class="wy-side-scroll">
+      <div class="wy-side-nav-search">
+          <a href="../index.html" class="icon icon-home"> Robot Developer Tools for Web
+        </a><div role="search">
+  <form id ="rtd-search-form" class="wy-form" action="../search.html" method="get">
+      <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" title="Type search term here" />
+  </form>
+</div>
+      </div>
+
+      <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <ul>
+                <li class="toctree-l1"><a class="reference internal" href="../index.html">Home</a>
+                </li>
+              </ul>
+              <ul>
+                <li class="toctree-l1"><a class="reference internal" href="../installation.html">Installation</a>
+                </li>
+              </ul>
+              <ul>
+                <li class="toctree-l1"><a class="reference internal" href="../urdf.html">URDF Viewer</a>
+                </li>
+              </ul>
+              <p class="caption"><span class="caption-text">API Reference</span></p>
+              <ul class="current">
+                  <li class="toctree-l1"><a class="reference internal" href="../api-overview.html">Overview</a>
+                  </li>
+                  <li class="toctree-l1 current"><a class="reference internal current" >Core Classes</a>
+    <ul class="current">
+                <li class="toctree-l2"><a class="reference internal" href="robot-scene.html">RobotScene</a>
+                </li>
+                <li class="toctree-l2"><a class="reference internal" href="robot.html">Robot</a>
+                </li>
+                <li class="toctree-l2"><a class="reference internal" href="joint.html">Joint</a>
+                </li>
+                <li class="toctree-l2"><a class="reference internal" href="link.html">Link</a>
+                </li>
+                <li class="toctree-l2 current"><a class="reference internal current" href="#">Visual</a>
+    <ul class="current">
+    <li class="toctree-l3"><a class="reference internal" href="#constructor">Constructor</a>
+    </li>
+    <li class="toctree-l3"><a class="reference internal" href="#properties">Properties</a>
+        <ul>
+    <li class="toctree-l4"><a class="reference internal" href="#public-properties">Public Properties</a>
+    </li>
+        </ul>
+    </li>
+    <li class="toctree-l3"><a class="reference internal" href="#methods">Methods</a>
+        <ul>
+    <li class="toctree-l4"><a class="reference internal" href="#lifecycle-methods">Lifecycle Methods</a>
+    </li>
+    <li class="toctree-l4"><a class="reference internal" href="#state-management">State Management</a>
+    </li>
+        </ul>
+    </li>
+    <li class="toctree-l3"><a class="reference internal" href="#usage-examples">Usage Examples</a>
+        <ul>
+    <li class="toctree-l4"><a class="reference internal" href="#basic-visual-with-box-geometry">Basic Visual with Box Geometry</a>
+    </li>
+    <li class="toctree-l4"><a class="reference internal" href="#visual-with-mesh-geometry-and-material">Visual with Mesh Geometry and Material</a>
+    </li>
+    <li class="toctree-l4"><a class="reference internal" href="#visual-with-material-reference">Visual with Material Reference</a>
+    </li>
+        </ul>
+    </li>
+    <li class="toctree-l3"><a class="reference internal" href="#geometry-types">Geometry Types</a>
+        <ul>
+    <li class="toctree-l4"><a class="reference internal" href="#primitive-geometries">Primitive Geometries</a>
+    </li>
+    <li class="toctree-l4"><a class="reference internal" href="#mesh-geometries">Mesh Geometries</a>
+    </li>
+        </ul>
+    </li>
+    <li class="toctree-l3"><a class="reference internal" href="#transform-and-positioning">Transform and Positioning</a>
+        <ul>
+    <li class="toctree-l4"><a class="reference internal" href="#origin-position">Origin Position</a>
+    </li>
+    <li class="toctree-l4"><a class="reference internal" href="#roll-pitch-yaw-rotation">Roll-Pitch-Yaw Rotation</a>
+    </li>
+    <li class="toctree-l4"><a class="reference internal" href="#transform-hierarchy">Transform Hierarchy</a>
+    </li>
+        </ul>
+    </li>
+    <li class="toctree-l3"><a class="reference internal" href="#material-handling">Material Handling</a>
+        <ul>
+    <li class="toctree-l4"><a class="reference internal" href="#direct-material-assignment">Direct Material Assignment</a>
+    </li>
+    <li class="toctree-l4"><a class="reference internal" href="#material-reference">Material Reference</a>
+    </li>
+    <li class="toctree-l4"><a class="reference internal" href="#material-priority">Material Priority</a>
+    </li>
+        </ul>
+    </li>
+    <li class="toctree-l3"><a class="reference internal" href="#visibility-control">Visibility Control</a>
+        <ul>
+    <li class="toctree-l4"><a class="reference internal" href="#showhide-visual">Show/Hide Visual</a>
+    </li>
+    <li class="toctree-l4"><a class="reference internal" href="#collision-vs-visual">Collision vs Visual</a>
+    </li>
+        </ul>
+    </li>
+    <li class="toctree-l3"><a class="reference internal" href="#advanced-usage">Advanced Usage</a>
+        <ul>
+    <li class="toctree-l4"><a class="reference internal" href="#multiple-visuals-per-link">Multiple Visuals per Link</a>
+    </li>
+    <li class="toctree-l4"><a class="reference internal" href="#dynamic-visual-updates">Dynamic Visual Updates</a>
+    </li>
+    <li class="toctree-l4"><a class="reference internal" href="#accessing-mesh-data">Accessing Mesh Data</a>
+    </li>
+        </ul>
+    </li>
+    <li class="toctree-l3"><a class="reference internal" href="#error-handling">Error Handling</a>
+    </li>
+    <li class="toctree-l3"><a class="reference internal" href="#performance-considerations">Performance Considerations</a>
+    </li>
+    <li class="toctree-l3"><a class="reference internal" href="#integration-with-robot-structure">Integration with Robot Structure</a>
+    </li>
+    </ul>
+                </li>
+                <li class="toctree-l2"><a class="reference internal" href="material.html">Material</a>
+                </li>
+    </ul>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" >Geometry System</a>
+    <ul>
+                <li class="toctree-l2"><a class="reference internal" href="geometry.html">Geometry Types</a>
+                </li>
+    </ul>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" >Interactive Tools</a>
+    <ul>
+                <li class="toctree-l2"><a class="reference internal" href="gizmos.html">Gizmos</a>
+                </li>
+    </ul>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" >Utilities</a>
+    <ul>
+                <li class="toctree-l2"><a class="reference internal" href="utilities.html">Helper Functions</a>
+                </li>
+    </ul>
+                  </li>
+              </ul>
+      </div>
+    </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+      <nav class="wy-nav-top" role="navigation" aria-label="Mobile navigation menu">
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../index.html">Robot Developer Tools for Web</a>
+        
+      </nav>
+      <div class="wy-nav-content">
+        <div class="rst-content"><div role="navigation" aria-label="breadcrumbs navigation">
+  <ul class="wy-breadcrumbs">
+    <li><a href="../index.html" class="icon icon-home" aria-label="Docs"></a></li>
+          <li class="breadcrumb-item">API Reference</li>
+          <li class="breadcrumb-item">Core Classes</li>
+      <li class="breadcrumb-item active">Visual</li>
+    <li class="wy-breadcrumbs-aside">
+          <a href="https://github.com/ranch-hand-robotics/babylon_ros/edit/main/docs/api/visual.md" class="icon icon-github"> Edit on GitHub</a>
+    </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+            <div class="section" itemprop="articleBody">
+              
+                <h1 id="visual-api">Visual API</h1>
+<p>The <code>Visual</code> class represents a visual component that can be rendered in 3D space, containing geometry, materials, and transform information.</p>
+<h2 id="constructor">Constructor</h2>
+<div class="highlight"><pre><span></span><code><span class="kd">const</span><span class="w"> </span><span class="nx">visual</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="ow">new</span><span class="w"> </span><span class="nx">Visual</span><span class="p">();</span>
+</code></pre></div>
+<p>Creates a new Visual instance with default values.</p>
+<h2 id="properties">Properties</h2>
+<h3 id="public-properties">Public Properties</h3>
+<table>
+<thead>
+<tr>
+<th>Property</th>
+<th>Type</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>name</code></td>
+<td><code>string</code></td>
+<td>Visual component name</td>
+</tr>
+<tr>
+<td><code>geometry</code></td>
+<td><code>IGeometry \| undefined</code></td>
+<td>The 3D geometry to render</td>
+</tr>
+<tr>
+<td><code>material</code></td>
+<td><code>Material \| undefined</code></td>
+<td>Material properties (color, texture)</td>
+</tr>
+<tr>
+<td><code>origin</code></td>
+<td><code>BABYLON.Vector3</code></td>
+<td>Position offset from parent</td>
+</tr>
+<tr>
+<td><code>rpy</code></td>
+<td><code>BABYLON.Vector3</code></td>
+<td>Roll, pitch, yaw rotation (radians)</td>
+</tr>
+<tr>
+<td><code>transform</code></td>
+<td><code>BABYLON.TransformNode \| undefined</code></td>
+<td>The 3D transform node</td>
+</tr>
+</tbody>
+</table>
+<h2 id="methods">Methods</h2>
+<h3 id="lifecycle-methods">Lifecycle Methods</h3>
+<h4 id="createscene-babylonscene-materialmap-mapstring-material-void"><code>create(scene: BABYLON.Scene, materialMap: Map&lt;string, Material&gt;): void</code></h4>
+<p>Creates the visual component in the 3D scene with geometry and materials.</p>
+<p><strong>Parameters:</strong>
+- <code>scene</code>: BABYLON.Scene - The Babylon.js scene
+- <code>materialMap</code>: Map<string, Material> - Available materials</p>
+<p><strong>Behavior:</strong>
+- Creates a TransformNode with position and rotation
+- Resolves material references from the material map
+- Creates the geometry with the resolved material
+- Establishes parent-child transform relationship</p>
+<p><strong>Example:</strong>
+<div class="highlight"><pre><span></span><code><span class="nx">visual</span><span class="p">.</span><span class="nx">create</span><span class="p">(</span><span class="nx">scene</span><span class="p">,</span><span class="w"> </span><span class="nx">materialMap</span><span class="p">);</span>
+</code></pre></div></p>
+<h4 id="dispose-void"><code>dispose(): void</code></h4>
+<p>Cleans up all resources including geometry, materials, and transforms.</p>
+<p><strong>Behavior:</strong>
+- Disposes geometry resources
+- Disposes non-reference materials (reference materials are handled by Robot)
+- Disposes transform node</p>
+<p><strong>Example:</strong>
+<div class="highlight"><pre><span></span><code><span class="nx">visual</span><span class="p">.</span><span class="nx">dispose</span><span class="p">();</span>
+</code></pre></div></p>
+<h3 id="state-management">State Management</h3>
+<h4 id="setenabledenabled-boolean-void"><code>setEnabled(enabled: boolean): void</code></h4>
+<p>Controls the visibility and rendering of the visual component.</p>
+<p><strong>Parameters:</strong>
+- <code>enabled</code>: boolean - true to show, false to hide</p>
+<p><strong>Example:</strong>
+<div class="highlight"><pre><span></span><code><span class="nx">visual</span><span class="p">.</span><span class="nx">setEnabled</span><span class="p">(</span><span class="kc">false</span><span class="p">);</span><span class="w"> </span><span class="c1">// Hide the visual</span>
+<span class="nx">visual</span><span class="p">.</span><span class="nx">setEnabled</span><span class="p">(</span><span class="kc">true</span><span class="p">);</span><span class="w">  </span><span class="c1">// Show the visual</span>
+</code></pre></div></p>
+<h4 id="isenabled-boolean"><code>isEnabled(): boolean</code></h4>
+<p>Checks if the visual component is currently enabled/visible.</p>
+<p><strong>Returns:</strong> boolean - true if enabled, false if disabled</p>
+<p><strong>Example:</strong>
+<div class="highlight"><pre><span></span><code><span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="nx">visual</span><span class="p">.</span><span class="nx">isEnabled</span><span class="p">())</span><span class="w"> </span><span class="p">{</span>
+<span class="w">    </span><span class="nx">console</span><span class="p">.</span><span class="nx">log</span><span class="p">(</span><span class="s2">&quot;Visual is currently visible&quot;</span><span class="p">);</span>
+<span class="p">}</span>
+</code></pre></div></p>
+<h2 id="usage-examples">Usage Examples</h2>
+<h3 id="basic-visual-with-box-geometry">Basic Visual with Box Geometry</h3>
+<div class="highlight"><pre><span></span><code><span class="k">import</span><span class="w"> </span><span class="p">{</span><span class="w"> </span><span class="nx">Visual</span><span class="w"> </span><span class="p">}</span><span class="w"> </span><span class="kr">from</span><span class="w"> </span><span class="s1">&#39;@ranchhandrobotics/babylon_ros&#39;</span><span class="p">;</span>
+<span class="k">import</span><span class="w"> </span><span class="p">{</span><span class="w"> </span><span class="nx">BoxGeometry</span><span class="w"> </span><span class="p">}</span><span class="w"> </span><span class="kr">from</span><span class="w"> </span><span class="s1">&#39;@ranchhandrobotics/babylon_ros&#39;</span><span class="p">;</span>
+
+<span class="kd">const</span><span class="w"> </span><span class="nx">visual</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="ow">new</span><span class="w"> </span><span class="nx">Visual</span><span class="p">();</span>
+<span class="nx">visual</span><span class="p">.</span><span class="nx">name</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s2">&quot;chassis_visual&quot;</span><span class="p">;</span>
+<span class="nx">visual</span><span class="p">.</span><span class="nx">geometry</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="ow">new</span><span class="w"> </span><span class="nx">BoxGeometry</span><span class="p">(</span><span class="mf">2</span><span class="p">,</span><span class="w"> </span><span class="mf">1</span><span class="p">,</span><span class="w"> </span><span class="mf">0.5</span><span class="p">);</span><span class="w"> </span><span class="c1">// 2x1x0.5 meter box</span>
+<span class="nx">visual</span><span class="p">.</span><span class="nx">origin</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="ow">new</span><span class="w"> </span><span class="nx">BABYLON</span><span class="p">.</span><span class="nx">Vector3</span><span class="p">(</span><span class="mf">0</span><span class="p">,</span><span class="w"> </span><span class="mf">0</span><span class="p">,</span><span class="w"> </span><span class="mf">0.25</span><span class="p">);</span><span class="w"> </span><span class="c1">// Raise 25cm</span>
+<span class="nx">visual</span><span class="p">.</span><span class="nx">rpy</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="ow">new</span><span class="w"> </span><span class="nx">BABYLON</span><span class="p">.</span><span class="nx">Vector3</span><span class="p">(</span><span class="mf">0</span><span class="p">,</span><span class="w"> </span><span class="mf">0</span><span class="p">,</span><span class="w"> </span><span class="nb">Math</span><span class="p">.</span><span class="nx">PI</span><span class="o">/</span><span class="mf">4</span><span class="p">);</span><span class="w"> </span><span class="c1">// 45° yaw rotation</span>
+
+<span class="nx">visual</span><span class="p">.</span><span class="nx">create</span><span class="p">(</span><span class="nx">scene</span><span class="p">,</span><span class="w"> </span><span class="nx">materialMap</span><span class="p">);</span>
+</code></pre></div>
+<h3 id="visual-with-mesh-geometry-and-material">Visual with Mesh Geometry and Material</h3>
+<div class="highlight"><pre><span></span><code><span class="kd">const</span><span class="w"> </span><span class="nx">visual</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="ow">new</span><span class="w"> </span><span class="nx">Visual</span><span class="p">();</span>
+<span class="nx">visual</span><span class="p">.</span><span class="nx">name</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s2">&quot;robot_body&quot;</span><span class="p">;</span>
+<span class="nx">visual</span><span class="p">.</span><span class="nx">geometry</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="ow">new</span><span class="w"> </span><span class="nx">MeshGeometry</span><span class="p">(</span><span class="s2">&quot;robot_chassis.dae&quot;</span><span class="p">);</span>
+
+<span class="c1">// Use a specific material</span>
+<span class="kd">const</span><span class="w"> </span><span class="nx">redMaterial</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="ow">new</span><span class="w"> </span><span class="nx">Material</span><span class="p">();</span>
+<span class="nx">redMaterial</span><span class="p">.</span><span class="nx">name</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s2">&quot;red_plastic&quot;</span><span class="p">;</span>
+<span class="nx">redMaterial</span><span class="p">.</span><span class="nx">color</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="ow">new</span><span class="w"> </span><span class="nx">BABYLON</span><span class="p">.</span><span class="nx">Color4</span><span class="p">(</span><span class="mf">1</span><span class="p">,</span><span class="w"> </span><span class="mf">0</span><span class="p">,</span><span class="w"> </span><span class="mf">0</span><span class="p">,</span><span class="w"> </span><span class="mf">1</span><span class="p">);</span><span class="w"> </span><span class="c1">// Red</span>
+<span class="nx">visual</span><span class="p">.</span><span class="nx">material</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="nx">redMaterial</span><span class="p">;</span>
+
+<span class="nx">visual</span><span class="p">.</span><span class="nx">create</span><span class="p">(</span><span class="nx">scene</span><span class="p">,</span><span class="w"> </span><span class="nx">materialMap</span><span class="p">);</span>
+</code></pre></div>
+<h3 id="visual-with-material-reference">Visual with Material Reference</h3>
+<div class="highlight"><pre><span></span><code><span class="kd">const</span><span class="w"> </span><span class="nx">visual</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="ow">new</span><span class="w"> </span><span class="nx">Visual</span><span class="p">();</span>
+<span class="nx">visual</span><span class="p">.</span><span class="nx">name</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s2">&quot;wheel_visual&quot;</span><span class="p">;</span>
+<span class="nx">visual</span><span class="p">.</span><span class="nx">geometry</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="ow">new</span><span class="w"> </span><span class="nx">CylinderGeometry</span><span class="p">(</span><span class="mf">0.1</span><span class="p">,</span><span class="w"> </span><span class="mf">0.3</span><span class="p">,</span><span class="w"> </span><span class="mf">0.3</span><span class="p">);</span><span class="w"> </span><span class="c1">// 10cm height, 30cm diameter</span>
+
+<span class="c1">// Reference an existing material by name</span>
+<span class="kd">const</span><span class="w"> </span><span class="nx">materialRef</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="ow">new</span><span class="w"> </span><span class="nx">Material</span><span class="p">();</span>
+<span class="nx">materialRef</span><span class="p">.</span><span class="nx">name</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s2">&quot;black_rubber&quot;</span><span class="p">;</span><span class="w"> </span><span class="c1">// Must exist in materialMap</span>
+<span class="nx">visual</span><span class="p">.</span><span class="nx">material</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="nx">materialRef</span><span class="p">;</span>
+
+<span class="nx">visual</span><span class="p">.</span><span class="nx">create</span><span class="p">(</span><span class="nx">scene</span><span class="p">,</span><span class="w"> </span><span class="nx">materialMap</span><span class="p">);</span>
+</code></pre></div>
+<h2 id="geometry-types">Geometry Types</h2>
+<p>The Visual class works with any geometry that implements the <code>IGeometry</code> interface:</p>
+<h3 id="primitive-geometries">Primitive Geometries</h3>
+<div class="highlight"><pre><span></span><code><span class="c1">// Box geometry</span>
+<span class="nx">visual</span><span class="p">.</span><span class="nx">geometry</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="ow">new</span><span class="w"> </span><span class="nx">BoxGeometry</span><span class="p">(</span><span class="nx">width</span><span class="p">,</span><span class="w"> </span><span class="nx">height</span><span class="p">,</span><span class="w"> </span><span class="nx">depth</span><span class="p">);</span>
+
+<span class="c1">// Sphere geometry  </span>
+<span class="nx">visual</span><span class="p">.</span><span class="nx">geometry</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="ow">new</span><span class="w"> </span><span class="nx">SphereGeometry</span><span class="p">(</span><span class="nx">radius</span><span class="p">);</span>
+
+<span class="c1">// Cylinder geometry</span>
+<span class="nx">visual</span><span class="p">.</span><span class="nx">geometry</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="ow">new</span><span class="w"> </span><span class="nx">CylinderGeometry</span><span class="p">(</span><span class="nx">height</span><span class="p">,</span><span class="w"> </span><span class="nx">topRadius</span><span class="p">,</span><span class="w"> </span><span class="nx">bottomRadius</span><span class="p">);</span>
+</code></pre></div>
+<h3 id="mesh-geometries">Mesh Geometries</h3>
+<div class="highlight"><pre><span></span><code><span class="c1">// Load from file (DAE, STL, etc.)</span>
+<span class="nx">visual</span><span class="p">.</span><span class="nx">geometry</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="ow">new</span><span class="w"> </span><span class="nx">MeshGeometry</span><span class="p">(</span><span class="s2">&quot;path/to/model.dae&quot;</span><span class="p">);</span>
+
+<span class="c1">// The geometry will handle loading and material application</span>
+</code></pre></div>
+<h2 id="transform-and-positioning">Transform and Positioning</h2>
+<h3 id="origin-position">Origin Position</h3>
+<div class="highlight"><pre><span></span><code><span class="c1">// Position relative to parent transform</span>
+<span class="nx">visual</span><span class="p">.</span><span class="nx">origin</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="ow">new</span><span class="w"> </span><span class="nx">BABYLON</span><span class="p">.</span><span class="nx">Vector3</span><span class="p">(</span><span class="mf">1</span><span class="p">,</span><span class="w"> </span><span class="mf">0</span><span class="p">,</span><span class="w"> </span><span class="mf">0.5</span><span class="p">);</span><span class="w"> </span><span class="c1">// 1m right, 0.5m up</span>
+</code></pre></div>
+<h3 id="roll-pitch-yaw-rotation">Roll-Pitch-Yaw Rotation</h3>
+<div class="highlight"><pre><span></span><code><span class="c1">// Rotation in radians</span>
+<span class="nx">visual</span><span class="p">.</span><span class="nx">rpy</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="ow">new</span><span class="w"> </span><span class="nx">BABYLON</span><span class="p">.</span><span class="nx">Vector3</span><span class="p">(</span>
+<span class="w">    </span><span class="mf">0</span><span class="p">,</span><span class="w">          </span><span class="c1">// Roll around X-axis</span>
+<span class="w">    </span><span class="nb">Math</span><span class="p">.</span><span class="nx">PI</span><span class="o">/</span><span class="mf">6</span><span class="p">,</span><span class="w">  </span><span class="c1">// Pitch around Y-axis (30°)</span>
+<span class="w">    </span><span class="nb">Math</span><span class="p">.</span><span class="nx">PI</span><span class="o">/</span><span class="mf">4</span><span class="w">   </span><span class="c1">// Yaw around Z-axis (45°)</span>
+<span class="p">);</span>
+</code></pre></div>
+<h3 id="transform-hierarchy">Transform Hierarchy</h3>
+<div class="highlight"><pre><span></span><code><span class="c1">// Visual transforms are automatically parented</span>
+<span class="c1">// Parent -&gt; Visual Transform -&gt; Geometry Transform</span>
+
+<span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="nx">visual</span><span class="p">.</span><span class="nx">transform</span><span class="w"> </span><span class="o">&amp;&amp;</span><span class="w"> </span><span class="nx">visual</span><span class="p">.</span><span class="nx">geometry</span><span class="o">?</span><span class="p">.</span><span class="nx">transform</span><span class="p">)</span><span class="w"> </span><span class="p">{</span>
+<span class="w">    </span><span class="nx">console</span><span class="p">.</span><span class="nx">log</span><span class="p">(</span><span class="s2">&quot;Transform hierarchy established&quot;</span><span class="p">);</span>
+
+<span class="w">    </span><span class="c1">// Move the entire visual (geometry moves with it)</span>
+<span class="w">    </span><span class="nx">visual</span><span class="p">.</span><span class="nx">transform</span><span class="p">.</span><span class="nx">position</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="ow">new</span><span class="w"> </span><span class="nx">BABYLON</span><span class="p">.</span><span class="nx">Vector3</span><span class="p">(</span><span class="mf">0</span><span class="p">,</span><span class="w"> </span><span class="mf">1</span><span class="p">,</span><span class="w"> </span><span class="mf">0</span><span class="p">);</span>
+<span class="p">}</span>
+</code></pre></div>
+<h2 id="material-handling">Material Handling</h2>
+<h3 id="direct-material-assignment">Direct Material Assignment</h3>
+<div class="highlight"><pre><span></span><code><span class="kd">const</span><span class="w"> </span><span class="nx">material</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="ow">new</span><span class="w"> </span><span class="nx">Material</span><span class="p">();</span>
+<span class="nx">material</span><span class="p">.</span><span class="nx">color</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="ow">new</span><span class="w"> </span><span class="nx">BABYLON</span><span class="p">.</span><span class="nx">Color4</span><span class="p">(</span><span class="mf">0</span><span class="p">,</span><span class="w"> </span><span class="mf">1</span><span class="p">,</span><span class="w"> </span><span class="mf">0</span><span class="p">,</span><span class="w"> </span><span class="mf">1</span><span class="p">);</span><span class="w"> </span><span class="c1">// Green</span>
+<span class="nx">material</span><span class="p">.</span><span class="nx">name</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s2">&quot;green_plastic&quot;</span><span class="p">;</span>
+
+<span class="nx">visual</span><span class="p">.</span><span class="nx">material</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="nx">material</span><span class="p">;</span>
+</code></pre></div>
+<h3 id="material-reference">Material Reference</h3>
+<div class="highlight"><pre><span></span><code><span class="c1">// Reference a material that exists in the material map</span>
+<span class="kd">const</span><span class="w"> </span><span class="nx">materialRef</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="ow">new</span><span class="w"> </span><span class="nx">Material</span><span class="p">();</span>
+<span class="nx">materialRef</span><span class="p">.</span><span class="nx">name</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s2">&quot;existing_material&quot;</span><span class="p">;</span><span class="w"> </span><span class="c1">// Must be in materialMap</span>
+
+<span class="nx">visual</span><span class="p">.</span><span class="nx">material</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="nx">materialRef</span><span class="p">;</span>
+</code></pre></div>
+<h3 id="material-priority">Material Priority</h3>
+<ol>
+<li><strong>Visual material</strong>: If specified, takes priority</li>
+<li><strong>Link material</strong>: Falls back to parent link's material</li>
+<li><strong>Default material</strong>: Uses "default" from material map</li>
+</ol>
+<h2 id="visibility-control">Visibility Control</h2>
+<h3 id="showhide-visual">Show/Hide Visual</h3>
+<div class="highlight"><pre><span></span><code><span class="c1">// Hide for debugging or performance</span>
+<span class="nx">visual</span><span class="p">.</span><span class="nx">setEnabled</span><span class="p">(</span><span class="kc">false</span><span class="p">);</span>
+
+<span class="c1">// Show when needed</span>
+<span class="nx">visual</span><span class="p">.</span><span class="nx">setEnabled</span><span class="p">(</span><span class="kc">true</span><span class="p">);</span>
+
+<span class="c1">// Check current state</span>
+<span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="o">!</span><span class="nx">visual</span><span class="p">.</span><span class="nx">isEnabled</span><span class="p">())</span><span class="w"> </span><span class="p">{</span>
+<span class="w">    </span><span class="nx">console</span><span class="p">.</span><span class="nx">log</span><span class="p">(</span><span class="s2">&quot;Visual is hidden&quot;</span><span class="p">);</span>
+<span class="p">}</span>
+</code></pre></div>
+<h3 id="collision-vs-visual">Collision vs Visual</h3>
+<div class="highlight"><pre><span></span><code><span class="c1">// Visual components (what you see)</span>
+<span class="kd">const</span><span class="w"> </span><span class="nx">visual</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="ow">new</span><span class="w"> </span><span class="nx">Visual</span><span class="p">();</span>
+<span class="nx">visual</span><span class="p">.</span><span class="nx">geometry</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="ow">new</span><span class="w"> </span><span class="nx">MeshGeometry</span><span class="p">(</span><span class="s2">&quot;detailed_model.dae&quot;</span><span class="p">);</span>
+<span class="nx">link</span><span class="p">.</span><span class="nx">visuals</span><span class="p">.</span><span class="nx">push</span><span class="p">(</span><span class="nx">visual</span><span class="p">);</span>
+
+<span class="c1">// Collision components (physics shapes, usually hidden)</span>
+<span class="kd">const</span><span class="w"> </span><span class="nx">collision</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="ow">new</span><span class="w"> </span><span class="nx">Visual</span><span class="p">();</span>
+<span class="nx">collision</span><span class="p">.</span><span class="nx">geometry</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="ow">new</span><span class="w"> </span><span class="nx">BoxGeometry</span><span class="p">(</span><span class="mf">1</span><span class="p">,</span><span class="w"> </span><span class="mf">1</span><span class="p">,</span><span class="w"> </span><span class="mf">1</span><span class="p">);</span><span class="w"> </span><span class="c1">// Simple box</span>
+<span class="nx">collision</span><span class="p">.</span><span class="nx">setEnabled</span><span class="p">(</span><span class="kc">false</span><span class="p">);</span><span class="w"> </span><span class="c1">// Hidden by default</span>
+<span class="nx">link</span><span class="p">.</span><span class="nx">collisions</span><span class="p">.</span><span class="nx">push</span><span class="p">(</span><span class="nx">collision</span><span class="p">);</span>
+</code></pre></div>
+<h2 id="advanced-usage">Advanced Usage</h2>
+<h3 id="multiple-visuals-per-link">Multiple Visuals per Link</h3>
+<div class="highlight"><pre><span></span><code><span class="kd">const</span><span class="w"> </span><span class="nx">link</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="ow">new</span><span class="w"> </span><span class="nx">Link</span><span class="p">();</span>
+
+<span class="c1">// Main body visual</span>
+<span class="kd">const</span><span class="w"> </span><span class="nx">bodyVisual</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="ow">new</span><span class="w"> </span><span class="nx">Visual</span><span class="p">();</span>
+<span class="nx">bodyVisual</span><span class="p">.</span><span class="nx">geometry</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="ow">new</span><span class="w"> </span><span class="nx">BoxGeometry</span><span class="p">(</span><span class="mf">1</span><span class="p">,</span><span class="w"> </span><span class="mf">0.5</span><span class="p">,</span><span class="w"> </span><span class="mf">0.3</span><span class="p">);</span>
+<span class="nx">bodyVisual</span><span class="p">.</span><span class="nx">material</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="nx">bodyMaterial</span><span class="p">;</span>
+
+<span class="c1">// Decoration visual</span>
+<span class="kd">const</span><span class="w"> </span><span class="nx">logoVisual</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="ow">new</span><span class="w"> </span><span class="nx">Visual</span><span class="p">();</span>
+<span class="nx">logoVisual</span><span class="p">.</span><span class="nx">geometry</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="ow">new</span><span class="w"> </span><span class="nx">MeshGeometry</span><span class="p">(</span><span class="s2">&quot;company_logo.dae&quot;</span><span class="p">);</span>
+<span class="nx">logoVisual</span><span class="p">.</span><span class="nx">origin</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="ow">new</span><span class="w"> </span><span class="nx">BABYLON</span><span class="p">.</span><span class="nx">Vector3</span><span class="p">(</span><span class="mf">0.4</span><span class="p">,</span><span class="w"> </span><span class="mf">0</span><span class="p">,</span><span class="w"> </span><span class="mf">0.15</span><span class="p">);</span><span class="w"> </span><span class="c1">// On front face</span>
+<span class="nx">logoVisual</span><span class="p">.</span><span class="nx">material</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="nx">logoMaterial</span><span class="p">;</span>
+
+<span class="nx">link</span><span class="p">.</span><span class="nx">visuals</span><span class="p">.</span><span class="nx">push</span><span class="p">(</span><span class="nx">bodyVisual</span><span class="p">);</span>
+<span class="nx">link</span><span class="p">.</span><span class="nx">visuals</span><span class="p">.</span><span class="nx">push</span><span class="p">(</span><span class="nx">logoVisual</span><span class="p">);</span>
+</code></pre></div>
+<h3 id="dynamic-visual-updates">Dynamic Visual Updates</h3>
+<div class="highlight"><pre><span></span><code><span class="c1">// Change position at runtime</span>
+<span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="nx">visual</span><span class="p">.</span><span class="nx">transform</span><span class="p">)</span><span class="w"> </span><span class="p">{</span>
+<span class="w">    </span><span class="nx">visual</span><span class="p">.</span><span class="nx">transform</span><span class="p">.</span><span class="nx">position</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="ow">new</span><span class="w"> </span><span class="nx">BABYLON</span><span class="p">.</span><span class="nx">Vector3</span><span class="p">(</span><span class="mf">0</span><span class="p">,</span><span class="w"> </span><span class="mf">0</span><span class="p">,</span><span class="w"> </span><span class="mf">1</span><span class="p">);</span>
+<span class="w">    </span><span class="nx">visual</span><span class="p">.</span><span class="nx">transform</span><span class="p">.</span><span class="nx">rotation</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="ow">new</span><span class="w"> </span><span class="nx">BABYLON</span><span class="p">.</span><span class="nx">Vector3</span><span class="p">(</span><span class="mf">0</span><span class="p">,</span><span class="w"> </span><span class="mf">0</span><span class="p">,</span><span class="w"> </span><span class="nb">Math</span><span class="p">.</span><span class="nx">PI</span><span class="p">);</span>
+<span class="p">}</span>
+
+<span class="c1">// Toggle visibility for debugging</span>
+<span class="nx">visual</span><span class="p">.</span><span class="nx">setEnabled</span><span class="p">(</span><span class="o">!</span><span class="nx">visual</span><span class="p">.</span><span class="nx">isEnabled</span><span class="p">());</span>
+</code></pre></div>
+<h3 id="accessing-mesh-data">Accessing Mesh Data</h3>
+<div class="highlight"><pre><span></span><code><span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="nx">visual</span><span class="p">.</span><span class="nx">geometry</span><span class="o">?</span><span class="p">.</span><span class="nx">meshes</span><span class="p">)</span><span class="w"> </span><span class="p">{</span>
+<span class="w">    </span><span class="k">for</span><span class="w"> </span><span class="p">(</span><span class="kd">const</span><span class="w"> </span><span class="nx">mesh</span><span class="w"> </span><span class="k">of</span><span class="w"> </span><span class="nx">visual</span><span class="p">.</span><span class="nx">geometry</span><span class="p">.</span><span class="nx">meshes</span><span class="p">)</span><span class="w"> </span><span class="p">{</span>
+<span class="w">        </span><span class="nx">console</span><span class="p">.</span><span class="nx">log</span><span class="p">(</span><span class="sb">`Mesh: </span><span class="si">${</span><span class="nx">mesh</span><span class="p">.</span><span class="nx">name</span><span class="si">}</span><span class="sb">`</span><span class="p">);</span>
+<span class="w">        </span><span class="nx">console</span><span class="p">.</span><span class="nx">log</span><span class="p">(</span><span class="sb">`Vertices: </span><span class="si">${</span><span class="nx">mesh</span><span class="p">.</span><span class="nx">getTotalVertices</span><span class="p">()</span><span class="si">}</span><span class="sb">`</span><span class="p">);</span>
+<span class="w">        </span><span class="nx">console</span><span class="p">.</span><span class="nx">log</span><span class="p">(</span><span class="sb">`Triangles: </span><span class="si">${</span><span class="nx">mesh</span><span class="p">.</span><span class="nx">getTotalIndices</span><span class="p">()</span><span class="w"> </span><span class="o">/</span><span class="w"> </span><span class="mf">3</span><span class="si">}</span><span class="sb">`</span><span class="p">);</span>
+<span class="w">    </span><span class="p">}</span>
+<span class="p">}</span>
+</code></pre></div>
+<h2 id="error-handling">Error Handling</h2>
+<p>The Visual class provides robust error handling:
+- Handles missing materials with graceful fallbacks
+- Manages transform hierarchy safely
+- Properly disposes resources to prevent memory leaks
+- Logs warnings for invalid geometry or material references</p>
+<h2 id="performance-considerations">Performance Considerations</h2>
+<ul>
+<li><strong>Geometry Complexity</strong>: Balance visual quality with rendering performance</li>
+<li><strong>Material Sharing</strong>: Reuse materials to reduce memory usage</li>
+<li><strong>Visibility Culling</strong>: Use <code>setEnabled(false)</code> to hide unnecessary visuals</li>
+<li><strong>Resource Management</strong>: Always dispose visuals when no longer needed</li>
+</ul>
+<h2 id="integration-with-robot-structure">Integration with Robot Structure</h2>
+<p>Visuals are typically components of Links:
+<div class="highlight"><pre><span></span><code><span class="c1">// Part of robot loading process</span>
+<span class="kd">const</span><span class="w"> </span><span class="nx">link</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="ow">new</span><span class="w"> </span><span class="nx">Link</span><span class="p">();</span>
+<span class="nx">link</span><span class="p">.</span><span class="nx">name</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s2">&quot;base_link&quot;</span><span class="p">;</span>
+
+<span class="kd">const</span><span class="w"> </span><span class="nx">visual</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="ow">new</span><span class="w"> </span><span class="nx">Visual</span><span class="p">();</span>
+<span class="nx">visual</span><span class="p">.</span><span class="nx">geometry</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="ow">new</span><span class="w"> </span><span class="nx">BoxGeometry</span><span class="p">(</span><span class="mf">1</span><span class="p">,</span><span class="w"> </span><span class="mf">1</span><span class="p">,</span><span class="w"> </span><span class="mf">0.2</span><span class="p">);</span>
+<span class="nx">link</span><span class="p">.</span><span class="nx">visuals</span><span class="p">.</span><span class="nx">push</span><span class="p">(</span><span class="nx">visual</span><span class="p">);</span>
+
+<span class="c1">// When link.create() is called, all visuals are created too</span>
+<span class="nx">link</span><span class="p">.</span><span class="nx">create</span><span class="p">(</span><span class="nx">scene</span><span class="p">,</span><span class="w"> </span><span class="nx">materialMap</span><span class="p">);</span>
+</code></pre></div></p>
+              
+            </div>
+          </div><footer>
+    <div class="rst-footer-buttons" role="navigation" aria-label="Footer Navigation">
+        <a href="link.html" class="btn btn-neutral float-left" title="Link"><span class="icon icon-circle-arrow-left"></span> Previous</a>
+        <a href="material.html" class="btn btn-neutral float-right" title="Material">Next <span class="icon icon-circle-arrow-right"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <!-- Copyright etc -->
+  </div>
+
+  Built with <a href="https://www.mkdocs.org/">MkDocs</a> using a <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>.
+</footer>
+          
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+
+  <div class="rst-versions" role="note" aria-label="Versions">
+  <span class="rst-current-version" data-toggle="rst-current-version">
+    
+        <span>
+          <a href="https://github.com/ranch-hand-robotics/babylon_ros" class="fa fa-github" style="color: #fcfcfc"> GitHub</a>
+        </span>
+    
+    
+      <span><a href="link.html" style="color: #fcfcfc">&laquo; Previous</a></span>
+    
+    
+      <span><a href="material.html" style="color: #fcfcfc">Next &raquo;</a></span>
+    
+  </span>
+</div>
+    <script src="../js/jquery-3.6.0.min.js"></script>
+    <script>var base_url = "..";</script>
+    <script src="../js/theme_extra.js"></script>
+    <script src="../js/theme.js"></script>
+      <script src="../search/main.js"></script>
+    <script>
+        jQuery(function () {
+            SphinxRtdTheme.Navigation.enable(true);
+        });
+    </script>
+
+</body>
+</html>

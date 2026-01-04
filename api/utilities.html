@@ -1,0 +1,510 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+    <meta charset="utf-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+      <link rel="shortcut icon" href="../img/favicon.ico" />
+    <title>Helper Functions - Robot Developer Tools for Web</title>
+    <link rel="stylesheet" href="../css/theme.css" />
+    <link rel="stylesheet" href="../css/theme_extra.css" />
+        <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/styles/github.min.css" />
+    
+      <script>
+        // Current page data
+        var mkdocs_page_name = "Helper Functions";
+        var mkdocs_page_input_path = "api/utilities.md";
+        var mkdocs_page_url = null;
+      </script>
+    
+    <!--[if lt IE 9]>
+      <script src="../js/html5shiv.min.js"></script>
+    <![endif]-->
+      <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/highlight.min.js"></script>
+      <script>hljs.highlightAll();</script> 
+</head>
+
+<body class="wy-body-for-nav" role="document">
+
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side stickynav">
+    <div class="wy-side-scroll">
+      <div class="wy-side-nav-search">
+          <a href="../index.html" class="icon icon-home"> Robot Developer Tools for Web
+        </a><div role="search">
+  <form id ="rtd-search-form" class="wy-form" action="../search.html" method="get">
+      <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" title="Type search term here" />
+  </form>
+</div>
+      </div>
+
+      <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <ul>
+                <li class="toctree-l1"><a class="reference internal" href="../index.html">Home</a>
+                </li>
+              </ul>
+              <ul>
+                <li class="toctree-l1"><a class="reference internal" href="../installation.html">Installation</a>
+                </li>
+              </ul>
+              <ul>
+                <li class="toctree-l1"><a class="reference internal" href="../urdf.html">URDF Viewer</a>
+                </li>
+              </ul>
+              <p class="caption"><span class="caption-text">API Reference</span></p>
+              <ul class="current">
+                  <li class="toctree-l1"><a class="reference internal" href="../api-overview.html">Overview</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" >Core Classes</a>
+    <ul>
+                <li class="toctree-l2"><a class="reference internal" href="robot-scene.html">RobotScene</a>
+                </li>
+                <li class="toctree-l2"><a class="reference internal" href="robot.html">Robot</a>
+                </li>
+                <li class="toctree-l2"><a class="reference internal" href="joint.html">Joint</a>
+                </li>
+                <li class="toctree-l2"><a class="reference internal" href="link.html">Link</a>
+                </li>
+                <li class="toctree-l2"><a class="reference internal" href="visual.html">Visual</a>
+                </li>
+                <li class="toctree-l2"><a class="reference internal" href="material.html">Material</a>
+                </li>
+    </ul>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" >Geometry System</a>
+    <ul>
+                <li class="toctree-l2"><a class="reference internal" href="geometry.html">Geometry Types</a>
+                </li>
+    </ul>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" >Interactive Tools</a>
+    <ul>
+                <li class="toctree-l2"><a class="reference internal" href="gizmos.html">Gizmos</a>
+                </li>
+    </ul>
+                  </li>
+                  <li class="toctree-l1 current"><a class="reference internal current" >Utilities</a>
+    <ul class="current">
+                <li class="toctree-l2 current"><a class="reference internal current" href="#">Helper Functions</a>
+    <ul class="current">
+    <li class="toctree-l3"><a class="reference internal" href="#parsing-functions">Parsing Functions</a>
+        <ul>
+    <li class="toctree-l4"><a class="reference internal" href="#parsevectorvec-string-babylonvector3">parseVector(vec: string): BABYLON.Vector3</a>
+    </li>
+    <li class="toctree-l4"><a class="reference internal" href="#parserpyrpy-string-babylonvector3">parseRPY(rpy: string): BABYLON.Vector3</a>
+    </li>
+    <li class="toctree-l4"><a class="reference internal" href="#parsecolorcolor-string-babyloncolor4">parseColor(color: string): BABYLON.Color4</a>
+    </li>
+        </ul>
+    </li>
+    <li class="toctree-l3"><a class="reference internal" href="#transformation-functions">Transformation Functions</a>
+        <ul>
+    <li class="toctree-l4"><a class="reference internal" href="#applyrotationtotransformtransformnode-babylontransformnode-vec-babylonvector3-void">applyRotationToTransform(transformNode: BABYLON.TransformNode, vec: BABYLON.Vector3): void</a>
+    </li>
+        </ul>
+    </li>
+    <li class="toctree-l3"><a class="reference internal" href="#usage-examples">Usage Examples</a>
+        <ul>
+    <li class="toctree-l4"><a class="reference internal" href="#urdf-data-parsing">URDF Data Parsing</a>
+    </li>
+    <li class="toctree-l4"><a class="reference internal" href="#complete-joint-setup">Complete Joint Setup</a>
+    </li>
+    <li class="toctree-l4"><a class="reference internal" href="#material-setup-from-urdf">Material Setup from URDF</a>
+    </li>
+        </ul>
+    </li>
+    <li class="toctree-l3"><a class="reference internal" href="#error-handling">Error Handling</a>
+        <ul>
+    <li class="toctree-l4"><a class="reference internal" href="#vector-parsing-errors">Vector Parsing Errors</a>
+    </li>
+    <li class="toctree-l4"><a class="reference internal" href="#color-parsing-errors">Color Parsing Errors</a>
+    </li>
+    <li class="toctree-l4"><a class="reference internal" href="#safe-parsing-with-defaults">Safe Parsing with Defaults</a>
+    </li>
+        </ul>
+    </li>
+    <li class="toctree-l3"><a class="reference internal" href="#coordinate-system-handling">Coordinate System Handling</a>
+        <ul>
+    <li class="toctree-l4"><a class="reference internal" href="#ros-to-babylonjs-conversion">ROS to Babylon.js Conversion</a>
+    </li>
+    <li class="toctree-l4"><a class="reference internal" href="#rotation-order">Rotation Order</a>
+    </li>
+        </ul>
+    </li>
+    <li class="toctree-l3"><a class="reference internal" href="#common-patterns">Common Patterns</a>
+        <ul>
+    <li class="toctree-l4"><a class="reference internal" href="#urdf-xml-parsing">URDF XML Parsing</a>
+    </li>
+    <li class="toctree-l4"><a class="reference internal" href="#material-xml-parsing">Material XML Parsing</a>
+    </li>
+        </ul>
+    </li>
+    <li class="toctree-l3"><a class="reference internal" href="#performance-considerations">Performance Considerations</a>
+        <ul>
+    <li class="toctree-l4"><a class="reference internal" href="#string-parsing-optimization">String Parsing Optimization</a>
+    </li>
+    <li class="toctree-l4"><a class="reference internal" href="#batch-transformations">Batch Transformations</a>
+    </li>
+        </ul>
+    </li>
+    <li class="toctree-l3"><a class="reference internal" href="#integration-with-robot-loading">Integration with Robot Loading</a>
+    </li>
+    </ul>
+                </li>
+    </ul>
+                  </li>
+              </ul>
+      </div>
+    </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+      <nav class="wy-nav-top" role="navigation" aria-label="Mobile navigation menu">
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../index.html">Robot Developer Tools for Web</a>
+        
+      </nav>
+      <div class="wy-nav-content">
+        <div class="rst-content"><div role="navigation" aria-label="breadcrumbs navigation">
+  <ul class="wy-breadcrumbs">
+    <li><a href="../index.html" class="icon icon-home" aria-label="Docs"></a></li>
+          <li class="breadcrumb-item">API Reference</li>
+          <li class="breadcrumb-item">Utilities</li>
+      <li class="breadcrumb-item active">Helper Functions</li>
+    <li class="wy-breadcrumbs-aside">
+          <a href="https://github.com/ranch-hand-robotics/babylon_ros/edit/main/docs/api/utilities.md" class="icon icon-github"> Edit on GitHub</a>
+    </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+            <div class="section" itemprop="articleBody">
+              
+                <h1 id="utilities-api">Utilities API</h1>
+<p>Helper functions for parsing and transforming data between different coordinate systems and formats.</p>
+<h2 id="parsing-functions">Parsing Functions</h2>
+<h3 id="parsevectorvec-string-babylonvector3"><code>parseVector(vec: string): BABYLON.Vector3</code></h3>
+<p>Parses a space-separated string into a Babylon.js Vector3.</p>
+<p><strong>Parameters:</strong>
+- <code>vec</code>: string - Space-separated coordinates (e.g., "1.5 0.0 0.3")</p>
+<p><strong>Returns:</strong> BABYLON.Vector3 - Parsed vector</p>
+<p><strong>Throws:</strong> Error if string doesn't contain exactly 3 values</p>
+<p><strong>Example:</strong>
+<div class="highlight"><pre><span></span><code><span class="k">import</span><span class="w"> </span><span class="p">{</span><span class="w"> </span><span class="nx">parseVector</span><span class="w"> </span><span class="p">}</span><span class="w"> </span><span class="kr">from</span><span class="w"> </span><span class="s1">&#39;@ranchhandrobotics/babylon_ros&#39;</span><span class="p">;</span>
+
+<span class="c1">// Parse position from URDF</span>
+<span class="kd">const</span><span class="w"> </span><span class="nx">positionStr</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s2">&quot;1.0 0.5 0.25&quot;</span><span class="p">;</span>
+<span class="kd">const</span><span class="w"> </span><span class="nx">position</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="nx">parseVector</span><span class="p">(</span><span class="nx">positionStr</span><span class="p">);</span>
+<span class="nx">console</span><span class="p">.</span><span class="nx">log</span><span class="p">(</span><span class="nx">position</span><span class="p">);</span><span class="w"> </span><span class="c1">// Vector3(1.0, 0.5, 0.25)</span>
+
+<span class="c1">// Use in transform</span>
+<span class="nx">joint</span><span class="p">.</span><span class="nx">origin</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="nx">parseVector</span><span class="p">(</span><span class="s2">&quot;0 0 0.1&quot;</span><span class="p">);</span>
+</code></pre></div></p>
+<h3 id="parserpyrpy-string-babylonvector3"><code>parseRPY(rpy: string): BABYLON.Vector3</code></h3>
+<p>Parses a roll-pitch-yaw rotation string into a Babylon.js Vector3.</p>
+<p><strong>Parameters:</strong>
+- <code>rpy</code>: string - Space-separated RPY angles in radians (e.g., "0 0 1.57")</p>
+<p><strong>Returns:</strong> BABYLON.Vector3 - RPY rotation vector</p>
+<p><strong>Note:</strong> Maintains ROS convention (Roll, Pitch, Yaw) in Vector3 components</p>
+<p><strong>Example:</strong>
+<div class="highlight"><pre><span></span><code><span class="k">import</span><span class="w"> </span><span class="p">{</span><span class="w"> </span><span class="nx">parseRPY</span><span class="w"> </span><span class="p">}</span><span class="w"> </span><span class="kr">from</span><span class="w"> </span><span class="s1">&#39;@ranchhandrobotics/babylon_ros&#39;</span><span class="p">;</span>
+
+<span class="c1">// Parse rotation from URDF  </span>
+<span class="kd">const</span><span class="w"> </span><span class="nx">rpyStr</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s2">&quot;0 0 1.5708&quot;</span><span class="p">;</span><span class="w"> </span><span class="c1">// 90 degrees yaw</span>
+<span class="kd">const</span><span class="w"> </span><span class="nx">rotation</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="nx">parseRPY</span><span class="p">(</span><span class="nx">rpyStr</span><span class="p">);</span>
+<span class="nx">console</span><span class="p">.</span><span class="nx">log</span><span class="p">(</span><span class="nx">rotation</span><span class="p">);</span><span class="w"> </span><span class="c1">// Vector3(0, 0, 1.5708)</span>
+
+<span class="c1">// Use in joint</span>
+<span class="nx">joint</span><span class="p">.</span><span class="nx">rpy</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="nx">parseRPY</span><span class="p">(</span><span class="s2">&quot;0.1 0.2 0.3&quot;</span><span class="p">);</span>
+</code></pre></div></p>
+<h3 id="parsecolorcolor-string-babyloncolor4"><code>parseColor(color: string): BABYLON.Color4</code></h3>
+<p>Parses an RGBA color string into a Babylon.js Color4.</p>
+<p><strong>Parameters:</strong>
+- <code>color</code>: string - Space-separated RGBA values (0.0 to 1.0, e.g., "1.0 0.0 0.0 1.0")</p>
+<p><strong>Returns:</strong> BABYLON.Color4 - Parsed color</p>
+<p><strong>Throws:</strong> Error if string doesn't contain exactly 4 values</p>
+<p><strong>Example:</strong>
+<div class="highlight"><pre><span></span><code><span class="k">import</span><span class="w"> </span><span class="p">{</span><span class="w"> </span><span class="nx">parseColor</span><span class="w"> </span><span class="p">}</span><span class="w"> </span><span class="kr">from</span><span class="w"> </span><span class="s1">&#39;@ranchhandrobotics/babylon_ros&#39;</span><span class="p">;</span>
+
+<span class="c1">// Parse material color from URDF</span>
+<span class="kd">const</span><span class="w"> </span><span class="nx">colorStr</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s2">&quot;0.8 0.2 0.1 1.0&quot;</span><span class="p">;</span><span class="w"> </span><span class="c1">// Orange</span>
+<span class="kd">const</span><span class="w"> </span><span class="nx">color</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="nx">parseColor</span><span class="p">(</span><span class="nx">colorStr</span><span class="p">);</span>
+<span class="nx">console</span><span class="p">.</span><span class="nx">log</span><span class="p">(</span><span class="nx">color</span><span class="p">);</span><span class="w"> </span><span class="c1">// Color4(0.8, 0.2, 0.1, 1.0)</span>
+
+<span class="c1">// Use in material</span>
+<span class="nx">material</span><span class="p">.</span><span class="nx">color</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="nx">parseColor</span><span class="p">(</span><span class="s2">&quot;1.0 0.0 0.0 0.8&quot;</span><span class="p">);</span><span class="w"> </span><span class="c1">// Semi-transparent red</span>
+</code></pre></div></p>
+<h2 id="transformation-functions">Transformation Functions</h2>
+<h3 id="applyrotationtotransformtransformnode-babylontransformnode-vec-babylonvector3-void"><code>applyRotationToTransform(transformNode: BABYLON.TransformNode, vec: BABYLON.Vector3): void</code></h3>
+<p>Applies roll-pitch-yaw rotation to a transform node using the correct order.</p>
+<p><strong>Parameters:</strong>
+- <code>transformNode</code>: BABYLON.TransformNode - The node to rotate
+- <code>vec</code>: BABYLON.Vector3 - RPY rotation values in radians</p>
+<p><strong>Behavior:</strong>
+- Applies rotations in the correct order: Yaw (Z), then Pitch (Y), then Roll (X)
+- Handles ROS to Babylon.js coordinate system conversion
+- Modifies the transform node in place</p>
+<p><strong>Example:</strong>
+<div class="highlight"><pre><span></span><code><span class="k">import</span><span class="w"> </span><span class="p">{</span><span class="w"> </span><span class="nx">applyRotationToTransform</span><span class="w"> </span><span class="p">}</span><span class="w"> </span><span class="kr">from</span><span class="w"> </span><span class="s1">&#39;@ranchhandrobotics/babylon_ros&#39;</span><span class="p">;</span>
+
+<span class="c1">// Create transform node</span>
+<span class="kd">const</span><span class="w"> </span><span class="nx">transform</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="ow">new</span><span class="w"> </span><span class="nx">BABYLON</span><span class="p">.</span><span class="nx">TransformNode</span><span class="p">(</span><span class="s2">&quot;joint_transform&quot;</span><span class="p">,</span><span class="w"> </span><span class="nx">scene</span><span class="p">);</span>
+
+<span class="c1">// Apply 90-degree yaw rotation</span>
+<span class="kd">const</span><span class="w"> </span><span class="nx">rpy</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="ow">new</span><span class="w"> </span><span class="nx">BABYLON</span><span class="p">.</span><span class="nx">Vector3</span><span class="p">(</span><span class="mf">0</span><span class="p">,</span><span class="w"> </span><span class="mf">0</span><span class="p">,</span><span class="w"> </span><span class="nb">Math</span><span class="p">.</span><span class="nx">PI</span><span class="o">/</span><span class="mf">2</span><span class="p">);</span>
+<span class="nx">applyRotationToTransform</span><span class="p">(</span><span class="nx">transform</span><span class="p">,</span><span class="w"> </span><span class="nx">rpy</span><span class="p">);</span>
+
+<span class="c1">// Transform is now rotated 90 degrees around Z-axis</span>
+</code></pre></div></p>
+<h2 id="usage-examples">Usage Examples</h2>
+<h3 id="urdf-data-parsing">URDF Data Parsing</h3>
+<div class="highlight"><pre><span></span><code><span class="c1">// Typical URDF parsing workflow</span>
+<span class="kd">const</span><span class="w"> </span><span class="nx">urdfOrigin</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s2">&quot;1.0 0.5 0.25&quot;</span><span class="p">;</span><span class="w">        </span><span class="c1">// Position</span>
+<span class="kd">const</span><span class="w"> </span><span class="nx">urdfRPY</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s2">&quot;0 0 1.5708&quot;</span><span class="p">;</span><span class="w">             </span><span class="c1">// 90° yaw</span>
+<span class="kd">const</span><span class="w"> </span><span class="nx">urdfColor</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s2">&quot;0.8 0.2 0.1 1.0&quot;</span><span class="p">;</span><span class="w">      </span><span class="c1">// Orange color</span>
+
+<span class="c1">// Parse into Babylon.js types</span>
+<span class="kd">const</span><span class="w"> </span><span class="nx">position</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="nx">parseVector</span><span class="p">(</span><span class="nx">urdfOrigin</span><span class="p">);</span>
+<span class="kd">const</span><span class="w"> </span><span class="nx">rotation</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="nx">parseRPY</span><span class="p">(</span><span class="nx">urdfRPY</span><span class="p">);</span>
+<span class="kd">const</span><span class="w"> </span><span class="nx">color</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="nx">parseColor</span><span class="p">(</span><span class="nx">urdfColor</span><span class="p">);</span>
+
+<span class="c1">// Apply to robot components</span>
+<span class="nx">joint</span><span class="p">.</span><span class="nx">origin</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="nx">position</span><span class="p">;</span>
+<span class="nx">joint</span><span class="p">.</span><span class="nx">rpy</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="nx">rotation</span><span class="p">;</span>
+<span class="nx">material</span><span class="p">.</span><span class="nx">color</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="nx">color</span><span class="p">;</span>
+</code></pre></div>
+<h3 id="complete-joint-setup">Complete Joint Setup</h3>
+<div class="highlight"><pre><span></span><code><span class="c1">// Joint configuration from URDF attributes</span>
+<span class="kd">const</span><span class="w"> </span><span class="nx">joint</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="ow">new</span><span class="w"> </span><span class="nx">Joint</span><span class="p">();</span>
+<span class="nx">joint</span><span class="p">.</span><span class="nx">name</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s2">&quot;shoulder_joint&quot;</span><span class="p">;</span>
+<span class="nx">joint</span><span class="p">.</span><span class="nx">origin</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="nx">parseVector</span><span class="p">(</span><span class="s2">&quot;0.1 0 0.2&quot;</span><span class="p">);</span><span class="w">    </span><span class="c1">// 10cm forward, 20cm up</span>
+<span class="nx">joint</span><span class="p">.</span><span class="nx">rpy</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="nx">parseRPY</span><span class="p">(</span><span class="s2">&quot;0 0 0&quot;</span><span class="p">);</span><span class="w">               </span><span class="c1">// No rotation</span>
+<span class="nx">joint</span><span class="p">.</span><span class="nx">axis</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="nx">parseVector</span><span class="p">(</span><span class="s2">&quot;0 1 0&quot;</span><span class="p">);</span><span class="w">           </span><span class="c1">// Y-axis rotation</span>
+
+<span class="c1">// Create transform and apply rotation</span>
+<span class="nx">joint</span><span class="p">.</span><span class="nx">create</span><span class="p">(</span><span class="nx">scene</span><span class="p">,</span><span class="w"> </span><span class="nx">materialMap</span><span class="p">);</span>
+<span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="nx">joint</span><span class="p">.</span><span class="nx">transform</span><span class="p">)</span><span class="w"> </span><span class="p">{</span>
+<span class="w">    </span><span class="nx">applyRotationToTransform</span><span class="p">(</span><span class="nx">joint</span><span class="p">.</span><span class="nx">transform</span><span class="p">,</span><span class="w"> </span><span class="nx">joint</span><span class="p">.</span><span class="nx">rpy</span><span class="p">);</span>
+<span class="p">}</span>
+</code></pre></div>
+<h3 id="material-setup-from-urdf">Material Setup from URDF</h3>
+<div class="highlight"><pre><span></span><code><span class="c1">// Material definition from URDF</span>
+<span class="kd">const</span><span class="w"> </span><span class="nx">material</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="ow">new</span><span class="w"> </span><span class="nx">Material</span><span class="p">();</span>
+<span class="nx">material</span><span class="p">.</span><span class="nx">name</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s2">&quot;blue_plastic&quot;</span><span class="p">;</span>
+<span class="nx">material</span><span class="p">.</span><span class="nx">color</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="nx">parseColor</span><span class="p">(</span><span class="s2">&quot;0.2 0.3 0.8 1.0&quot;</span><span class="p">);</span><span class="w"> </span><span class="c1">// Blue plastic</span>
+
+<span class="c1">// Alternative: parse from URDF XML attributes</span>
+<span class="kd">const</span><span class="w"> </span><span class="nx">colorAttr</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="nx">xmlElement</span><span class="p">.</span><span class="nx">getAttribute</span><span class="p">(</span><span class="s2">&quot;rgba&quot;</span><span class="p">);</span>
+<span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="nx">colorAttr</span><span class="p">)</span><span class="w"> </span><span class="p">{</span>
+<span class="w">    </span><span class="nx">material</span><span class="p">.</span><span class="nx">color</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="nx">parseColor</span><span class="p">(</span><span class="nx">colorAttr</span><span class="p">);</span>
+<span class="p">}</span>
+</code></pre></div>
+<h2 id="error-handling">Error Handling</h2>
+<h3 id="vector-parsing-errors">Vector Parsing Errors</h3>
+<div class="highlight"><pre><span></span><code><span class="k">try</span><span class="w"> </span><span class="p">{</span>
+<span class="w">    </span><span class="kd">const</span><span class="w"> </span><span class="nx">position</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="nx">parseVector</span><span class="p">(</span><span class="s2">&quot;1.0 0.5&quot;</span><span class="p">);</span><span class="w"> </span><span class="c1">// Missing Z component</span>
+<span class="p">}</span><span class="w"> </span><span class="k">catch</span><span class="w"> </span><span class="p">(</span><span class="nx">error</span><span class="p">)</span><span class="w"> </span><span class="p">{</span>
+<span class="w">    </span><span class="nx">console</span><span class="p">.</span><span class="nx">error</span><span class="p">(</span><span class="s2">&quot;Invalid vector format:&quot;</span><span class="p">,</span><span class="w"> </span><span class="nx">error</span><span class="p">.</span><span class="nx">message</span><span class="p">);</span>
+<span class="w">    </span><span class="c1">// Use default value</span>
+<span class="w">    </span><span class="kd">const</span><span class="w"> </span><span class="nx">position</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="ow">new</span><span class="w"> </span><span class="nx">BABYLON</span><span class="p">.</span><span class="nx">Vector3</span><span class="p">(</span><span class="mf">0</span><span class="p">,</span><span class="w"> </span><span class="mf">0</span><span class="p">,</span><span class="w"> </span><span class="mf">0</span><span class="p">);</span>
+<span class="p">}</span>
+</code></pre></div>
+<h3 id="color-parsing-errors">Color Parsing Errors</h3>
+<div class="highlight"><pre><span></span><code><span class="k">try</span><span class="w"> </span><span class="p">{</span>
+<span class="w">    </span><span class="kd">const</span><span class="w"> </span><span class="nx">color</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="nx">parseColor</span><span class="p">(</span><span class="s2">&quot;1.0 0.0 0.0&quot;</span><span class="p">);</span><span class="w"> </span><span class="c1">// Missing alpha</span>
+<span class="p">}</span><span class="w"> </span><span class="k">catch</span><span class="w"> </span><span class="p">(</span><span class="nx">error</span><span class="p">)</span><span class="w"> </span><span class="p">{</span>
+<span class="w">    </span><span class="nx">console</span><span class="p">.</span><span class="nx">error</span><span class="p">(</span><span class="s2">&quot;Invalid color format:&quot;</span><span class="p">,</span><span class="w"> </span><span class="nx">error</span><span class="p">.</span><span class="nx">message</span><span class="p">);</span>
+<span class="w">    </span><span class="c1">// Use default color</span>
+<span class="w">    </span><span class="kd">const</span><span class="w"> </span><span class="nx">color</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="ow">new</span><span class="w"> </span><span class="nx">BABYLON</span><span class="p">.</span><span class="nx">Color4</span><span class="p">(</span><span class="mf">0.5</span><span class="p">,</span><span class="w"> </span><span class="mf">0.5</span><span class="p">,</span><span class="w"> </span><span class="mf">0.5</span><span class="p">,</span><span class="w"> </span><span class="mf">1.0</span><span class="p">);</span>
+<span class="p">}</span>
+</code></pre></div>
+<h3 id="safe-parsing-with-defaults">Safe Parsing with Defaults</h3>
+<div class="highlight"><pre><span></span><code><span class="kd">function</span><span class="w"> </span><span class="nx">safeParseVector</span><span class="p">(</span><span class="nx">vec</span><span class="o">:</span><span class="w"> </span><span class="kt">string</span><span class="p">,</span><span class="w"> </span><span class="nx">defaultValue</span><span class="o">:</span><span class="w"> </span><span class="kt">BABYLON.Vector3</span><span class="p">)</span><span class="o">:</span><span class="w"> </span><span class="nx">BABYLON</span><span class="p">.</span><span class="nx">Vector3</span><span class="w"> </span><span class="p">{</span>
+<span class="w">    </span><span class="k">try</span><span class="w"> </span><span class="p">{</span>
+<span class="w">        </span><span class="k">return</span><span class="w"> </span><span class="nx">parseVector</span><span class="p">(</span><span class="nx">vec</span><span class="p">);</span>
+<span class="w">    </span><span class="p">}</span><span class="w"> </span><span class="k">catch</span><span class="w"> </span><span class="p">(</span><span class="nx">error</span><span class="p">)</span><span class="w"> </span><span class="p">{</span>
+<span class="w">        </span><span class="nx">console</span><span class="p">.</span><span class="nx">warn</span><span class="p">(</span><span class="sb">`Failed to parse vector &quot;</span><span class="si">${</span><span class="nx">vec</span><span class="si">}</span><span class="sb">&quot;, using default`</span><span class="p">);</span>
+<span class="w">        </span><span class="k">return</span><span class="w"> </span><span class="nx">defaultValue</span><span class="p">;</span>
+<span class="w">    </span><span class="p">}</span>
+<span class="p">}</span>
+
+<span class="c1">// Usage</span>
+<span class="kd">const</span><span class="w"> </span><span class="nx">position</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="nx">safeParseVector</span><span class="p">(</span>
+<span class="w">    </span><span class="nx">urdfOrigin</span><span class="p">,</span><span class="w"> </span>
+<span class="w">    </span><span class="ow">new</span><span class="w"> </span><span class="nx">BABYLON</span><span class="p">.</span><span class="nx">Vector3</span><span class="p">(</span><span class="mf">0</span><span class="p">,</span><span class="w"> </span><span class="mf">0</span><span class="p">,</span><span class="w"> </span><span class="mf">0</span><span class="p">)</span>
+<span class="p">);</span>
+</code></pre></div>
+<h2 id="coordinate-system-handling">Coordinate System Handling</h2>
+<h3 id="ros-to-babylonjs-conversion">ROS to Babylon.js Conversion</h3>
+<p>The utilities handle coordinate system differences between ROS and Babylon.js:</p>
+<p><strong>ROS Coordinate System:</strong>
+- X: Forward
+- Y: Left<br />
+- Z: Up
+- Rotations: Roll (X), Pitch (Y), Yaw (Z)</p>
+<p><strong>Babylon.js Coordinate System:</strong>
+- X: Right
+- Y: Up
+- Z: Forward
+- Rotations: Applied in specific order for proper transformation</p>
+<h3 id="rotation-order">Rotation Order</h3>
+<div class="highlight"><pre><span></span><code><span class="c1">// applyRotationToTransform applies rotations in this order:</span>
+<span class="c1">// 1. Yaw rotation around Z-axis</span>
+<span class="c1">// 2. Pitch rotation around Y-axis  </span>
+<span class="c1">// 3. Roll rotation around X-axis</span>
+
+<span class="c1">// This is equivalent to:</span>
+<span class="nx">transformNode</span><span class="p">.</span><span class="nx">addRotation</span><span class="p">(</span><span class="mf">0</span><span class="p">,</span><span class="w"> </span><span class="mf">0</span><span class="p">,</span><span class="w"> </span><span class="nx">vec</span><span class="p">.</span><span class="nx">z</span><span class="p">)</span><span class="w">    </span><span class="c1">// Yaw (Z)</span>
+<span class="w">              </span><span class="p">.</span><span class="nx">addRotation</span><span class="p">(</span><span class="mf">0</span><span class="p">,</span><span class="w"> </span><span class="nx">vec</span><span class="p">.</span><span class="nx">y</span><span class="p">,</span><span class="w"> </span><span class="mf">0</span><span class="p">)</span><span class="w">    </span><span class="c1">// Pitch (Y)</span>
+<span class="w">              </span><span class="p">.</span><span class="nx">addRotation</span><span class="p">(</span><span class="nx">vec</span><span class="p">.</span><span class="nx">x</span><span class="p">,</span><span class="w"> </span><span class="mf">0</span><span class="p">,</span><span class="w"> </span><span class="mf">0</span><span class="p">);</span><span class="w">   </span><span class="c1">// Roll (X)</span>
+</code></pre></div>
+<h2 id="common-patterns">Common Patterns</h2>
+<h3 id="urdf-xml-parsing">URDF XML Parsing</h3>
+<div class="highlight"><pre><span></span><code><span class="c1">// Typical XML attribute parsing</span>
+<span class="kd">function</span><span class="w"> </span><span class="nx">parseJointFromXML</span><span class="p">(</span><span class="nx">jointElement</span><span class="o">:</span><span class="w"> </span><span class="kt">Element</span><span class="p">)</span><span class="o">:</span><span class="w"> </span><span class="nx">Joint</span><span class="w"> </span><span class="p">{</span>
+<span class="w">    </span><span class="kd">const</span><span class="w"> </span><span class="nx">joint</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="ow">new</span><span class="w"> </span><span class="nx">Joint</span><span class="p">();</span>
+<span class="w">    </span><span class="nx">joint</span><span class="p">.</span><span class="nx">name</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="nx">jointElement</span><span class="p">.</span><span class="nx">getAttribute</span><span class="p">(</span><span class="s2">&quot;name&quot;</span><span class="p">)</span><span class="w"> </span><span class="o">||</span><span class="w"> </span><span class="s2">&quot;&quot;</span><span class="p">;</span>
+
+<span class="w">    </span><span class="c1">// Parse origin</span>
+<span class="w">    </span><span class="kd">const</span><span class="w"> </span><span class="nx">originElement</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="nx">jointElement</span><span class="p">.</span><span class="nx">querySelector</span><span class="p">(</span><span class="s2">&quot;origin&quot;</span><span class="p">);</span>
+<span class="w">    </span><span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="nx">originElement</span><span class="p">)</span><span class="w"> </span><span class="p">{</span>
+<span class="w">        </span><span class="kd">const</span><span class="w"> </span><span class="nx">xyzAttr</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="nx">originElement</span><span class="p">.</span><span class="nx">getAttribute</span><span class="p">(</span><span class="s2">&quot;xyz&quot;</span><span class="p">);</span>
+<span class="w">        </span><span class="kd">const</span><span class="w"> </span><span class="nx">rpyAttr</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="nx">originElement</span><span class="p">.</span><span class="nx">getAttribute</span><span class="p">(</span><span class="s2">&quot;rpy&quot;</span><span class="p">);</span>
+
+<span class="w">        </span><span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="nx">xyzAttr</span><span class="p">)</span><span class="w"> </span><span class="nx">joint</span><span class="p">.</span><span class="nx">origin</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="nx">parseVector</span><span class="p">(</span><span class="nx">xyzAttr</span><span class="p">);</span>
+<span class="w">        </span><span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="nx">rpyAttr</span><span class="p">)</span><span class="w"> </span><span class="nx">joint</span><span class="p">.</span><span class="nx">rpy</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="nx">parseRPY</span><span class="p">(</span><span class="nx">rpyAttr</span><span class="p">);</span>
+<span class="w">    </span><span class="p">}</span>
+
+<span class="w">    </span><span class="c1">// Parse axis</span>
+<span class="w">    </span><span class="kd">const</span><span class="w"> </span><span class="nx">axisElement</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="nx">jointElement</span><span class="p">.</span><span class="nx">querySelector</span><span class="p">(</span><span class="s2">&quot;axis&quot;</span><span class="p">);</span>
+<span class="w">    </span><span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="nx">axisElement</span><span class="p">)</span><span class="w"> </span><span class="p">{</span>
+<span class="w">        </span><span class="kd">const</span><span class="w"> </span><span class="nx">xyzAttr</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="nx">axisElement</span><span class="p">.</span><span class="nx">getAttribute</span><span class="p">(</span><span class="s2">&quot;xyz&quot;</span><span class="p">);</span>
+<span class="w">        </span><span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="nx">xyzAttr</span><span class="p">)</span><span class="w"> </span><span class="nx">joint</span><span class="p">.</span><span class="nx">axis</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="nx">parseVector</span><span class="p">(</span><span class="nx">xyzAttr</span><span class="p">);</span>
+<span class="w">    </span><span class="p">}</span>
+
+<span class="w">    </span><span class="k">return</span><span class="w"> </span><span class="nx">joint</span><span class="p">;</span>
+<span class="p">}</span>
+</code></pre></div>
+<h3 id="material-xml-parsing">Material XML Parsing</h3>
+<div class="highlight"><pre><span></span><code><span class="kd">function</span><span class="w"> </span><span class="nx">parseMaterialFromXML</span><span class="p">(</span><span class="nx">materialElement</span><span class="o">:</span><span class="w"> </span><span class="kt">Element</span><span class="p">)</span><span class="o">:</span><span class="w"> </span><span class="nx">Material</span><span class="w"> </span><span class="p">{</span>
+<span class="w">    </span><span class="kd">const</span><span class="w"> </span><span class="nx">material</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="ow">new</span><span class="w"> </span><span class="nx">Material</span><span class="p">();</span>
+<span class="w">    </span><span class="nx">material</span><span class="p">.</span><span class="nx">name</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="nx">materialElement</span><span class="p">.</span><span class="nx">getAttribute</span><span class="p">(</span><span class="s2">&quot;name&quot;</span><span class="p">)</span><span class="w"> </span><span class="o">||</span><span class="w"> </span><span class="s2">&quot;&quot;</span><span class="p">;</span>
+
+<span class="w">    </span><span class="c1">// Parse color</span>
+<span class="w">    </span><span class="kd">const</span><span class="w"> </span><span class="nx">colorElement</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="nx">materialElement</span><span class="p">.</span><span class="nx">querySelector</span><span class="p">(</span><span class="s2">&quot;color&quot;</span><span class="p">);</span>
+<span class="w">    </span><span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="nx">colorElement</span><span class="p">)</span><span class="w"> </span><span class="p">{</span>
+<span class="w">        </span><span class="kd">const</span><span class="w"> </span><span class="nx">rgbaAttr</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="nx">colorElement</span><span class="p">.</span><span class="nx">getAttribute</span><span class="p">(</span><span class="s2">&quot;rgba&quot;</span><span class="p">);</span>
+<span class="w">        </span><span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="nx">rgbaAttr</span><span class="p">)</span><span class="w"> </span><span class="p">{</span>
+<span class="w">            </span><span class="nx">material</span><span class="p">.</span><span class="nx">color</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="nx">parseColor</span><span class="p">(</span><span class="nx">rgbaAttr</span><span class="p">);</span>
+<span class="w">        </span><span class="p">}</span>
+<span class="w">    </span><span class="p">}</span>
+
+<span class="w">    </span><span class="c1">// Parse texture</span>
+<span class="w">    </span><span class="kd">const</span><span class="w"> </span><span class="nx">textureElement</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="nx">materialElement</span><span class="p">.</span><span class="nx">querySelector</span><span class="p">(</span><span class="s2">&quot;texture&quot;</span><span class="p">);</span>
+<span class="w">    </span><span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="nx">textureElement</span><span class="p">)</span><span class="w"> </span><span class="p">{</span>
+<span class="w">        </span><span class="kd">const</span><span class="w"> </span><span class="nx">filenameAttr</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="nx">textureElement</span><span class="p">.</span><span class="nx">getAttribute</span><span class="p">(</span><span class="s2">&quot;filename&quot;</span><span class="p">);</span>
+<span class="w">        </span><span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="nx">filenameAttr</span><span class="p">)</span><span class="w"> </span><span class="p">{</span>
+<span class="w">            </span><span class="nx">material</span><span class="p">.</span><span class="nx">filename</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="nx">filenameAttr</span><span class="p">;</span>
+<span class="w">        </span><span class="p">}</span>
+<span class="w">    </span><span class="p">}</span>
+
+<span class="w">    </span><span class="k">return</span><span class="w"> </span><span class="nx">material</span><span class="p">;</span>
+<span class="p">}</span>
+</code></pre></div>
+<h2 id="performance-considerations">Performance Considerations</h2>
+<h3 id="string-parsing-optimization">String Parsing Optimization</h3>
+<div class="highlight"><pre><span></span><code><span class="c1">// Cache parsed values when possible</span>
+<span class="kd">const</span><span class="w"> </span><span class="nx">positionCache</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="ow">new</span><span class="w"> </span><span class="nb">Map</span><span class="o">&lt;</span><span class="kt">string</span><span class="p">,</span><span class="w"> </span><span class="nx">BABYLON</span><span class="p">.</span><span class="nx">Vector3</span><span class="o">&gt;</span><span class="p">();</span>
+
+<span class="kd">function</span><span class="w"> </span><span class="nx">getCachedVector</span><span class="p">(</span><span class="nx">vec</span><span class="o">:</span><span class="w"> </span><span class="kt">string</span><span class="p">)</span><span class="o">:</span><span class="w"> </span><span class="nx">BABYLON</span><span class="p">.</span><span class="nx">Vector3</span><span class="w"> </span><span class="p">{</span>
+<span class="w">    </span><span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="o">!</span><span class="nx">positionCache</span><span class="p">.</span><span class="nx">has</span><span class="p">(</span><span class="nx">vec</span><span class="p">))</span><span class="w"> </span><span class="p">{</span>
+<span class="w">        </span><span class="nx">positionCache</span><span class="p">.</span><span class="nx">set</span><span class="p">(</span><span class="nx">vec</span><span class="p">,</span><span class="w"> </span><span class="nx">parseVector</span><span class="p">(</span><span class="nx">vec</span><span class="p">));</span>
+<span class="w">    </span><span class="p">}</span>
+<span class="w">    </span><span class="k">return</span><span class="w"> </span><span class="nx">positionCache</span><span class="p">.</span><span class="nx">get</span><span class="p">(</span><span class="nx">vec</span><span class="p">)</span><span class="o">!</span><span class="p">;</span>
+<span class="p">}</span>
+</code></pre></div>
+<h3 id="batch-transformations">Batch Transformations</h3>
+<div class="highlight"><pre><span></span><code><span class="c1">// Apply multiple transformations efficiently</span>
+<span class="kd">function</span><span class="w"> </span><span class="nx">setupTransforms</span><span class="p">(</span><span class="nx">transforms</span><span class="o">:</span><span class="w"> </span><span class="kt">Array</span><span class="o">&lt;</span><span class="p">{</span><span class="nx">node</span><span class="o">:</span><span class="w"> </span><span class="kt">BABYLON.TransformNode</span><span class="p">,</span><span class="w"> </span><span class="nx">rpy</span><span class="o">:</span><span class="w"> </span><span class="kt">BABYLON.Vector3</span><span class="p">}</span><span class="o">&gt;</span><span class="p">)</span><span class="w"> </span><span class="p">{</span>
+<span class="w">    </span><span class="nx">scene</span><span class="p">.</span><span class="nx">beginAnimation</span><span class="p">();</span><span class="w"> </span><span class="c1">// Batch updates</span>
+
+<span class="w">    </span><span class="k">for</span><span class="w"> </span><span class="p">(</span><span class="kd">const</span><span class="w"> </span><span class="p">{</span><span class="nx">node</span><span class="p">,</span><span class="w"> </span><span class="nx">rpy</span><span class="p">}</span><span class="w"> </span><span class="k">of</span><span class="w"> </span><span class="nx">transforms</span><span class="p">)</span><span class="w"> </span><span class="p">{</span>
+<span class="w">        </span><span class="nx">applyRotationToTransform</span><span class="p">(</span><span class="nx">node</span><span class="p">,</span><span class="w"> </span><span class="nx">rpy</span><span class="p">);</span>
+<span class="w">    </span><span class="p">}</span>
+
+<span class="w">    </span><span class="nx">scene</span><span class="p">.</span><span class="nx">endAnimation</span><span class="p">();</span>
+<span class="p">}</span>
+</code></pre></div>
+<h2 id="integration-with-robot-loading">Integration with Robot Loading</h2>
+<p>The utilities are primarily used during robot loading from URDF:</p>
+<div class="highlight"><pre><span></span><code><span class="c1">// In urdf.ts module</span>
+<span class="k">export</span><span class="w"> </span><span class="kd">function</span><span class="w"> </span><span class="nx">loadRobot</span><span class="p">(</span><span class="nx">urdfDoc</span><span class="o">:</span><span class="w"> </span><span class="kt">Document</span><span class="p">,</span><span class="w"> </span><span class="nx">scene</span><span class="o">:</span><span class="w"> </span><span class="kt">BABYLON.Scene</span><span class="p">)</span><span class="o">:</span><span class="w"> </span><span class="nx">Robot</span><span class="w"> </span><span class="p">{</span>
+<span class="w">    </span><span class="kd">const</span><span class="w"> </span><span class="nx">robot</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="ow">new</span><span class="w"> </span><span class="nx">Robot</span><span class="p">();</span>
+
+<span class="w">    </span><span class="c1">// Parse joints</span>
+<span class="w">    </span><span class="kd">const</span><span class="w"> </span><span class="nx">jointElements</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="nx">urdfDoc</span><span class="p">.</span><span class="nx">querySelectorAll</span><span class="p">(</span><span class="s2">&quot;joint&quot;</span><span class="p">);</span>
+<span class="w">    </span><span class="k">for</span><span class="w"> </span><span class="p">(</span><span class="kd">const</span><span class="w"> </span><span class="nx">jointEl</span><span class="w"> </span><span class="k">of</span><span class="w"> </span><span class="nx">jointElements</span><span class="p">)</span><span class="w"> </span><span class="p">{</span>
+<span class="w">        </span><span class="kd">const</span><span class="w"> </span><span class="nx">joint</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="ow">new</span><span class="w"> </span><span class="nx">Joint</span><span class="p">();</span>
+
+<span class="w">        </span><span class="c1">// Use utilities for parsing</span>
+<span class="w">        </span><span class="kd">const</span><span class="w"> </span><span class="nx">originEl</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="nx">jointEl</span><span class="p">.</span><span class="nx">querySelector</span><span class="p">(</span><span class="s2">&quot;origin&quot;</span><span class="p">);</span>
+<span class="w">        </span><span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="nx">originEl</span><span class="p">)</span><span class="w"> </span><span class="p">{</span>
+<span class="w">            </span><span class="nx">joint</span><span class="p">.</span><span class="nx">origin</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="nx">parseVector</span><span class="p">(</span><span class="nx">originEl</span><span class="p">.</span><span class="nx">getAttribute</span><span class="p">(</span><span class="s2">&quot;xyz&quot;</span><span class="p">)</span><span class="w"> </span><span class="o">||</span><span class="w"> </span><span class="s2">&quot;0 0 0&quot;</span><span class="p">);</span>
+<span class="w">            </span><span class="nx">joint</span><span class="p">.</span><span class="nx">rpy</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="nx">parseRPY</span><span class="p">(</span><span class="nx">originEl</span><span class="p">.</span><span class="nx">getAttribute</span><span class="p">(</span><span class="s2">&quot;rpy&quot;</span><span class="p">)</span><span class="w"> </span><span class="o">||</span><span class="w"> </span><span class="s2">&quot;0 0 0&quot;</span><span class="p">);</span>
+<span class="w">        </span><span class="p">}</span>
+
+<span class="w">        </span><span class="nx">robot</span><span class="p">.</span><span class="nx">joints</span><span class="p">.</span><span class="nx">set</span><span class="p">(</span><span class="nx">joint</span><span class="p">.</span><span class="nx">name</span><span class="p">,</span><span class="w"> </span><span class="nx">joint</span><span class="p">);</span>
+<span class="w">    </span><span class="p">}</span>
+
+<span class="w">    </span><span class="k">return</span><span class="w"> </span><span class="nx">robot</span><span class="p">;</span>
+<span class="p">}</span>
+</code></pre></div>
+              
+            </div>
+          </div><footer>
+    <div class="rst-footer-buttons" role="navigation" aria-label="Footer Navigation">
+        <a href="gizmos.html" class="btn btn-neutral float-left" title="Gizmos"><span class="icon icon-circle-arrow-left"></span> Previous</a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <!-- Copyright etc -->
+  </div>
+
+  Built with <a href="https://www.mkdocs.org/">MkDocs</a> using a <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>.
+</footer>
+          
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+
+  <div class="rst-versions" role="note" aria-label="Versions">
+  <span class="rst-current-version" data-toggle="rst-current-version">
+    
+        <span>
+          <a href="https://github.com/ranch-hand-robotics/babylon_ros" class="fa fa-github" style="color: #fcfcfc"> GitHub</a>
+        </span>
+    
+    
+      <span><a href="gizmos.html" style="color: #fcfcfc">&laquo; Previous</a></span>
+    
+    
+  </span>
+</div>
+    <script src="../js/jquery-3.6.0.min.js"></script>
+    <script>var base_url = "..";</script>
+    <script src="../js/theme_extra.js"></script>
+    <script src="../js/theme.js"></script>
+      <script src="../search/main.js"></script>
+    <script>
+        jQuery(function () {
+            SphinxRtdTheme.Navigation.enable(true);
+        });
+    </script>
+
+</body>
+</html>

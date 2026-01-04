@@ -1,0 +1,538 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+    <meta charset="utf-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+      <link rel="shortcut icon" href="../img/favicon.ico" />
+    <title>RobotScene - Robot Developer Tools for Web</title>
+    <link rel="stylesheet" href="../css/theme.css" />
+    <link rel="stylesheet" href="../css/theme_extra.css" />
+        <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/styles/github.min.css" />
+    
+      <script>
+        // Current page data
+        var mkdocs_page_name = "RobotScene";
+        var mkdocs_page_input_path = "api/robot-scene.md";
+        var mkdocs_page_url = null;
+      </script>
+    
+    <!--[if lt IE 9]>
+      <script src="../js/html5shiv.min.js"></script>
+    <![endif]-->
+      <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/highlight.min.js"></script>
+      <script>hljs.highlightAll();</script> 
+</head>
+
+<body class="wy-body-for-nav" role="document">
+
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side stickynav">
+    <div class="wy-side-scroll">
+      <div class="wy-side-nav-search">
+          <a href="../index.html" class="icon icon-home"> Robot Developer Tools for Web
+        </a><div role="search">
+  <form id ="rtd-search-form" class="wy-form" action="../search.html" method="get">
+      <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" title="Type search term here" />
+  </form>
+</div>
+      </div>
+
+      <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <ul>
+                <li class="toctree-l1"><a class="reference internal" href="../index.html">Home</a>
+                </li>
+              </ul>
+              <ul>
+                <li class="toctree-l1"><a class="reference internal" href="../installation.html">Installation</a>
+                </li>
+              </ul>
+              <ul>
+                <li class="toctree-l1"><a class="reference internal" href="../urdf.html">URDF Viewer</a>
+                </li>
+              </ul>
+              <p class="caption"><span class="caption-text">API Reference</span></p>
+              <ul class="current">
+                  <li class="toctree-l1"><a class="reference internal" href="../api-overview.html">Overview</a>
+                  </li>
+                  <li class="toctree-l1 current"><a class="reference internal current" >Core Classes</a>
+    <ul class="current">
+                <li class="toctree-l2 current"><a class="reference internal current" href="#">RobotScene</a>
+    <ul class="current">
+    <li class="toctree-l3"><a class="reference internal" href="#constructor">Constructor</a>
+    </li>
+    <li class="toctree-l3"><a class="reference internal" href="#properties">Properties</a>
+        <ul>
+    <li class="toctree-l4"><a class="reference internal" href="#public-properties">Public Properties</a>
+    </li>
+        </ul>
+    </li>
+    <li class="toctree-l3"><a class="reference internal" href="#methods">Methods</a>
+        <ul>
+    <li class="toctree-l4"><a class="reference internal" href="#scene-management">Scene Management</a>
+    </li>
+    <li class="toctree-l4"><a class="reference internal" href="#robot-operations">Robot Operations</a>
+    </li>
+    <li class="toctree-l4"><a class="reference internal" href="#camera-control">Camera Control</a>
+    </li>
+    <li class="toctree-l4"><a class="reference internal" href="#visual-configuration">Visual Configuration</a>
+    </li>
+    <li class="toctree-l4"><a class="reference internal" href="#screenshot-and-export">Screenshot and Export</a>
+    </li>
+    <li class="toctree-l4"><a class="reference internal" href="#interactive-features">Interactive Features</a>
+    </li>
+    <li class="toctree-l4"><a class="reference internal" href="#utility-methods">Utility Methods</a>
+    </li>
+        </ul>
+    </li>
+    <li class="toctree-l3"><a class="reference internal" href="#events-and-interactions">Events and Interactions</a>
+    </li>
+    <li class="toctree-l3"><a class="reference internal" href="#ui-features">UI Features</a>
+    </li>
+    <li class="toctree-l3"><a class="reference internal" href="#grid-system">Grid System</a>
+    </li>
+    <li class="toctree-l3"><a class="reference internal" href="#example-usage">Example Usage</a>
+        <ul>
+    <li class="toctree-l4"><a class="reference internal" href="#migration-from-direct-property-access">Migration from Direct Property Access</a>
+    </li>
+        </ul>
+    </li>
+    <li class="toctree-l3"><a class="reference internal" href="#performance-considerations">Performance Considerations</a>
+    </li>
+    <li class="toctree-l3"><a class="reference internal" href="#browser-compatibility">Browser Compatibility</a>
+    </li>
+    </ul>
+                </li>
+                <li class="toctree-l2"><a class="reference internal" href="robot.html">Robot</a>
+                </li>
+                <li class="toctree-l2"><a class="reference internal" href="joint.html">Joint</a>
+                </li>
+                <li class="toctree-l2"><a class="reference internal" href="link.html">Link</a>
+                </li>
+                <li class="toctree-l2"><a class="reference internal" href="visual.html">Visual</a>
+                </li>
+                <li class="toctree-l2"><a class="reference internal" href="material.html">Material</a>
+                </li>
+    </ul>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" >Geometry System</a>
+    <ul>
+                <li class="toctree-l2"><a class="reference internal" href="geometry.html">Geometry Types</a>
+                </li>
+    </ul>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" >Interactive Tools</a>
+    <ul>
+                <li class="toctree-l2"><a class="reference internal" href="gizmos.html">Gizmos</a>
+                </li>
+    </ul>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" >Utilities</a>
+    <ul>
+                <li class="toctree-l2"><a class="reference internal" href="utilities.html">Helper Functions</a>
+                </li>
+    </ul>
+                  </li>
+              </ul>
+      </div>
+    </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+      <nav class="wy-nav-top" role="navigation" aria-label="Mobile navigation menu">
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../index.html">Robot Developer Tools for Web</a>
+        
+      </nav>
+      <div class="wy-nav-content">
+        <div class="rst-content"><div role="navigation" aria-label="breadcrumbs navigation">
+  <ul class="wy-breadcrumbs">
+    <li><a href="../index.html" class="icon icon-home" aria-label="Docs"></a></li>
+          <li class="breadcrumb-item">API Reference</li>
+          <li class="breadcrumb-item">Core Classes</li>
+      <li class="breadcrumb-item active">RobotScene</li>
+    <li class="wy-breadcrumbs-aside">
+          <a href="https://github.com/ranch-hand-robotics/babylon_ros/edit/main/docs/api/robot-scene.md" class="icon icon-github"> Edit on GitHub</a>
+    </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+            <div class="section" itemprop="articleBody">
+              
+                <h1 id="robotscene-api">RobotScene API</h1>
+<p>The <code>RobotScene</code> class is the main controller for robot visualization and interaction. It manages the 3D scene, camera, UI, and all robot components.</p>
+<h2 id="constructor">Constructor</h2>
+<div class="highlight"><pre><span></span><code><span class="kd">const</span><span class="w"> </span><span class="nx">robotScene</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="ow">new</span><span class="w"> </span><span class="nx">RobotScene</span><span class="p">();</span>
+</code></pre></div>
+<p>Creates a new RobotScene instance. No parameters required.</p>
+<h2 id="properties">Properties</h2>
+<h3 id="public-properties">Public Properties</h3>
+<table>
+<thead>
+<tr>
+<th>Property</th>
+<th>Type</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>engine</code></td>
+<td><code>BABYLON.Engine \| undefined</code></td>
+<td>The Babylon.js rendering engine</td>
+</tr>
+<tr>
+<td><code>scene</code></td>
+<td><code>BABYLON.Scene \| undefined</code></td>
+<td>The main 3D scene</td>
+</tr>
+<tr>
+<td><code>currentURDF</code></td>
+<td><code>string \| undefined</code></td>
+<td>The current URDF XML string</td>
+</tr>
+<tr>
+<td><code>currentRobot</code></td>
+<td><code>Robot \| undefined</code></td>
+<td>The current robot instance</td>
+</tr>
+<tr>
+<td><code>UILayer</code></td>
+<td><code>GUI.AdvancedDynamicTexture \| undefined</code></td>
+<td>The UI overlay layer</td>
+</tr>
+<tr>
+<td><code>ground</code></td>
+<td><code>BABYLON.GroundMesh \| undefined</code></td>
+<td>The ground plane mesh</td>
+</tr>
+<tr>
+<td><code>camera</code></td>
+<td><code>BABYLON.ArcRotateCamera \| undefined</code></td>
+<td>The scene camera</td>
+</tr>
+<tr>
+<td><code>readyToRender</code></td>
+<td><code>Boolean</code></td>
+<td>Whether the scene is ready for rendering</td>
+</tr>
+</tbody>
+</table>
+<h2 id="methods">Methods</h2>
+<h3 id="scene-management">Scene Management</h3>
+<h4 id="createscenecanvas-htmlcanvaselement-promisevoid"><code>createScene(canvas: HTMLCanvasElement): Promise&lt;void&gt;</code></h4>
+<p>Initializes the 3D scene with the Babylon.js engine.</p>
+<p><strong>Parameters:</strong>
+- <code>canvas</code>: HTMLCanvasElement - The HTML canvas element to render to</p>
+<p><strong>Returns:</strong> Promise that resolves when scene creation is complete</p>
+<p><strong>Example:</strong>
+<div class="highlight"><pre><span></span><code><span class="kd">const</span><span class="w"> </span><span class="nx">canvas</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="nb">document</span><span class="p">.</span><span class="nx">getElementById</span><span class="p">(</span><span class="s1">&#39;renderCanvas&#39;</span><span class="p">)</span><span class="w"> </span><span class="kr">as</span><span class="w"> </span><span class="nx">HTMLCanvasElement</span><span class="p">;</span>
+<span class="k">await</span><span class="w"> </span><span class="nx">robotScene</span><span class="p">.</span><span class="nx">createScene</span><span class="p">(</span><span class="nx">canvas</span><span class="p">);</span>
+</code></pre></div></p>
+<h4 id="createui-void"><code>createUI(): void</code></h4>
+<p>Creates the user interface elements including the hamburger menu and controls.</p>
+<p><strong>Example:</strong>
+<div class="highlight"><pre><span></span><code><span class="nx">robotScene</span><span class="p">.</span><span class="nx">createUI</span><span class="p">();</span>
+</code></pre></div></p>
+<h3 id="robot-operations">Robot Operations</h3>
+<h4 id="applyurdfurdftext-string-vscode-any-promisevoid"><code>applyURDF(urdfText: string, vscode?: any): Promise&lt;void&gt;</code></h4>
+<p>Loads and visualizes a robot from URDF XML content.</p>
+<p><strong>Parameters:</strong>
+- <code>urdfText</code>: string - The URDF XML content as a string
+- <code>vscode</code>: any (optional) - VS Code context for debugging</p>
+<p><strong>Returns:</strong> Promise that resolves when URDF loading is complete</p>
+<p><strong>Example:</strong>
+<div class="highlight"><pre><span></span><code><span class="kd">const</span><span class="w"> </span><span class="nx">urdfContent</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="k">await</span><span class="w"> </span><span class="nx">fetch</span><span class="p">(</span><span class="s1">&#39;robot.urdf&#39;</span><span class="p">).</span><span class="nx">then</span><span class="p">(</span><span class="nx">r</span><span class="w"> </span><span class="p">=&gt;</span><span class="w"> </span><span class="nx">r</span><span class="p">.</span><span class="nx">text</span><span class="p">());</span>
+<span class="k">await</span><span class="w"> </span><span class="nx">robotScene</span><span class="p">.</span><span class="nx">applyURDF</span><span class="p">(</span><span class="nx">urdfContent</span><span class="p">);</span>
+</code></pre></div></p>
+<h3 id="camera-control">Camera Control</h3>
+<h4 id="resetcamera-void"><code>resetCamera(): void</code></h4>
+<p>Resets the camera to the default position and target based on the robot's bounding box.</p>
+<p><strong>Example:</strong>
+<div class="highlight"><pre><span></span><code><span class="nx">robotScene</span><span class="p">.</span><span class="nx">resetCamera</span><span class="p">();</span>
+</code></pre></div></p>
+<h4 id="setcameraradiusradius-number-void"><code>setCameraRadius(radius: number): void</code></h4>
+<p>Sets the camera distance from its target.</p>
+<p><strong>Parameters:</strong>
+- <code>radius</code>: number - The camera distance from its target</p>
+<p><strong>Example:</strong>
+<div class="highlight"><pre><span></span><code><span class="nx">robotScene</span><span class="p">.</span><span class="nx">setCameraRadius</span><span class="p">(</span><span class="mf">5.0</span><span class="p">);</span>
+</code></pre></div></p>
+<h3 id="visual-configuration">Visual Configuration</h3>
+<h4 id="setbackgroundcolorhexcolor-string-void"><code>setBackgroundColor(hexColor: string): void</code></h4>
+<p>Sets the scene background color using a hex color string.</p>
+<p><strong>Parameters:</strong>
+- <code>hexColor</code>: string - Hex color string (e.g., "#FF0000" or "FF0000")</p>
+<p><strong>Example:</strong>
+<div class="highlight"><pre><span></span><code><span class="nx">robotScene</span><span class="p">.</span><span class="nx">setBackgroundColor</span><span class="p">(</span><span class="s2">&quot;#1a1a1a&quot;</span><span class="p">);</span>
+</code></pre></div></p>
+<h4 id="setgridpropertiesoptions-object-void"><code>setGridProperties(options: object): void</code></h4>
+<p>Sets the grid material properties for customizing the ground grid appearance.</p>
+<p><strong>Parameters:</strong>
+- <code>options</code>: object - Grid configuration options
+  - <code>lineColor?: string</code> - Hex color for grid lines
+  - <code>mainColor?: string</code> - Hex color for grid background
+  - <code>minorOpacity?: number</code> - Opacity of minor grid lines (0-1)
+  - <code>gridRatio?: number</code> - Ratio between major and minor grid lines
+  - <code>majorUnitFrequency?: number</code> - Frequency of major grid lines</p>
+<p><strong>Example:</strong>
+<div class="highlight"><pre><span></span><code><span class="nx">robotScene</span><span class="p">.</span><span class="nx">setGridProperties</span><span class="p">({</span>
+<span class="w">  </span><span class="nx">lineColor</span><span class="o">:</span><span class="w"> </span><span class="s2">&quot;#00FF00&quot;</span><span class="p">,</span>
+<span class="w">  </span><span class="nx">mainColor</span><span class="o">:</span><span class="w"> </span><span class="s2">&quot;#004400&quot;</span><span class="p">,</span>
+<span class="w">  </span><span class="nx">minorOpacity</span><span class="o">:</span><span class="w"> </span><span class="kt">0.3</span><span class="p">,</span>
+<span class="w">  </span><span class="nx">gridRatio</span><span class="o">:</span><span class="w"> </span><span class="kt">1.0</span><span class="p">,</span>
+<span class="w">  </span><span class="nx">majorUnitFrequency</span><span class="o">:</span><span class="w"> </span><span class="kt">10</span>
+<span class="p">});</span>
+</code></pre></div></p>
+<h4 id="setmirrorpropertiesoptions-object-void"><code>setMirrorProperties(options: object): void</code></h4>
+<p>Sets mirror reflection properties for customizing the ground mirror appearance.</p>
+<p><strong>Parameters:</strong>
+- <code>options</code>: object - Mirror configuration options
+  - <code>reflectionLevel?: number</code> - Strength of reflections (0-1)
+  - <code>alpha?: number</code> - Mirror transparency (0-1)
+  - <code>tintColor?: string</code> - Hex color for mirror tinting
+  - <code>blurKernel?: number</code> - Blur amount for softer reflections (0+)
+  - <code>roughness?: number</code> - Material roughness (0-1)
+  - <code>enabled?: boolean</code> - Enable/disable mirror entirely</p>
+<p><strong>Example:</strong>
+<div class="highlight"><pre><span></span><code><span class="nx">robotScene</span><span class="p">.</span><span class="nx">setMirrorProperties</span><span class="p">({</span>
+<span class="w">  </span><span class="nx">reflectionLevel</span><span class="o">:</span><span class="w"> </span><span class="kt">0.3</span><span class="p">,</span>
+<span class="w">  </span><span class="nx">alpha</span><span class="o">:</span><span class="w"> </span><span class="kt">0.4</span><span class="p">,</span>
+<span class="w">  </span><span class="nx">tintColor</span><span class="o">:</span><span class="w"> </span><span class="s2">&quot;#001100&quot;</span><span class="p">,</span>
+<span class="w">  </span><span class="nx">blurKernel</span><span class="o">:</span><span class="w"> </span><span class="kt">16</span><span class="p">,</span>
+<span class="w">  </span><span class="nx">roughness</span><span class="o">:</span><span class="w"> </span><span class="kt">0.6</span><span class="p">,</span>
+<span class="w">  </span><span class="nx">enabled</span><span class="o">:</span><span class="w"> </span><span class="kt">true</span>
+<span class="p">});</span>
+</code></pre></div></p>
+<h4 id="setvisualconfigconfig-object-void"><code>setVisualConfig(config: object): void</code></h4>
+<p>Sets all visual properties at once for convenient bulk configuration.</p>
+<p><strong>Parameters:</strong>
+- <code>config</code>: object - Complete visual configuration
+  - <code>cameraRadius?: number</code> - Camera distance from target
+  - <code>backgroundColor?: string</code> - Scene background color (hex)
+  - <code>gridLineColor?: string</code> - Grid line color (hex)
+  - <code>gridMainColor?: string</code> - Grid background color (hex)
+  - <code>gridMinorOpacity?: number</code> - Minor grid line opacity (0-1)
+  - <code>gridRatio?: number</code> - Grid line ratio
+  - <code>majorUnitFrequency?: number</code> - Major grid line frequency
+  - <code>mirrorReflectionLevel?: number</code> - Mirror reflection strength (0-1)
+  - <code>mirrorAlpha?: number</code> - Mirror transparency (0-1)
+  - <code>mirrorTintColor?: string</code> - Mirror tint color (hex)
+  - <code>mirrorBlurKernel?: number</code> - Mirror blur amount (0+)
+  - <code>mirrorRoughness?: number</code> - Mirror roughness (0-1)
+  - <code>mirrorEnabled?: boolean</code> - Enable/disable mirror</p>
+<p><strong>Returns:</strong> void</p>
+<p><strong>Example:</strong>
+<div class="highlight"><pre><span></span><code><span class="nx">robotScene</span><span class="p">.</span><span class="nx">setVisualConfig</span><span class="p">({</span>
+<span class="w">  </span><span class="nx">cameraRadius</span><span class="o">:</span><span class="w"> </span><span class="kt">8.0</span><span class="p">,</span>
+<span class="w">  </span><span class="nx">backgroundColor</span><span class="o">:</span><span class="w"> </span><span class="s2">&quot;#2a2a2a&quot;</span><span class="p">,</span>
+<span class="w">  </span><span class="nx">gridLineColor</span><span class="o">:</span><span class="w"> </span><span class="s2">&quot;#00AA00&quot;</span><span class="p">,</span>
+<span class="w">  </span><span class="nx">gridMainColor</span><span class="o">:</span><span class="w"> </span><span class="s2">&quot;#003300&quot;</span><span class="p">,</span>
+<span class="w">  </span><span class="nx">gridMinorOpacity</span><span class="o">:</span><span class="w"> </span><span class="kt">0.25</span><span class="p">,</span>
+<span class="w">  </span><span class="nx">gridRatio</span><span class="o">:</span><span class="w"> </span><span class="kt">1.2</span><span class="p">,</span>
+<span class="w">  </span><span class="nx">majorUnitFrequency</span><span class="o">:</span><span class="w"> </span><span class="kt">8</span><span class="p">,</span>
+<span class="w">  </span><span class="nx">mirrorReflectionLevel</span><span class="o">:</span><span class="w"> </span><span class="kt">0.4</span><span class="p">,</span>
+<span class="w">  </span><span class="nx">mirrorAlpha</span><span class="o">:</span><span class="w"> </span><span class="kt">0.6</span><span class="p">,</span>
+<span class="w">  </span><span class="nx">mirrorTintColor</span><span class="o">:</span><span class="w"> </span><span class="s2">&quot;#002200&quot;</span><span class="p">,</span>
+<span class="w">  </span><span class="nx">mirrorBlurKernel</span><span class="o">:</span><span class="w"> </span><span class="kt">20</span><span class="p">,</span>
+<span class="w">  </span><span class="nx">mirrorRoughness</span><span class="o">:</span><span class="w"> </span><span class="kt">0.3</span><span class="p">,</span>
+<span class="w">  </span><span class="nx">mirrorEnabled</span><span class="o">:</span><span class="w"> </span><span class="kt">true</span>
+<span class="p">});</span>
+</code></pre></div></p>
+<h3 id="screenshot-and-export">Screenshot and Export</h3>
+<h4 id="takescreenshotwidth-number-height-number-promisestring"><code>takeScreenshot(width?: number, height?: number): Promise&lt;string&gt;</code></h4>
+<p>Captures a screenshot of the current scene.</p>
+<p><strong>Parameters:</strong>
+- <code>width</code>: number (optional) - Screenshot width in pixels (default: canvas width)
+- <code>height</code>: number (optional) - Screenshot height in pixels (default: canvas height)</p>
+<p><strong>Returns:</strong> Promise that resolves to a base64 encoded PNG image string</p>
+<p><strong>Example:</strong>
+<div class="highlight"><pre><span></span><code><span class="kd">const</span><span class="w"> </span><span class="nx">screenshot</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="k">await</span><span class="w"> </span><span class="nx">robotScene</span><span class="p">.</span><span class="nx">takeScreenshot</span><span class="p">(</span><span class="mf">1920</span><span class="p">,</span><span class="w"> </span><span class="mf">1080</span><span class="p">);</span>
+<span class="c1">// screenshot is a base64 string: &quot;data:image/png;base64,iVBORw0KGgoAAAA...&quot;</span>
+</code></pre></div></p>
+<h3 id="interactive-features">Interactive Features</h3>
+<h4 id="toggleaxisonrobotjointorlink-boolean-scene-babylonscene-layer-babylonutilitylayerrenderer-void"><code>toggleAxisOnRobot(jointOrLink: boolean, scene: BABYLON.Scene, layer: BABYLON.UtilityLayerRenderer): void</code></h4>
+<p>Toggles position gizmos on joints or links for interactive manipulation.</p>
+<p><strong>Parameters:</strong>
+- <code>jointOrLink</code>: boolean - true for joints, false for links
+- <code>scene</code>: BABYLON.Scene - The Babylon.js scene
+- <code>layer</code>: BABYLON.UtilityLayerRenderer - The utility layer for gizmos</p>
+<h4 id="toggleaxisrotationonrobotjointorlink-boolean-ui-guiadvanceddynamictexture-scene-babylonscene-layer-babylonutilitylayerrenderer-void"><code>toggleAxisRotationOnRobot(jointOrLink: boolean, ui: GUI.AdvancedDynamicTexture, scene: BABYLON.Scene, layer: BABYLON.UtilityLayerRenderer): void</code></h4>
+<p>Toggles rotation gizmos on joints or links for interactive manipulation.</p>
+<p><strong>Parameters:</strong>
+- <code>jointOrLink</code>: boolean - true for joints, false for links
+- <code>ui</code>: GUI.AdvancedDynamicTexture - The UI layer
+- <code>scene</code>: BABYLON.Scene - The Babylon.js scene
+- <code>layer</code>: BABYLON.UtilityLayerRenderer - The utility layer for gizmos</p>
+<h3 id="utility-methods">Utility Methods</h3>
+<h4 id="clearstatus-void"><code>clearStatus(): void</code></h4>
+<p>Clears the status text display.</p>
+<h4 id="clearaxisgizmos-void"><code>clearAxisGizmos(): void</code></h4>
+<p>Removes all position gizmos from the scene.</p>
+<h4 id="clearrotationgizmos-void"><code>clearRotationGizmos(): void</code></h4>
+<p>Removes all rotation gizmos from the scene.</p>
+<h4 id="clearjointexercisegizmos-void"><code>clearJointExerciseGizmos(): void</code></h4>
+<p>Removes joint exercise gizmos (advanced joint manipulation tools).</p>
+<h2 id="events-and-interactions">Events and Interactions</h2>
+<p>The RobotScene class handles various user interactions:</p>
+<ul>
+<li><strong>Mouse hover</strong>: Highlights joints and shows information</li>
+<li><strong>Click selection</strong>: Selects visual elements for manipulation</li>
+<li><strong>Gizmo interaction</strong>: Real-time position and rotation updates</li>
+<li><strong>Menu interactions</strong>: Hamburger menu with feature toggles</li>
+</ul>
+<h2 id="ui-features">UI Features</h2>
+<p>The RobotScene provides a comprehensive UI system including:</p>
+<ul>
+<li><strong>Hamburger Menu</strong>: Collapsible menu with organized controls</li>
+<li><strong>Grid Controls</strong>: Toggle grid display with 10cm and 1m increments</li>
+<li><strong>Axis Visualization</strong>: Show/hide coordinate axes on joints and links</li>
+<li><strong>Joint Exercise</strong>: Interactive joint manipulation tools</li>
+<li><strong>Camera Controls</strong>: Reset and frame robot functionality</li>
+<li><strong>Screenshot Capture</strong>: Export current view as PNG</li>
+</ul>
+<h2 id="grid-system">Grid System</h2>
+<p>The scene includes a comprehensive grid system:</p>
+<ul>
+<li><strong>Base Grid</strong>: Large grid plane for reference</li>
+<li><strong>Measurement Labels</strong>: X, Y, Z axis labels with distance markers</li>
+<li><strong>Units</strong>: Configurable 10cm and 1m increments</li>
+<li><strong>Color Coding</strong>: Red (X), Green (Y), Blue (Z) axis labels</li>
+</ul>
+<h2 id="example-usage">Example Usage</h2>
+<div class="highlight"><pre><span></span><code><span class="k">import</span><span class="w"> </span><span class="p">{</span><span class="w"> </span><span class="nx">RobotScene</span><span class="w"> </span><span class="p">}</span><span class="w"> </span><span class="kr">from</span><span class="w"> </span><span class="s1">&#39;@ranchhandrobotics/babylon_ros&#39;</span><span class="p">;</span>
+
+<span class="c1">// Create and initialize scene</span>
+<span class="kd">const</span><span class="w"> </span><span class="nx">robotScene</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="ow">new</span><span class="w"> </span><span class="nx">RobotScene</span><span class="p">();</span>
+<span class="kd">const</span><span class="w"> </span><span class="nx">canvas</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="nb">document</span><span class="p">.</span><span class="nx">getElementById</span><span class="p">(</span><span class="s1">&#39;renderCanvas&#39;</span><span class="p">)</span><span class="w"> </span><span class="kr">as</span><span class="w"> </span><span class="nx">HTMLCanvasElement</span><span class="p">;</span>
+
+<span class="k">await</span><span class="w"> </span><span class="nx">robotScene</span><span class="p">.</span><span class="nx">createScene</span><span class="p">(</span><span class="nx">canvas</span><span class="p">);</span>
+<span class="nx">robotScene</span><span class="p">.</span><span class="nx">createUI</span><span class="p">();</span>
+
+<span class="c1">// Load a robot</span>
+<span class="kd">const</span><span class="w"> </span><span class="nx">urdfContent</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="k">await</span><span class="w"> </span><span class="nx">fetch</span><span class="p">(</span><span class="s1">&#39;path/to/robot.urdf&#39;</span><span class="p">).</span><span class="nx">then</span><span class="p">(</span><span class="nx">r</span><span class="w"> </span><span class="p">=&gt;</span><span class="w"> </span><span class="nx">r</span><span class="p">.</span><span class="nx">text</span><span class="p">());</span>
+<span class="k">await</span><span class="w"> </span><span class="nx">robotScene</span><span class="p">.</span><span class="nx">applyURDF</span><span class="p">(</span><span class="nx">urdfContent</span><span class="p">);</span>
+
+<span class="c1">// Configure visual appearance using the new API</span>
+<span class="nx">robotScene</span><span class="p">.</span><span class="nx">setVisualConfig</span><span class="p">({</span>
+<span class="w">  </span><span class="nx">cameraRadius</span><span class="o">:</span><span class="w"> </span><span class="kt">6.0</span><span class="p">,</span>
+<span class="w">  </span><span class="nx">backgroundColor</span><span class="o">:</span><span class="w"> </span><span class="s2">&quot;#1e1e1e&quot;</span><span class="p">,</span>
+<span class="w">  </span><span class="nx">gridLineColor</span><span class="o">:</span><span class="w"> </span><span class="s2">&quot;#00AA00&quot;</span><span class="p">,</span>
+<span class="w">  </span><span class="nx">gridMainColor</span><span class="o">:</span><span class="w"> </span><span class="s2">&quot;#002200&quot;</span><span class="p">,</span>
+<span class="w">  </span><span class="nx">gridMinorOpacity</span><span class="o">:</span><span class="w"> </span><span class="kt">0.3</span><span class="p">,</span>
+<span class="w">  </span><span class="nx">gridRatio</span><span class="o">:</span><span class="w"> </span><span class="kt">1.0</span><span class="p">,</span>
+<span class="w">  </span><span class="nx">majorUnitFrequency</span><span class="o">:</span><span class="w"> </span><span class="kt">10</span><span class="p">,</span>
+<span class="w">  </span><span class="nx">mirrorReflectionLevel</span><span class="o">:</span><span class="w"> </span><span class="kt">0.3</span><span class="p">,</span>
+<span class="w">  </span><span class="nx">mirrorAlpha</span><span class="o">:</span><span class="w"> </span><span class="kt">0.5</span><span class="p">,</span>
+<span class="w">  </span><span class="nx">mirrorTintColor</span><span class="o">:</span><span class="w"> </span><span class="s2">&quot;#001100&quot;</span><span class="p">,</span>
+<span class="w">  </span><span class="nx">mirrorBlurKernel</span><span class="o">:</span><span class="w"> </span><span class="kt">16</span><span class="p">,</span>
+<span class="w">  </span><span class="nx">mirrorEnabled</span><span class="o">:</span><span class="w"> </span><span class="kt">true</span>
+<span class="p">});</span>
+
+<span class="c1">// Or set properties individually</span>
+<span class="nx">robotScene</span><span class="p">.</span><span class="nx">setBackgroundColor</span><span class="p">(</span><span class="s2">&quot;#2a2a2a&quot;</span><span class="p">);</span>
+<span class="nx">robotScene</span><span class="p">.</span><span class="nx">setCameraRadius</span><span class="p">(</span><span class="mf">8.0</span><span class="p">);</span>
+<span class="nx">robotScene</span><span class="p">.</span><span class="nx">setGridProperties</span><span class="p">({</span>
+<span class="w">  </span><span class="nx">lineColor</span><span class="o">:</span><span class="w"> </span><span class="s2">&quot;#FF6600&quot;</span><span class="p">,</span>
+<span class="w">  </span><span class="nx">mainColor</span><span class="o">:</span><span class="w"> </span><span class="s2">&quot;#330000&quot;</span><span class="p">,</span>
+<span class="w">  </span><span class="nx">minorOpacity</span><span class="o">:</span><span class="w"> </span><span class="kt">0.4</span>
+<span class="p">});</span>
+<span class="nx">robotScene</span><span class="p">.</span><span class="nx">setMirrorProperties</span><span class="p">({</span>
+<span class="w">  </span><span class="nx">reflectionLevel</span><span class="o">:</span><span class="w"> </span><span class="kt">0.2</span><span class="p">,</span>
+<span class="w">  </span><span class="nx">alpha</span><span class="o">:</span><span class="w"> </span><span class="kt">0.3</span><span class="p">,</span>
+<span class="w">  </span><span class="nx">tintColor</span><span class="o">:</span><span class="w"> </span><span class="s2">&quot;#001122&quot;</span><span class="p">,</span>
+<span class="w">  </span><span class="nx">blurKernel</span><span class="o">:</span><span class="w"> </span><span class="kt">24</span><span class="p">,</span>
+<span class="w">  </span><span class="nx">roughness</span><span class="o">:</span><span class="w"> </span><span class="kt">0.4</span>
+<span class="p">});</span>
+
+<span class="c1">// Reset camera to frame the robot</span>
+<span class="nx">robotScene</span><span class="p">.</span><span class="nx">resetCamera</span><span class="p">();</span>
+
+<span class="c1">// Take a screenshot</span>
+<span class="kd">const</span><span class="w"> </span><span class="nx">screenshot</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="k">await</span><span class="w"> </span><span class="nx">robotScene</span><span class="p">.</span><span class="nx">takeScreenshot</span><span class="p">(</span><span class="mf">1920</span><span class="p">,</span><span class="w"> </span><span class="mf">1080</span><span class="p">);</span>
+</code></pre></div>
+<h3 id="migration-from-direct-property-access">Migration from Direct Property Access</h3>
+<p>If you were previously accessing properties directly, you can now use the new API methods:</p>
+<div class="highlight"><pre><span></span><code><span class="c1">// OLD WAY (not recommended)</span>
+<span class="nx">currentRobotScene</span><span class="p">.</span><span class="nx">camera</span><span class="p">.</span><span class="nx">radius</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="nx">message</span><span class="p">.</span><span class="nx">cameraRadius</span><span class="p">;</span>
+<span class="nx">currentRobotScene</span><span class="p">.</span><span class="nx">scene</span><span class="p">.</span><span class="nx">clearColor</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="nx">BABYLON</span><span class="p">.</span><span class="nx">Color4</span><span class="p">.</span><span class="nx">FromHexString</span><span class="p">(</span><span class="nx">message</span><span class="p">.</span><span class="nx">backgroundColor</span><span class="p">);</span>
+<span class="kd">let</span><span class="w"> </span><span class="nx">gm</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="nx">currentRobotScene</span><span class="p">.</span><span class="nx">ground</span><span class="p">.</span><span class="nx">material</span><span class="w"> </span><span class="kr">as</span><span class="w"> </span><span class="nx">Materials</span><span class="p">.</span><span class="nx">GridMaterial</span><span class="p">;</span>
+<span class="nx">gm</span><span class="p">.</span><span class="nx">lineColor</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="nx">BABYLON</span><span class="p">.</span><span class="nx">Color3</span><span class="p">.</span><span class="nx">FromHexString</span><span class="p">(</span><span class="nx">message</span><span class="p">.</span><span class="nx">gridMainColor</span><span class="p">);</span>
+<span class="nx">gm</span><span class="p">.</span><span class="nx">mainColor</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="nx">BABYLON</span><span class="p">.</span><span class="nx">Color3</span><span class="p">.</span><span class="nx">FromHexString</span><span class="p">(</span><span class="nx">message</span><span class="p">.</span><span class="nx">gridLineColor</span><span class="p">);</span>
+
+<span class="c1">// NEW WAY (recommended)</span>
+<span class="nx">currentRobotScene</span><span class="p">.</span><span class="nx">setVisualConfig</span><span class="p">({</span>
+<span class="w">  </span><span class="nx">cameraRadius</span><span class="o">:</span><span class="w"> </span><span class="kt">message.cameraRadius</span><span class="p">,</span>
+<span class="w">  </span><span class="nx">backgroundColor</span><span class="o">:</span><span class="w"> </span><span class="kt">message.backgroundColor</span><span class="p">,</span>
+<span class="w">  </span><span class="nx">gridLineColor</span><span class="o">:</span><span class="w"> </span><span class="kt">message.gridMainColor</span><span class="p">,</span>
+<span class="w">  </span><span class="nx">gridMainColor</span><span class="o">:</span><span class="w"> </span><span class="kt">message.gridLineColor</span><span class="p">,</span>
+<span class="w">  </span><span class="nx">gridMinorOpacity</span><span class="o">:</span><span class="w"> </span><span class="kt">parseFloat</span><span class="p">(</span><span class="nx">message</span><span class="p">.</span><span class="nx">gridMinorOpacity</span><span class="p">),</span>
+<span class="w">  </span><span class="nx">gridRatio</span><span class="o">:</span><span class="w"> </span><span class="kt">parseFloat</span><span class="p">(</span><span class="nx">message</span><span class="p">.</span><span class="nx">gridRatio</span><span class="p">),</span>
+<span class="w">  </span><span class="nx">majorUnitFrequency</span><span class="o">:</span><span class="w"> </span><span class="kt">parseFloat</span><span class="p">(</span><span class="nx">message</span><span class="p">.</span><span class="nx">majorUnitFrequency</span><span class="p">)</span>
+<span class="p">});</span>
+</code></pre></div>
+<h2 id="performance-considerations">Performance Considerations</h2>
+<ul>
+<li>The scene automatically manages mesh loading and rendering optimization</li>
+<li>Large robots with many meshes are handled asynchronously</li>
+<li>The UI system uses efficient event handling to minimize performance impact</li>
+<li>Screenshot capture is GPU-accelerated when available</li>
+</ul>
+<h2 id="browser-compatibility">Browser Compatibility</h2>
+<p>RobotScene requires:
+- WebGL 2.0 support
+- ES6+ JavaScript features
+- Modern browser (Chrome 80+, Firefox 75+, Safari 13+, Edge 80+)</p>
+              
+            </div>
+          </div><footer>
+    <div class="rst-footer-buttons" role="navigation" aria-label="Footer Navigation">
+        <a href="../api-overview.html" class="btn btn-neutral float-left" title="Overview"><span class="icon icon-circle-arrow-left"></span> Previous</a>
+        <a href="robot.html" class="btn btn-neutral float-right" title="Robot">Next <span class="icon icon-circle-arrow-right"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <!-- Copyright etc -->
+  </div>
+
+  Built with <a href="https://www.mkdocs.org/">MkDocs</a> using a <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>.
+</footer>
+          
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+
+  <div class="rst-versions" role="note" aria-label="Versions">
+  <span class="rst-current-version" data-toggle="rst-current-version">
+    
+        <span>
+          <a href="https://github.com/ranch-hand-robotics/babylon_ros" class="fa fa-github" style="color: #fcfcfc"> GitHub</a>
+        </span>
+    
+    
+      <span><a href="../api-overview.html" style="color: #fcfcfc">&laquo; Previous</a></span>
+    
+    
+      <span><a href="robot.html" style="color: #fcfcfc">Next &raquo;</a></span>
+    
+  </span>
+</div>
+    <script src="../js/jquery-3.6.0.min.js"></script>
+    <script>var base_url = "..";</script>
+    <script src="../js/theme_extra.js"></script>
+    <script src="../js/theme.js"></script>
+      <script src="../search/main.js"></script>
+    <script>
+        jQuery(function () {
+            SphinxRtdTheme.Navigation.enable(true);
+        });
+    </script>
+
+</body>
+</html>

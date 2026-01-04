@@ -1,0 +1,539 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+    <meta charset="utf-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+      <link rel="shortcut icon" href="../img/favicon.ico" />
+    <title>Geometry Types - Robot Developer Tools for Web</title>
+    <link rel="stylesheet" href="../css/theme.css" />
+    <link rel="stylesheet" href="../css/theme_extra.css" />
+        <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/styles/github.min.css" />
+    
+      <script>
+        // Current page data
+        var mkdocs_page_name = "Geometry Types";
+        var mkdocs_page_input_path = "api/geometry.md";
+        var mkdocs_page_url = null;
+      </script>
+    
+    <!--[if lt IE 9]>
+      <script src="../js/html5shiv.min.js"></script>
+    <![endif]-->
+      <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/highlight.min.js"></script>
+      <script>hljs.highlightAll();</script> 
+</head>
+
+<body class="wy-body-for-nav" role="document">
+
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side stickynav">
+    <div class="wy-side-scroll">
+      <div class="wy-side-nav-search">
+          <a href="../index.html" class="icon icon-home"> Robot Developer Tools for Web
+        </a><div role="search">
+  <form id ="rtd-search-form" class="wy-form" action="../search.html" method="get">
+      <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" title="Type search term here" />
+  </form>
+</div>
+      </div>
+
+      <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <ul>
+                <li class="toctree-l1"><a class="reference internal" href="../index.html">Home</a>
+                </li>
+              </ul>
+              <ul>
+                <li class="toctree-l1"><a class="reference internal" href="../installation.html">Installation</a>
+                </li>
+              </ul>
+              <ul>
+                <li class="toctree-l1"><a class="reference internal" href="../urdf.html">URDF Viewer</a>
+                </li>
+              </ul>
+              <p class="caption"><span class="caption-text">API Reference</span></p>
+              <ul class="current">
+                  <li class="toctree-l1"><a class="reference internal" href="../api-overview.html">Overview</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" >Core Classes</a>
+    <ul>
+                <li class="toctree-l2"><a class="reference internal" href="robot-scene.html">RobotScene</a>
+                </li>
+                <li class="toctree-l2"><a class="reference internal" href="robot.html">Robot</a>
+                </li>
+                <li class="toctree-l2"><a class="reference internal" href="joint.html">Joint</a>
+                </li>
+                <li class="toctree-l2"><a class="reference internal" href="link.html">Link</a>
+                </li>
+                <li class="toctree-l2"><a class="reference internal" href="visual.html">Visual</a>
+                </li>
+                <li class="toctree-l2"><a class="reference internal" href="material.html">Material</a>
+                </li>
+    </ul>
+                  </li>
+                  <li class="toctree-l1 current"><a class="reference internal current" >Geometry System</a>
+    <ul class="current">
+                <li class="toctree-l2 current"><a class="reference internal current" href="#">Geometry Types</a>
+    <ul class="current">
+    <li class="toctree-l3"><a class="reference internal" href="#igeometry-interface">IGeometry Interface</a>
+        <ul>
+    <li class="toctree-l4"><a class="reference internal" href="#properties">Properties</a>
+    </li>
+    <li class="toctree-l4"><a class="reference internal" href="#methods">Methods</a>
+    </li>
+        </ul>
+    </li>
+    <li class="toctree-l3"><a class="reference internal" href="#primitive-geometries">Primitive Geometries</a>
+        <ul>
+    <li class="toctree-l4"><a class="reference internal" href="#box-geometry">Box Geometry</a>
+    </li>
+    <li class="toctree-l4"><a class="reference internal" href="#sphere-geometry">Sphere Geometry</a>
+    </li>
+    <li class="toctree-l4"><a class="reference internal" href="#cylinder-geometry">Cylinder Geometry</a>
+    </li>
+        </ul>
+    </li>
+    <li class="toctree-l3"><a class="reference internal" href="#mesh-geometry">Mesh Geometry</a>
+        <ul>
+    <li class="toctree-l4"><a class="reference internal" href="#properties_1">Properties</a>
+    </li>
+    <li class="toctree-l4"><a class="reference internal" href="#methods_1">Methods</a>
+    </li>
+        </ul>
+    </li>
+    <li class="toctree-l3"><a class="reference internal" href="#usage-examples">Usage Examples</a>
+        <ul>
+    <li class="toctree-l4"><a class="reference internal" href="#creating-primitive-shapes">Creating Primitive Shapes</a>
+    </li>
+    <li class="toctree-l4"><a class="reference internal" href="#loading-complex-meshes">Loading Complex Meshes</a>
+    </li>
+    <li class="toctree-l4"><a class="reference internal" href="#geometry-in-visual-components">Geometry in Visual Components</a>
+    </li>
+        </ul>
+    </li>
+    <li class="toctree-l3"><a class="reference internal" href="#coordinate-system-conversions">Coordinate System Conversions</a>
+        <ul>
+    <li class="toctree-l4"><a class="reference internal" href="#ros-to-babylonjs-coordinate-systems">ROS to Babylon.js Coordinate Systems</a>
+    </li>
+    <li class="toctree-l4"><a class="reference internal" href="#automatic-conversions">Automatic Conversions</a>
+    </li>
+        </ul>
+    </li>
+    <li class="toctree-l3"><a class="reference internal" href="#performance-considerations">Performance Considerations</a>
+        <ul>
+    <li class="toctree-l4"><a class="reference internal" href="#primitive-geometries_1">Primitive Geometries</a>
+    </li>
+    <li class="toctree-l4"><a class="reference internal" href="#mesh-geometries">Mesh Geometries</a>
+    </li>
+    <li class="toctree-l4"><a class="reference internal" href="#optimization-strategies">Optimization Strategies</a>
+    </li>
+        </ul>
+    </li>
+    <li class="toctree-l3"><a class="reference internal" href="#material-integration">Material Integration</a>
+        <ul>
+    <li class="toctree-l4"><a class="reference internal" href="#geometry-with-materials">Geometry with Materials</a>
+    </li>
+        </ul>
+    </li>
+    <li class="toctree-l3"><a class="reference internal" href="#error-handling">Error Handling</a>
+        <ul>
+    <li class="toctree-l4"><a class="reference internal" href="#file-loading-errors">File Loading Errors</a>
+    </li>
+    <li class="toctree-l4"><a class="reference internal" href="#disposal-and-cleanup">Disposal and Cleanup</a>
+    </li>
+        </ul>
+    </li>
+    <li class="toctree-l3"><a class="reference internal" href="#integration-with-robot-components">Integration with Robot Components</a>
+    </li>
+    </ul>
+                </li>
+    </ul>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" >Interactive Tools</a>
+    <ul>
+                <li class="toctree-l2"><a class="reference internal" href="gizmos.html">Gizmos</a>
+                </li>
+    </ul>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" >Utilities</a>
+    <ul>
+                <li class="toctree-l2"><a class="reference internal" href="utilities.html">Helper Functions</a>
+                </li>
+    </ul>
+                  </li>
+              </ul>
+      </div>
+    </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+      <nav class="wy-nav-top" role="navigation" aria-label="Mobile navigation menu">
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../index.html">Robot Developer Tools for Web</a>
+        
+      </nav>
+      <div class="wy-nav-content">
+        <div class="rst-content"><div role="navigation" aria-label="breadcrumbs navigation">
+  <ul class="wy-breadcrumbs">
+    <li><a href="../index.html" class="icon icon-home" aria-label="Docs"></a></li>
+          <li class="breadcrumb-item">API Reference</li>
+          <li class="breadcrumb-item">Geometry System</li>
+      <li class="breadcrumb-item active">Geometry Types</li>
+    <li class="wy-breadcrumbs-aside">
+          <a href="https://github.com/ranch-hand-robotics/babylon_ros/edit/main/docs/api/geometry.md" class="icon icon-github"> Edit on GitHub</a>
+    </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+            <div class="section" itemprop="articleBody">
+              
+                <h1 id="geometry-api">Geometry API</h1>
+<p>The geometry system provides 3D shapes for robot visual and collision components through the <code>IGeometry</code> interface and concrete implementations.</p>
+<h2 id="igeometry-interface">IGeometry Interface</h2>
+<p>The base interface that all geometry types implement:</p>
+<div class="highlight"><pre><span></span><code><span class="kd">interface</span><span class="w"> </span><span class="nx">IGeometry</span><span class="w"> </span><span class="p">{</span>
+<span class="w">    </span><span class="nx">meshes</span><span class="o">:</span><span class="w"> </span><span class="kt">BABYLON.AbstractMesh</span><span class="p">[]</span><span class="w"> </span><span class="o">|</span><span class="w"> </span><span class="kc">undefined</span><span class="p">;</span>
+<span class="w">    </span><span class="nx">transform</span><span class="o">:</span><span class="w"> </span><span class="kt">BABYLON.TransformNode</span><span class="w"> </span><span class="o">|</span><span class="w"> </span><span class="kc">undefined</span><span class="p">;</span>
+
+<span class="w">    </span><span class="nx">create</span><span class="p">(</span><span class="nx">scene</span><span class="o">:</span><span class="w"> </span><span class="kt">BABYLON.Scene</span><span class="p">,</span><span class="w"> </span><span class="nx">mat</span><span class="o">:</span><span class="w"> </span><span class="kt">Material</span><span class="w"> </span><span class="o">|</span><span class="w"> </span><span class="kc">undefined</span><span class="p">)</span><span class="o">:</span><span class="w"> </span><span class="ow">void</span><span class="p">;</span>
+<span class="w">    </span><span class="nx">dispose</span><span class="p">()</span><span class="o">:</span><span class="w"> </span><span class="ow">void</span><span class="p">;</span>
+<span class="w">    </span><span class="nx">setLoadCompleteCallback</span><span class="o">?</span><span class="p">(</span><span class="nx">callback</span><span class="o">:</span><span class="w"> </span><span class="p">()</span><span class="w"> </span><span class="p">=&gt;</span><span class="w"> </span><span class="ow">void</span><span class="p">)</span><span class="o">:</span><span class="w"> </span><span class="ow">void</span><span class="p">;</span>
+<span class="p">}</span>
+</code></pre></div>
+<h3 id="properties">Properties</h3>
+<ul>
+<li><code>meshes</code>: Array of Babylon.js mesh objects</li>
+<li><code>transform</code>: Transform node for positioning and hierarchy</li>
+</ul>
+<h3 id="methods">Methods</h3>
+<ul>
+<li><code>create()</code>: Creates the geometry in the scene with optional material</li>
+<li><code>dispose()</code>: Cleans up geometry resources</li>
+<li><code>setLoadCompleteCallback()</code>: Optional callback for async loading completion</li>
+</ul>
+<h2 id="primitive-geometries">Primitive Geometries</h2>
+<h3 id="box-geometry">Box Geometry</h3>
+<p>Creates rectangular box shapes.</p>
+<div class="highlight"><pre><span></span><code><span class="k">import</span><span class="w"> </span><span class="p">{</span><span class="w"> </span><span class="nx">Box</span><span class="w"> </span><span class="p">}</span><span class="w"> </span><span class="kr">from</span><span class="w"> </span><span class="s1">&#39;@ranchhandrobotics/babylon_ros&#39;</span><span class="p">;</span>
+
+<span class="kd">const</span><span class="w"> </span><span class="nx">box</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="ow">new</span><span class="w"> </span><span class="nx">Box</span><span class="p">(</span><span class="nx">width</span><span class="p">,</span><span class="w"> </span><span class="nx">height</span><span class="p">,</span><span class="w"> </span><span class="nx">depth</span><span class="p">);</span>
+</code></pre></div>
+<p><strong>Constructor Parameters:</strong>
+- <code>width</code>: number - X-axis dimension (meters)
+- <code>height</code>: number - Y-axis dimension (meters)<br />
+- <code>depth</code>: number - Z-axis dimension (meters)</p>
+<p><strong>Example:</strong>
+<div class="highlight"><pre><span></span><code><span class="c1">// Create a 2x1x0.5 meter box</span>
+<span class="kd">const</span><span class="w"> </span><span class="nx">chassisBox</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="ow">new</span><span class="w"> </span><span class="nx">Box</span><span class="p">(</span><span class="mf">2.0</span><span class="p">,</span><span class="w"> </span><span class="mf">1.0</span><span class="p">,</span><span class="w"> </span><span class="mf">0.5</span><span class="p">);</span>
+<span class="nx">chassisBox</span><span class="p">.</span><span class="nx">create</span><span class="p">(</span><span class="nx">scene</span><span class="p">,</span><span class="w"> </span><span class="nx">material</span><span class="p">);</span>
+</code></pre></div></p>
+<h3 id="sphere-geometry">Sphere Geometry</h3>
+<p>Creates spherical shapes.</p>
+<div class="highlight"><pre><span></span><code><span class="k">import</span><span class="w"> </span><span class="p">{</span><span class="w"> </span><span class="nx">Sphere</span><span class="w"> </span><span class="p">}</span><span class="w"> </span><span class="kr">from</span><span class="w"> </span><span class="s1">&#39;@ranchhandrobotics/babylon_ros&#39;</span><span class="p">;</span>
+
+<span class="kd">const</span><span class="w"> </span><span class="nx">sphere</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="ow">new</span><span class="w"> </span><span class="nx">Sphere</span><span class="p">(</span><span class="nx">radius</span><span class="p">);</span>
+</code></pre></div>
+<p><strong>Constructor Parameters:</strong>
+- <code>radius</code>: number - Sphere radius (meters)</p>
+<p><strong>Example:</strong>
+<div class="highlight"><pre><span></span><code><span class="c1">// Create a 10cm radius sphere</span>
+<span class="kd">const</span><span class="w"> </span><span class="nx">ballJoint</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="ow">new</span><span class="w"> </span><span class="nx">Sphere</span><span class="p">(</span><span class="mf">0.1</span><span class="p">);</span>
+<span class="nx">ballJoint</span><span class="p">.</span><span class="nx">create</span><span class="p">(</span><span class="nx">scene</span><span class="p">,</span><span class="w"> </span><span class="nx">material</span><span class="p">);</span>
+</code></pre></div></p>
+<h3 id="cylinder-geometry">Cylinder Geometry</h3>
+<p>Creates cylindrical shapes.</p>
+<div class="highlight"><pre><span></span><code><span class="k">import</span><span class="w"> </span><span class="p">{</span><span class="w"> </span><span class="nx">Cylinder</span><span class="w"> </span><span class="p">}</span><span class="w"> </span><span class="kr">from</span><span class="w"> </span><span class="s1">&#39;@ranchhandrobotics/babylon_ros&#39;</span><span class="p">;</span>
+
+<span class="kd">const</span><span class="w"> </span><span class="nx">cylinder</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="ow">new</span><span class="w"> </span><span class="nx">Cylinder</span><span class="p">(</span><span class="nx">length</span><span class="p">,</span><span class="w"> </span><span class="nx">radius</span><span class="p">);</span>
+</code></pre></div>
+<p><strong>Constructor Parameters:</strong>
+- <code>length</code>: number - Cylinder height/length (meters)
+- <code>radius</code>: number - Cylinder radius (meters)</p>
+<p><strong>Special Behavior:</strong>
+- Automatically rotated 90° around X-axis to align with ROS conventions
+- ROS cylinders are along Z-axis, Babylon.js cylinders are along Y-axis</p>
+<p><strong>Example:</strong>
+<div class="highlight"><pre><span></span><code><span class="c1">// Create a 50cm long, 5cm radius cylinder</span>
+<span class="kd">const</span><span class="w"> </span><span class="nx">robotArm</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="ow">new</span><span class="w"> </span><span class="nx">Cylinder</span><span class="p">(</span><span class="mf">0.5</span><span class="p">,</span><span class="w"> </span><span class="mf">0.05</span><span class="p">);</span>
+<span class="nx">robotArm</span><span class="p">.</span><span class="nx">create</span><span class="p">(</span><span class="nx">scene</span><span class="p">,</span><span class="w"> </span><span class="nx">material</span><span class="p">);</span>
+</code></pre></div></p>
+<h2 id="mesh-geometry">Mesh Geometry</h2>
+<p>Loads complex 3D models from files.</p>
+<div class="highlight"><pre><span></span><code><span class="k">import</span><span class="w"> </span><span class="p">{</span><span class="w"> </span><span class="nx">Mesh</span><span class="w"> </span><span class="p">}</span><span class="w"> </span><span class="kr">from</span><span class="w"> </span><span class="s1">&#39;@ranchhandrobotics/babylon_ros&#39;</span><span class="p">;</span>
+
+<span class="kd">const</span><span class="w"> </span><span class="nx">mesh</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="ow">new</span><span class="w"> </span><span class="nx">Mesh</span><span class="p">(</span><span class="nx">uri</span><span class="p">,</span><span class="w"> </span><span class="nx">scale</span><span class="p">);</span>
+</code></pre></div>
+<p><strong>Constructor Parameters:</strong>
+- <code>uri</code>: string - Path to 3D model file
+- <code>scale</code>: BABYLON.Vector3 - Scaling factors for X, Y, Z axes</p>
+<p><strong>Supported Formats:</strong>
+- <strong>COLLADA (.dae)</strong>: Full feature support including materials, animations
+- <strong>STL (.stl)</strong>: Basic mesh geometry (automatically handles coordinate conversion)
+- <strong>OBJ (.obj)</strong>: Basic mesh geometry
+- <strong>glTF (.gltf, .glb)</strong>: Modern format with full PBR material support</p>
+<h3 id="properties_1">Properties</h3>
+<table>
+<thead>
+<tr>
+<th>Property</th>
+<th>Type</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>uri</code></td>
+<td><code>string</code></td>
+<td>File path or URL to the mesh</td>
+</tr>
+<tr>
+<td><code>scale</code></td>
+<td><code>BABYLON.Vector3</code></td>
+<td>Scaling applied to loaded mesh</td>
+</tr>
+<tr>
+<td><code>meshes</code></td>
+<td><code>BABYLON.AbstractMesh[] \| undefined</code></td>
+<td>Loaded mesh objects</td>
+</tr>
+<tr>
+<td><code>transform</code></td>
+<td><code>BABYLON.TransformNode \| undefined</code></td>
+<td>Transform node</td>
+</tr>
+<tr>
+<td><code>material</code></td>
+<td><code>Material \| undefined</code></td>
+<td>Override material</td>
+</tr>
+<tr>
+<td><code>skeletons</code></td>
+<td><code>BABYLON.Skeleton[] \| undefined</code></td>
+<td>Animation skeletons</td>
+</tr>
+</tbody>
+</table>
+<h3 id="methods_1">Methods</h3>
+<h4 id="setloadcompletecallbackcallback-void-void"><code>setLoadCompleteCallback(callback: () =&gt; void): void</code></h4>
+<p>Sets a callback function to be called when mesh loading completes.</p>
+<p><strong>Example:</strong>
+<div class="highlight"><pre><span></span><code><span class="kd">const</span><span class="w"> </span><span class="nx">robotMesh</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="ow">new</span><span class="w"> </span><span class="nx">Mesh</span><span class="p">(</span><span class="s2">&quot;robot_body.dae&quot;</span><span class="p">,</span><span class="w"> </span><span class="ow">new</span><span class="w"> </span><span class="nx">BABYLON</span><span class="p">.</span><span class="nx">Vector3</span><span class="p">(</span><span class="mf">1</span><span class="p">,</span><span class="w"> </span><span class="mf">1</span><span class="p">,</span><span class="w"> </span><span class="mf">1</span><span class="p">));</span>
+
+<span class="nx">robotMesh</span><span class="p">.</span><span class="nx">setLoadCompleteCallback</span><span class="p">(()</span><span class="w"> </span><span class="p">=&gt;</span><span class="w"> </span><span class="p">{</span>
+<span class="w">    </span><span class="nx">console</span><span class="p">.</span><span class="nx">log</span><span class="p">(</span><span class="s2">&quot;Robot mesh loaded successfully&quot;</span><span class="p">);</span>
+<span class="w">    </span><span class="c1">// Perform post-load operations</span>
+<span class="p">});</span>
+
+<span class="nx">robotMesh</span><span class="p">.</span><span class="nx">create</span><span class="p">(</span><span class="nx">scene</span><span class="p">,</span><span class="w"> </span><span class="nx">material</span><span class="p">);</span>
+</code></pre></div></p>
+<h2 id="usage-examples">Usage Examples</h2>
+<h3 id="creating-primitive-shapes">Creating Primitive Shapes</h3>
+<div class="highlight"><pre><span></span><code><span class="c1">// Robot chassis - large box</span>
+<span class="kd">const</span><span class="w"> </span><span class="nx">chassis</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="ow">new</span><span class="w"> </span><span class="nx">Box</span><span class="p">(</span><span class="mf">2.0</span><span class="p">,</span><span class="w"> </span><span class="mf">1.0</span><span class="p">,</span><span class="w"> </span><span class="mf">0.3</span><span class="p">);</span>
+<span class="kd">const</span><span class="w"> </span><span class="nx">chassisMaterial</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="ow">new</span><span class="w"> </span><span class="nx">Material</span><span class="p">();</span>
+<span class="nx">chassisMaterial</span><span class="p">.</span><span class="nx">color</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="ow">new</span><span class="w"> </span><span class="nx">BABYLON</span><span class="p">.</span><span class="nx">Color4</span><span class="p">(</span><span class="mf">0.5</span><span class="p">,</span><span class="w"> </span><span class="mf">0.5</span><span class="p">,</span><span class="w"> </span><span class="mf">0.5</span><span class="p">,</span><span class="w"> </span><span class="mf">1</span><span class="p">);</span>
+<span class="nx">chassis</span><span class="p">.</span><span class="nx">create</span><span class="p">(</span><span class="nx">scene</span><span class="p">,</span><span class="w"> </span><span class="nx">chassisMaterial</span><span class="p">);</span>
+
+<span class="c1">// Wheel - cylinder</span>
+<span class="kd">const</span><span class="w"> </span><span class="nx">wheel</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="ow">new</span><span class="w"> </span><span class="nx">Cylinder</span><span class="p">(</span><span class="mf">0.1</span><span class="p">,</span><span class="w"> </span><span class="mf">0.3</span><span class="p">);</span><span class="w"> </span><span class="c1">// 10cm wide, 30cm diameter</span>
+<span class="kd">const</span><span class="w"> </span><span class="nx">rubberMaterial</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="ow">new</span><span class="w"> </span><span class="nx">Material</span><span class="p">();</span>
+<span class="nx">rubberMaterial</span><span class="p">.</span><span class="nx">color</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="ow">new</span><span class="w"> </span><span class="nx">BABYLON</span><span class="p">.</span><span class="nx">Color4</span><span class="p">(</span><span class="mf">0.1</span><span class="p">,</span><span class="w"> </span><span class="mf">0.1</span><span class="p">,</span><span class="w"> </span><span class="mf">0.1</span><span class="p">,</span><span class="w"> </span><span class="mf">1</span><span class="p">);</span>
+<span class="nx">wheel</span><span class="p">.</span><span class="nx">create</span><span class="p">(</span><span class="nx">scene</span><span class="p">,</span><span class="w"> </span><span class="nx">rubberMaterial</span><span class="p">);</span>
+
+<span class="c1">// Sensor housing - sphere</span>
+<span class="kd">const</span><span class="w"> </span><span class="nx">lidarDome</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="ow">new</span><span class="w"> </span><span class="nx">Sphere</span><span class="p">(</span><span class="mf">0.08</span><span class="p">);</span><span class="w"> </span><span class="c1">// 8cm radius</span>
+<span class="kd">const</span><span class="w"> </span><span class="nx">blackMaterial</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="ow">new</span><span class="w"> </span><span class="nx">Material</span><span class="p">();</span>
+<span class="nx">blackMaterial</span><span class="p">.</span><span class="nx">color</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="ow">new</span><span class="w"> </span><span class="nx">BABYLON</span><span class="p">.</span><span class="nx">Color4</span><span class="p">(</span><span class="mf">0</span><span class="p">,</span><span class="w"> </span><span class="mf">0</span><span class="p">,</span><span class="w"> </span><span class="mf">0</span><span class="p">,</span><span class="w"> </span><span class="mf">1</span><span class="p">);</span>
+<span class="nx">lidarDome</span><span class="p">.</span><span class="nx">create</span><span class="p">(</span><span class="nx">scene</span><span class="p">,</span><span class="w"> </span><span class="nx">blackMaterial</span><span class="p">);</span>
+</code></pre></div>
+<h3 id="loading-complex-meshes">Loading Complex Meshes</h3>
+<div class="highlight"><pre><span></span><code><span class="c1">// High-detail robot arm from COLLADA file</span>
+<span class="kd">const</span><span class="w"> </span><span class="nx">armMesh</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="ow">new</span><span class="w"> </span><span class="nx">Mesh</span><span class="p">(</span>
+<span class="w">    </span><span class="s2">&quot;models/robot_arm_detailed.dae&quot;</span><span class="p">,</span>
+<span class="w">    </span><span class="ow">new</span><span class="w"> </span><span class="nx">BABYLON</span><span class="p">.</span><span class="nx">Vector3</span><span class="p">(</span><span class="mf">1</span><span class="p">,</span><span class="w"> </span><span class="mf">1</span><span class="p">,</span><span class="w"> </span><span class="mf">1</span><span class="p">)</span><span class="w"> </span><span class="c1">// No scaling</span>
+<span class="p">);</span>
+
+<span class="c1">// Handle async loading</span>
+<span class="kd">let</span><span class="w"> </span><span class="nx">meshLoadComplete</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="kc">false</span><span class="p">;</span>
+<span class="nx">armMesh</span><span class="p">.</span><span class="nx">setLoadCompleteCallback</span><span class="p">(()</span><span class="w"> </span><span class="p">=&gt;</span><span class="w"> </span><span class="p">{</span>
+<span class="w">    </span><span class="nx">meshLoadComplete</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="kc">true</span><span class="p">;</span>
+<span class="w">    </span><span class="nx">console</span><span class="p">.</span><span class="nx">log</span><span class="p">(</span><span class="s2">&quot;Arm mesh loaded&quot;</span><span class="p">);</span>
+<span class="p">});</span>
+
+<span class="nx">armMesh</span><span class="p">.</span><span class="nx">create</span><span class="p">(</span><span class="nx">scene</span><span class="p">,</span><span class="w"> </span><span class="nx">material</span><span class="p">);</span>
+
+<span class="c1">// Scaled STL mesh (STL files often need scaling)</span>
+<span class="kd">const</span><span class="w"> </span><span class="nx">gearMesh</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="ow">new</span><span class="w"> </span><span class="nx">Mesh</span><span class="p">(</span>
+<span class="w">    </span><span class="s2">&quot;parts/gear.stl&quot;</span><span class="p">,</span>
+<span class="w">    </span><span class="ow">new</span><span class="w"> </span><span class="nx">BABYLON</span><span class="p">.</span><span class="nx">Vector3</span><span class="p">(</span><span class="mf">0.001</span><span class="p">,</span><span class="w"> </span><span class="mf">0.001</span><span class="p">,</span><span class="w"> </span><span class="mf">0.001</span><span class="p">)</span><span class="w"> </span><span class="c1">// Scale from mm to m</span>
+<span class="p">);</span>
+<span class="nx">gearMesh</span><span class="p">.</span><span class="nx">create</span><span class="p">(</span><span class="nx">scene</span><span class="p">,</span><span class="w"> </span><span class="nx">metalMaterial</span><span class="p">);</span>
+</code></pre></div>
+<h3 id="geometry-in-visual-components">Geometry in Visual Components</h3>
+<div class="highlight"><pre><span></span><code><span class="kd">const</span><span class="w"> </span><span class="nx">visual</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="ow">new</span><span class="w"> </span><span class="nx">Visual</span><span class="p">();</span>
+<span class="nx">visual</span><span class="p">.</span><span class="nx">name</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s2">&quot;robot_body&quot;</span><span class="p">;</span>
+
+<span class="c1">// Use different geometry based on requirements</span>
+<span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="nx">detailedMode</span><span class="p">)</span><span class="w"> </span><span class="p">{</span>
+<span class="w">    </span><span class="c1">// High-detail mesh for close viewing</span>
+<span class="w">    </span><span class="nx">visual</span><span class="p">.</span><span class="nx">geometry</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="ow">new</span><span class="w"> </span><span class="nx">Mesh</span><span class="p">(</span><span class="s2">&quot;detailed_body.dae&quot;</span><span class="p">,</span><span class="w"> </span><span class="ow">new</span><span class="w"> </span><span class="nx">BABYLON</span><span class="p">.</span><span class="nx">Vector3</span><span class="p">(</span><span class="mf">1</span><span class="p">,</span><span class="w"> </span><span class="mf">1</span><span class="p">,</span><span class="w"> </span><span class="mf">1</span><span class="p">));</span>
+<span class="p">}</span><span class="w"> </span><span class="k">else</span><span class="w"> </span><span class="p">{</span>
+<span class="w">    </span><span class="c1">// Simple box for performance</span>
+<span class="w">    </span><span class="nx">visual</span><span class="p">.</span><span class="nx">geometry</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="ow">new</span><span class="w"> </span><span class="nx">Box</span><span class="p">(</span><span class="mf">1.5</span><span class="p">,</span><span class="w"> </span><span class="mf">0.8</span><span class="p">,</span><span class="w"> </span><span class="mf">0.4</span><span class="p">);</span>
+<span class="p">}</span>
+
+<span class="nx">visual</span><span class="p">.</span><span class="nx">create</span><span class="p">(</span><span class="nx">scene</span><span class="p">,</span><span class="w"> </span><span class="nx">materialMap</span><span class="p">);</span>
+</code></pre></div>
+<h2 id="coordinate-system-conversions">Coordinate System Conversions</h2>
+<h3 id="ros-to-babylonjs-coordinate-systems">ROS to Babylon.js Coordinate Systems</h3>
+<p>The geometry classes handle coordinate system differences:</p>
+<p><strong>ROS Conventions:</strong>
+- X-forward, Y-left, Z-up
+- Cylinders along Z-axis
+- STL files in millimeters</p>
+<p><strong>Babylon.js Conventions:</strong><br />
+- X-right, Y-up, Z-forward
+- Cylinders along Y-axis
+- Meters for all units</p>
+<h3 id="automatic-conversions">Automatic Conversions</h3>
+<div class="highlight"><pre><span></span><code><span class="c1">// Cylinder: Automatically rotated 90° around X-axis</span>
+<span class="kd">const</span><span class="w"> </span><span class="nx">cylinder</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="ow">new</span><span class="w"> </span><span class="nx">Cylinder</span><span class="p">(</span><span class="mf">0.5</span><span class="p">,</span><span class="w"> </span><span class="mf">0.05</span><span class="p">);</span>
+<span class="c1">// Result: 50cm cylinder pointing along Z-axis (ROS convention)</span>
+
+<span class="c1">// STL Mesh: Automatically handles coordinate conversion</span>
+<span class="kd">const</span><span class="w"> </span><span class="nx">stlMesh</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="ow">new</span><span class="w"> </span><span class="nx">Mesh</span><span class="p">(</span><span class="s2">&quot;part.stl&quot;</span><span class="p">,</span><span class="w"> </span><span class="ow">new</span><span class="w"> </span><span class="nx">BABYLON</span><span class="p">.</span><span class="nx">Vector3</span><span class="p">(</span><span class="mf">0.001</span><span class="p">,</span><span class="w"> </span><span class="mf">0.001</span><span class="p">,</span><span class="w"> </span><span class="mf">0.001</span><span class="p">));</span>
+<span class="c1">// Result: Proper orientation and scaling from mm to meters</span>
+</code></pre></div>
+<h2 id="performance-considerations">Performance Considerations</h2>
+<h3 id="primitive-geometries_1">Primitive Geometries</h3>
+<ul>
+<li><strong>Fast Creation</strong>: Generated procedurally, very fast</li>
+<li><strong>Low Memory</strong>: Minimal memory footprint</li>
+<li><strong>Good for Collision</strong>: Perfect for simple collision shapes</li>
+</ul>
+<h3 id="mesh-geometries">Mesh Geometries</h3>
+<ul>
+<li><strong>Loading Time</strong>: Files must be loaded from disk/network</li>
+<li><strong>Memory Usage</strong>: Can be large for detailed models</li>
+<li><strong>Rendering Cost</strong>: Complex meshes impact rendering performance</li>
+</ul>
+<h3 id="optimization-strategies">Optimization Strategies</h3>
+<div class="highlight"><pre><span></span><code><span class="c1">// Use appropriate level of detail</span>
+<span class="kd">const</span><span class="w"> </span><span class="nx">simpleCollision</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="ow">new</span><span class="w"> </span><span class="nx">Box</span><span class="p">(</span><span class="mf">2</span><span class="p">,</span><span class="w"> </span><span class="mf">1</span><span class="p">,</span><span class="w"> </span><span class="mf">0.5</span><span class="p">);</span><span class="w">        </span><span class="c1">// Simple collision</span>
+<span class="kd">const</span><span class="w"> </span><span class="nx">detailedVisual</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="ow">new</span><span class="w"> </span><span class="nx">Mesh</span><span class="p">(</span><span class="s2">&quot;detailed.dae&quot;</span><span class="p">,</span><span class="w"> </span><span class="nx">scale</span><span class="p">);</span><span class="w"> </span><span class="c1">// Detailed visual</span>
+
+<span class="c1">// Scale optimization</span>
+<span class="kd">const</span><span class="w"> </span><span class="nx">lowPolyMesh</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="ow">new</span><span class="w"> </span><span class="nx">Mesh</span><span class="p">(</span><span class="s2">&quot;low_poly.dae&quot;</span><span class="p">,</span><span class="w"> </span><span class="nx">scale</span><span class="p">);</span><span class="w">    </span><span class="c1">// For distant objects</span>
+<span class="kd">const</span><span class="w"> </span><span class="nx">highPolyMesh</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="ow">new</span><span class="w"> </span><span class="nx">Mesh</span><span class="p">(</span><span class="s2">&quot;high_poly.dae&quot;</span><span class="p">,</span><span class="w"> </span><span class="nx">scale</span><span class="p">);</span><span class="w">  </span><span class="c1">// For close viewing</span>
+
+<span class="c1">// Async loading management</span>
+<span class="kd">const</span><span class="w"> </span><span class="nx">loader</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="ow">new</span><span class="w"> </span><span class="nx">Mesh</span><span class="p">(</span><span class="s2">&quot;large_model.dae&quot;</span><span class="p">,</span><span class="w"> </span><span class="nx">scale</span><span class="p">);</span>
+<span class="nx">loader</span><span class="p">.</span><span class="nx">setLoadCompleteCallback</span><span class="p">(()</span><span class="w"> </span><span class="p">=&gt;</span><span class="w"> </span><span class="p">{</span>
+<span class="w">    </span><span class="c1">// Enable rendering after loading</span>
+<span class="w">    </span><span class="nx">robotScene</span><span class="p">.</span><span class="nx">readyToRender</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="kc">true</span><span class="p">;</span>
+<span class="p">});</span>
+</code></pre></div>
+<h2 id="material-integration">Material Integration</h2>
+<h3 id="geometry-with-materials">Geometry with Materials</h3>
+<div class="highlight"><pre><span></span><code><span class="c1">// Primitive with solid color</span>
+<span class="kd">const</span><span class="w"> </span><span class="nx">box</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="ow">new</span><span class="w"> </span><span class="nx">Box</span><span class="p">(</span><span class="mf">1</span><span class="p">,</span><span class="w"> </span><span class="mf">1</span><span class="p">,</span><span class="w"> </span><span class="mf">1</span><span class="p">);</span>
+<span class="kd">const</span><span class="w"> </span><span class="nx">redMaterial</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="ow">new</span><span class="w"> </span><span class="nx">Material</span><span class="p">();</span>
+<span class="nx">redMaterial</span><span class="p">.</span><span class="nx">color</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="ow">new</span><span class="w"> </span><span class="nx">BABYLON</span><span class="p">.</span><span class="nx">Color4</span><span class="p">(</span><span class="mf">1</span><span class="p">,</span><span class="w"> </span><span class="mf">0</span><span class="p">,</span><span class="w"> </span><span class="mf">0</span><span class="p">,</span><span class="w"> </span><span class="mf">1</span><span class="p">);</span>
+<span class="nx">box</span><span class="p">.</span><span class="nx">create</span><span class="p">(</span><span class="nx">scene</span><span class="p">,</span><span class="w"> </span><span class="nx">redMaterial</span><span class="p">);</span>
+
+<span class="c1">// Mesh with texture (material can be embedded in file)</span>
+<span class="kd">const</span><span class="w"> </span><span class="nx">texturedMesh</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="ow">new</span><span class="w"> </span><span class="nx">Mesh</span><span class="p">(</span><span class="s2">&quot;textured_model.dae&quot;</span><span class="p">,</span><span class="w"> </span><span class="nx">scale</span><span class="p">);</span>
+<span class="nx">texturedMesh</span><span class="p">.</span><span class="nx">create</span><span class="p">(</span><span class="nx">scene</span><span class="p">,</span><span class="w"> </span><span class="kc">undefined</span><span class="p">);</span><span class="w"> </span><span class="c1">// Uses embedded materials</span>
+
+<span class="c1">// Mesh with override material</span>
+<span class="kd">const</span><span class="w"> </span><span class="nx">meshWithOverride</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="ow">new</span><span class="w"> </span><span class="nx">Mesh</span><span class="p">(</span><span class="s2">&quot;model.dae&quot;</span><span class="p">,</span><span class="w"> </span><span class="nx">scale</span><span class="p">);</span>
+<span class="nx">meshWithOverride</span><span class="p">.</span><span class="nx">create</span><span class="p">(</span><span class="nx">scene</span><span class="p">,</span><span class="w"> </span><span class="nx">customMaterial</span><span class="p">);</span><span class="w"> </span><span class="c1">// Overrides embedded materials</span>
+</code></pre></div>
+<h2 id="error-handling">Error Handling</h2>
+<h3 id="file-loading-errors">File Loading Errors</h3>
+<div class="highlight"><pre><span></span><code><span class="kd">const</span><span class="w"> </span><span class="nx">mesh</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="ow">new</span><span class="w"> </span><span class="nx">Mesh</span><span class="p">(</span><span class="s2">&quot;missing_file.dae&quot;</span><span class="p">,</span><span class="w"> </span><span class="nx">scale</span><span class="p">);</span>
+<span class="nx">mesh</span><span class="p">.</span><span class="nx">setLoadCompleteCallback</span><span class="p">(()</span><span class="w"> </span><span class="p">=&gt;</span><span class="w"> </span><span class="p">{</span>
+<span class="w">    </span><span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="nx">mesh</span><span class="p">.</span><span class="nx">meshes</span><span class="w"> </span><span class="o">&amp;&amp;</span><span class="w"> </span><span class="nx">mesh</span><span class="p">.</span><span class="nx">meshes</span><span class="p">.</span><span class="nx">length</span><span class="w"> </span><span class="o">&gt;</span><span class="w"> </span><span class="mf">0</span><span class="p">)</span><span class="w"> </span><span class="p">{</span>
+<span class="w">        </span><span class="nx">console</span><span class="p">.</span><span class="nx">log</span><span class="p">(</span><span class="s2">&quot;Mesh loaded successfully&quot;</span><span class="p">);</span>
+<span class="w">    </span><span class="p">}</span><span class="w"> </span><span class="k">else</span><span class="w"> </span><span class="p">{</span>
+<span class="w">        </span><span class="nx">console</span><span class="p">.</span><span class="nx">error</span><span class="p">(</span><span class="s2">&quot;Failed to load mesh&quot;</span><span class="p">);</span>
+<span class="w">    </span><span class="p">}</span>
+<span class="p">});</span>
+</code></pre></div>
+<h3 id="disposal-and-cleanup">Disposal and Cleanup</h3>
+<div class="highlight"><pre><span></span><code><span class="c1">// Always dispose geometries to prevent memory leaks</span>
+<span class="nx">geometry</span><span class="p">.</span><span class="nx">dispose</span><span class="p">();</span>
+
+<span class="c1">// For meshes, this cleans up:</span>
+<span class="c1">// - Loaded mesh data</span>
+<span class="c1">// - Transform nodes  </span>
+<span class="c1">// - Associated materials (if not shared)</span>
+<span class="c1">// - Animation data</span>
+</code></pre></div>
+<h2 id="integration-with-robot-components">Integration with Robot Components</h2>
+<p>Geometries are typically used within Visual components:</p>
+<div class="highlight"><pre><span></span><code><span class="c1">// Part of robot loading process</span>
+<span class="kd">const</span><span class="w"> </span><span class="nx">link</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="ow">new</span><span class="w"> </span><span class="nx">Link</span><span class="p">();</span>
+<span class="kd">const</span><span class="w"> </span><span class="nx">visual</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="ow">new</span><span class="w"> </span><span class="nx">Visual</span><span class="p">();</span>
+
+<span class="c1">// Choose appropriate geometry</span>
+<span class="nx">visual</span><span class="p">.</span><span class="nx">geometry</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="ow">new</span><span class="w"> </span><span class="nx">Box</span><span class="p">(</span><span class="mf">1</span><span class="p">,</span><span class="w"> </span><span class="mf">0.5</span><span class="p">,</span><span class="w"> </span><span class="mf">0.3</span><span class="p">);</span><span class="w"> </span><span class="c1">// Simple box</span>
+<span class="c1">// OR</span>
+<span class="nx">visual</span><span class="p">.</span><span class="nx">geometry</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="ow">new</span><span class="w"> </span><span class="nx">Mesh</span><span class="p">(</span><span class="s2">&quot;complex_part.dae&quot;</span><span class="p">,</span><span class="w"> </span><span class="nx">scale</span><span class="p">);</span><span class="w"> </span><span class="c1">// Complex mesh</span>
+
+<span class="nx">link</span><span class="p">.</span><span class="nx">visuals</span><span class="p">.</span><span class="nx">push</span><span class="p">(</span><span class="nx">visual</span><span class="p">);</span>
+</code></pre></div>
+<p>This creates a complete chain: Robot → Link → Visual → Geometry → Babylon.js Mesh</p>
+              
+            </div>
+          </div><footer>
+    <div class="rst-footer-buttons" role="navigation" aria-label="Footer Navigation">
+        <a href="material.html" class="btn btn-neutral float-left" title="Material"><span class="icon icon-circle-arrow-left"></span> Previous</a>
+        <a href="gizmos.html" class="btn btn-neutral float-right" title="Gizmos">Next <span class="icon icon-circle-arrow-right"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <!-- Copyright etc -->
+  </div>
+
+  Built with <a href="https://www.mkdocs.org/">MkDocs</a> using a <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>.
+</footer>
+          
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+
+  <div class="rst-versions" role="note" aria-label="Versions">
+  <span class="rst-current-version" data-toggle="rst-current-version">
+    
+        <span>
+          <a href="https://github.com/ranch-hand-robotics/babylon_ros" class="fa fa-github" style="color: #fcfcfc"> GitHub</a>
+        </span>
+    
+    
+      <span><a href="material.html" style="color: #fcfcfc">&laquo; Previous</a></span>
+    
+    
+      <span><a href="gizmos.html" style="color: #fcfcfc">Next &raquo;</a></span>
+    
+  </span>
+</div>
+    <script src="../js/jquery-3.6.0.min.js"></script>
+    <script>var base_url = "..";</script>
+    <script src="../js/theme_extra.js"></script>
+    <script src="../js/theme.js"></script>
+      <script src="../search/main.js"></script>
+    <script>
+        jQuery(function () {
+            SphinxRtdTheme.Navigation.enable(true);
+        });
+    </script>
+
+</body>
+</html>

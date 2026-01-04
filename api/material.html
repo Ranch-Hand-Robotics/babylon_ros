@@ -1,0 +1,517 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+    <meta charset="utf-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+      <link rel="shortcut icon" href="../img/favicon.ico" />
+    <title>Material - Robot Developer Tools for Web</title>
+    <link rel="stylesheet" href="../css/theme.css" />
+    <link rel="stylesheet" href="../css/theme_extra.css" />
+        <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/styles/github.min.css" />
+    
+      <script>
+        // Current page data
+        var mkdocs_page_name = "Material";
+        var mkdocs_page_input_path = "api/material.md";
+        var mkdocs_page_url = null;
+      </script>
+    
+    <!--[if lt IE 9]>
+      <script src="../js/html5shiv.min.js"></script>
+    <![endif]-->
+      <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/highlight.min.js"></script>
+      <script>hljs.highlightAll();</script> 
+</head>
+
+<body class="wy-body-for-nav" role="document">
+
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side stickynav">
+    <div class="wy-side-scroll">
+      <div class="wy-side-nav-search">
+          <a href="../index.html" class="icon icon-home"> Robot Developer Tools for Web
+        </a><div role="search">
+  <form id ="rtd-search-form" class="wy-form" action="../search.html" method="get">
+      <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" title="Type search term here" />
+  </form>
+</div>
+      </div>
+
+      <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <ul>
+                <li class="toctree-l1"><a class="reference internal" href="../index.html">Home</a>
+                </li>
+              </ul>
+              <ul>
+                <li class="toctree-l1"><a class="reference internal" href="../installation.html">Installation</a>
+                </li>
+              </ul>
+              <ul>
+                <li class="toctree-l1"><a class="reference internal" href="../urdf.html">URDF Viewer</a>
+                </li>
+              </ul>
+              <p class="caption"><span class="caption-text">API Reference</span></p>
+              <ul class="current">
+                  <li class="toctree-l1"><a class="reference internal" href="../api-overview.html">Overview</a>
+                  </li>
+                  <li class="toctree-l1 current"><a class="reference internal current" >Core Classes</a>
+    <ul class="current">
+                <li class="toctree-l2"><a class="reference internal" href="robot-scene.html">RobotScene</a>
+                </li>
+                <li class="toctree-l2"><a class="reference internal" href="robot.html">Robot</a>
+                </li>
+                <li class="toctree-l2"><a class="reference internal" href="joint.html">Joint</a>
+                </li>
+                <li class="toctree-l2"><a class="reference internal" href="link.html">Link</a>
+                </li>
+                <li class="toctree-l2"><a class="reference internal" href="visual.html">Visual</a>
+                </li>
+                <li class="toctree-l2 current"><a class="reference internal current" href="#">Material</a>
+    <ul class="current">
+    <li class="toctree-l3"><a class="reference internal" href="#constructor">Constructor</a>
+    </li>
+    <li class="toctree-l3"><a class="reference internal" href="#properties">Properties</a>
+        <ul>
+    <li class="toctree-l4"><a class="reference internal" href="#public-properties">Public Properties</a>
+    </li>
+        </ul>
+    </li>
+    <li class="toctree-l3"><a class="reference internal" href="#methods">Methods</a>
+        <ul>
+    <li class="toctree-l4"><a class="reference internal" href="#lifecycle-methods">Lifecycle Methods</a>
+    </li>
+    <li class="toctree-l4"><a class="reference internal" href="#utility-methods">Utility Methods</a>
+    </li>
+        </ul>
+    </li>
+    <li class="toctree-l3"><a class="reference internal" href="#material-types">Material Types</a>
+        <ul>
+    <li class="toctree-l4"><a class="reference internal" href="#color-based-materials">Color-Based Materials</a>
+    </li>
+    <li class="toctree-l4"><a class="reference internal" href="#texture-based-materials">Texture-Based Materials</a>
+    </li>
+    <li class="toctree-l4"><a class="reference internal" href="#reference-materials">Reference Materials</a>
+    </li>
+        </ul>
+    </li>
+    <li class="toctree-l3"><a class="reference internal" href="#collisionmaterial-class">CollisionMaterial Class</a>
+        <ul>
+    <li class="toctree-l4"><a class="reference internal" href="#constructor_1">Constructor</a>
+    </li>
+    <li class="toctree-l4"><a class="reference internal" href="#properties_1">Properties</a>
+    </li>
+    <li class="toctree-l4"><a class="reference internal" href="#usage">Usage</a>
+    </li>
+        </ul>
+    </li>
+    <li class="toctree-l3"><a class="reference internal" href="#usage-examples">Usage Examples</a>
+        <ul>
+    <li class="toctree-l4"><a class="reference internal" href="#creating-colored-materials">Creating Colored Materials</a>
+    </li>
+    <li class="toctree-l4"><a class="reference internal" href="#creating-textured-materials">Creating Textured Materials</a>
+    </li>
+    <li class="toctree-l4"><a class="reference internal" href="#material-references-in-urdf-context">Material References in URDF Context</a>
+    </li>
+        </ul>
+    </li>
+    <li class="toctree-l3"><a class="reference internal" href="#color-format">Color Format</a>
+        <ul>
+    <li class="toctree-l4"><a class="reference internal" href="#babyloncolor4-components">BABYLON.Color4 Components</a>
+    </li>
+    <li class="toctree-l4"><a class="reference internal" href="#common-colors">Common Colors</a>
+    </li>
+        </ul>
+    </li>
+    <li class="toctree-l3"><a class="reference internal" href="#texture-support">Texture Support</a>
+        <ul>
+    <li class="toctree-l4"><a class="reference internal" href="#supported-formats">Supported Formats</a>
+    </li>
+    <li class="toctree-l4"><a class="reference internal" href="#texture-properties">Texture Properties</a>
+    </li>
+        </ul>
+    </li>
+    <li class="toctree-l3"><a class="reference internal" href="#material-properties">Material Properties</a>
+        <ul>
+    <li class="toctree-l4"><a class="reference internal" href="#babylonjs-standardmaterial-properties">Babylon.js StandardMaterial Properties</a>
+    </li>
+    <li class="toctree-l4"><a class="reference internal" href="#advanced-properties">Advanced Properties</a>
+    </li>
+        </ul>
+    </li>
+    <li class="toctree-l3"><a class="reference internal" href="#integration-with-robot">Integration with Robot</a>
+        <ul>
+    <li class="toctree-l4"><a class="reference internal" href="#default-materials">Default Materials</a>
+    </li>
+    <li class="toctree-l4"><a class="reference internal" href="#urdf-material-loading">URDF Material Loading</a>
+    </li>
+        </ul>
+    </li>
+    <li class="toctree-l3"><a class="reference internal" href="#performance-considerations">Performance Considerations</a>
+        <ul>
+    <li class="toctree-l4"><a class="reference internal" href="#material-sharing">Material Sharing</a>
+    </li>
+    <li class="toctree-l4"><a class="reference internal" href="#texture-optimization">Texture Optimization</a>
+    </li>
+    <li class="toctree-l4"><a class="reference internal" href="#memory-management">Memory Management</a>
+    </li>
+        </ul>
+    </li>
+    <li class="toctree-l3"><a class="reference internal" href="#error-handling">Error Handling</a>
+    </li>
+    </ul>
+                </li>
+    </ul>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" >Geometry System</a>
+    <ul>
+                <li class="toctree-l2"><a class="reference internal" href="geometry.html">Geometry Types</a>
+                </li>
+    </ul>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" >Interactive Tools</a>
+    <ul>
+                <li class="toctree-l2"><a class="reference internal" href="gizmos.html">Gizmos</a>
+                </li>
+    </ul>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" >Utilities</a>
+    <ul>
+                <li class="toctree-l2"><a class="reference internal" href="utilities.html">Helper Functions</a>
+                </li>
+    </ul>
+                  </li>
+              </ul>
+      </div>
+    </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+      <nav class="wy-nav-top" role="navigation" aria-label="Mobile navigation menu">
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../index.html">Robot Developer Tools for Web</a>
+        
+      </nav>
+      <div class="wy-nav-content">
+        <div class="rst-content"><div role="navigation" aria-label="breadcrumbs navigation">
+  <ul class="wy-breadcrumbs">
+    <li><a href="../index.html" class="icon icon-home" aria-label="Docs"></a></li>
+          <li class="breadcrumb-item">API Reference</li>
+          <li class="breadcrumb-item">Core Classes</li>
+      <li class="breadcrumb-item active">Material</li>
+    <li class="wy-breadcrumbs-aside">
+          <a href="https://github.com/ranch-hand-robotics/babylon_ros/edit/main/docs/api/material.md" class="icon icon-github"> Edit on GitHub</a>
+    </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+            <div class="section" itemprop="articleBody">
+              
+                <h1 id="material-api">Material API</h1>
+<p>The <code>Material</code> class defines visual properties for robot surfaces, including colors and textures.</p>
+<h2 id="constructor">Constructor</h2>
+<div class="highlight"><pre><span></span><code><span class="kd">const</span><span class="w"> </span><span class="nx">material</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="ow">new</span><span class="w"> </span><span class="nx">Material</span><span class="p">();</span>
+</code></pre></div>
+<p>Creates a new Material instance with default values.</p>
+<h2 id="properties">Properties</h2>
+<h3 id="public-properties">Public Properties</h3>
+<table>
+<thead>
+<tr>
+<th>Property</th>
+<th>Type</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>name</code></td>
+<td><code>string</code></td>
+<td>Material identifier (default: "default")</td>
+</tr>
+<tr>
+<td><code>filename</code></td>
+<td><code>string</code></td>
+<td>Path to texture image file</td>
+</tr>
+<tr>
+<td><code>color</code></td>
+<td><code>BABYLON.Color4 \| undefined</code></td>
+<td>RGBA color values</td>
+</tr>
+<tr>
+<td><code>material</code></td>
+<td><code>BABYLON.Material \| undefined</code></td>
+<td>The Babylon.js material instance</td>
+</tr>
+</tbody>
+</table>
+<h2 id="methods">Methods</h2>
+<h3 id="lifecycle-methods">Lifecycle Methods</h3>
+<h4 id="createscene-babylonscene-void"><code>create(scene: BABYLON.Scene): void</code></h4>
+<p>Creates the Babylon.js material in the scene based on the material properties.</p>
+<p><strong>Parameters:</strong>
+- <code>scene</code>: BABYLON.Scene - The Babylon.js scene</p>
+<p><strong>Behavior:</strong>
+- Creates a StandardMaterial with the material name
+- If <code>filename</code> is specified, creates a texture-based material
+- If <code>color</code> is specified, creates a color-based material
+- Sets material properties like alpha and backface culling</p>
+<p><strong>Example:</strong>
+<div class="highlight"><pre><span></span><code><span class="nx">material</span><span class="p">.</span><span class="nx">create</span><span class="p">(</span><span class="nx">scene</span><span class="p">);</span>
+</code></pre></div></p>
+<h4 id="dispose-void"><code>dispose(): void</code></h4>
+<p>Cleans up the Babylon.js material resources.</p>
+<p><strong>Example:</strong>
+<div class="highlight"><pre><span></span><code><span class="nx">material</span><span class="p">.</span><span class="nx">dispose</span><span class="p">();</span>
+</code></pre></div></p>
+<h3 id="utility-methods">Utility Methods</h3>
+<h4 id="isreference-boolean"><code>isReference(): boolean</code></h4>
+<p>Determines if this material is a reference to another material by name.</p>
+<p><strong>Returns:</strong> boolean - true if this is a reference (no filename or color defined)</p>
+<p><strong>Example:</strong>
+<div class="highlight"><pre><span></span><code><span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="nx">material</span><span class="p">.</span><span class="nx">isReference</span><span class="p">())</span><span class="w"> </span><span class="p">{</span>
+<span class="w">    </span><span class="nx">console</span><span class="p">.</span><span class="nx">log</span><span class="p">(</span><span class="s2">&quot;This material references another material by name&quot;</span><span class="p">);</span>
+<span class="p">}</span>
+</code></pre></div></p>
+<h2 id="material-types">Material Types</h2>
+<h3 id="color-based-materials">Color-Based Materials</h3>
+<div class="highlight"><pre><span></span><code><span class="kd">const</span><span class="w"> </span><span class="nx">redMaterial</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="ow">new</span><span class="w"> </span><span class="nx">Material</span><span class="p">();</span>
+<span class="nx">redMaterial</span><span class="p">.</span><span class="nx">name</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s2">&quot;red_plastic&quot;</span><span class="p">;</span>
+<span class="nx">redMaterial</span><span class="p">.</span><span class="nx">color</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="ow">new</span><span class="w"> </span><span class="nx">BABYLON</span><span class="p">.</span><span class="nx">Color4</span><span class="p">(</span><span class="mf">1</span><span class="p">,</span><span class="w"> </span><span class="mf">0</span><span class="p">,</span><span class="w"> </span><span class="mf">0</span><span class="p">,</span><span class="w"> </span><span class="mf">1</span><span class="p">);</span><span class="w"> </span><span class="c1">// Red, fully opaque</span>
+<span class="nx">redMaterial</span><span class="p">.</span><span class="nx">create</span><span class="p">(</span><span class="nx">scene</span><span class="p">);</span>
+</code></pre></div>
+<h3 id="texture-based-materials">Texture-Based Materials</h3>
+<div class="highlight"><pre><span></span><code><span class="kd">const</span><span class="w"> </span><span class="nx">textureMaterial</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="ow">new</span><span class="w"> </span><span class="nx">Material</span><span class="p">();</span>
+<span class="nx">textureMaterial</span><span class="p">.</span><span class="nx">name</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s2">&quot;wood_texture&quot;</span><span class="p">;</span>
+<span class="nx">textureMaterial</span><span class="p">.</span><span class="nx">filename</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s2">&quot;textures/wood.png&quot;</span><span class="p">;</span>
+<span class="nx">textureMaterial</span><span class="p">.</span><span class="nx">create</span><span class="p">(</span><span class="nx">scene</span><span class="p">);</span>
+</code></pre></div>
+<h3 id="reference-materials">Reference Materials</h3>
+<div class="highlight"><pre><span></span><code><span class="c1">// Reference an existing material by name</span>
+<span class="kd">const</span><span class="w"> </span><span class="nx">materialRef</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="ow">new</span><span class="w"> </span><span class="nx">Material</span><span class="p">();</span>
+<span class="nx">materialRef</span><span class="p">.</span><span class="nx">name</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s2">&quot;existing_material&quot;</span><span class="p">;</span><span class="w"> </span><span class="c1">// Must exist in material map</span>
+<span class="c1">// No color or filename - this is a reference</span>
+<span class="nx">console</span><span class="p">.</span><span class="nx">log</span><span class="p">(</span><span class="nx">materialRef</span><span class="p">.</span><span class="nx">isReference</span><span class="p">());</span><span class="w"> </span><span class="c1">// true</span>
+</code></pre></div>
+<h2 id="collisionmaterial-class">CollisionMaterial Class</h2>
+<p>A specialized material for collision geometry visualization.</p>
+<h3 id="constructor_1">Constructor</h3>
+<div class="highlight"><pre><span></span><code><span class="kd">const</span><span class="w"> </span><span class="nx">collisionMat</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="ow">new</span><span class="w"> </span><span class="nx">CollisionMaterial</span><span class="p">();</span>
+</code></pre></div>
+<h3 id="properties_1">Properties</h3>
+<ul>
+<li><strong>Name</strong>: Always "collision"</li>
+<li><strong>Color</strong>: Semi-transparent red (alpha = 0.25)</li>
+<li><strong>Purpose</strong>: Visual debugging of collision shapes</li>
+</ul>
+<h3 id="usage">Usage</h3>
+<div class="highlight"><pre><span></span><code><span class="kd">const</span><span class="w"> </span><span class="nx">collisionMaterial</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="ow">new</span><span class="w"> </span><span class="nx">CollisionMaterial</span><span class="p">();</span>
+<span class="nx">collisionMaterial</span><span class="p">.</span><span class="nx">create</span><span class="p">(</span><span class="nx">scene</span><span class="p">);</span>
+
+<span class="c1">// Applied automatically to collision visuals</span>
+<span class="nx">collision</span><span class="p">.</span><span class="nx">material</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="nx">materialMap</span><span class="p">.</span><span class="nx">get</span><span class="p">(</span><span class="s2">&quot;collision&quot;</span><span class="p">);</span>
+</code></pre></div>
+<h2 id="usage-examples">Usage Examples</h2>
+<h3 id="creating-colored-materials">Creating Colored Materials</h3>
+<div class="highlight"><pre><span></span><code><span class="c1">// Solid colors</span>
+<span class="kd">const</span><span class="w"> </span><span class="nx">blueMaterial</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="ow">new</span><span class="w"> </span><span class="nx">Material</span><span class="p">();</span>
+<span class="nx">blueMaterial</span><span class="p">.</span><span class="nx">name</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s2">&quot;blue_metal&quot;</span><span class="p">;</span>
+<span class="nx">blueMaterial</span><span class="p">.</span><span class="nx">color</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="ow">new</span><span class="w"> </span><span class="nx">BABYLON</span><span class="p">.</span><span class="nx">Color4</span><span class="p">(</span><span class="mf">0</span><span class="p">,</span><span class="w"> </span><span class="mf">0</span><span class="p">,</span><span class="w"> </span><span class="mf">1</span><span class="p">,</span><span class="w"> </span><span class="mf">1</span><span class="p">);</span><span class="w"> </span><span class="c1">// Blue</span>
+
+<span class="c1">// Semi-transparent</span>
+<span class="kd">const</span><span class="w"> </span><span class="nx">glassMaterial</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="ow">new</span><span class="w"> </span><span class="nx">Material</span><span class="p">();</span>
+<span class="nx">glassMaterial</span><span class="p">.</span><span class="nx">name</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s2">&quot;glass&quot;</span><span class="p">;</span>
+<span class="nx">glassMaterial</span><span class="p">.</span><span class="nx">color</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="ow">new</span><span class="w"> </span><span class="nx">BABYLON</span><span class="p">.</span><span class="nx">Color4</span><span class="p">(</span><span class="mf">0.8</span><span class="p">,</span><span class="w"> </span><span class="mf">0.8</span><span class="p">,</span><span class="w"> </span><span class="mf">1</span><span class="p">,</span><span class="w"> </span><span class="mf">0.3</span><span class="p">);</span><span class="w"> </span><span class="c1">// Light blue, 30% opacity</span>
+
+<span class="c1">// Grayscale</span>
+<span class="kd">const</span><span class="w"> </span><span class="nx">grayMaterial</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="ow">new</span><span class="w"> </span><span class="nx">Material</span><span class="p">();</span>
+<span class="nx">grayMaterial</span><span class="p">.</span><span class="nx">name</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s2">&quot;aluminum&quot;</span><span class="p">;</span>
+<span class="nx">grayMaterial</span><span class="p">.</span><span class="nx">color</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="ow">new</span><span class="w"> </span><span class="nx">BABYLON</span><span class="p">.</span><span class="nx">Color4</span><span class="p">(</span><span class="mf">0.7</span><span class="p">,</span><span class="w"> </span><span class="mf">0.7</span><span class="p">,</span><span class="w"> </span><span class="mf">0.7</span><span class="p">,</span><span class="w"> </span><span class="mf">1</span><span class="p">);</span><span class="w"> </span><span class="c1">// 70% gray</span>
+</code></pre></div>
+<h3 id="creating-textured-materials">Creating Textured Materials</h3>
+<div class="highlight"><pre><span></span><code><span class="c1">// Image texture</span>
+<span class="kd">const</span><span class="w"> </span><span class="nx">logoMaterial</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="ow">new</span><span class="w"> </span><span class="nx">Material</span><span class="p">();</span>
+<span class="nx">logoMaterial</span><span class="p">.</span><span class="nx">name</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s2">&quot;company_logo&quot;</span><span class="p">;</span>
+<span class="nx">logoMaterial</span><span class="p">.</span><span class="nx">filename</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s2">&quot;textures/logo.png&quot;</span><span class="p">;</span>
+
+<span class="c1">// Material with transparency support</span>
+<span class="kd">const</span><span class="w"> </span><span class="nx">decalMaterial</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="ow">new</span><span class="w"> </span><span class="nx">Material</span><span class="p">();</span>
+<span class="nx">decalMaterial</span><span class="p">.</span><span class="nx">name</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s2">&quot;warning_decal&quot;</span><span class="p">;</span>
+<span class="nx">decalMaterial</span><span class="p">.</span><span class="nx">filename</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s2">&quot;textures/warning.png&quot;</span><span class="p">;</span><span class="w"> </span><span class="c1">// PNG with alpha channel</span>
+</code></pre></div>
+<h3 id="material-references-in-urdf-context">Material References in URDF Context</h3>
+<div class="highlight"><pre><span></span><code><span class="c1">// In robot materials map</span>
+<span class="kd">const</span><span class="w"> </span><span class="nx">materialMap</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="ow">new</span><span class="w"> </span><span class="nb">Map</span><span class="o">&lt;</span><span class="kt">string</span><span class="p">,</span><span class="w"> </span><span class="nx">Material</span><span class="o">&gt;</span><span class="p">();</span>
+
+<span class="c1">// Define base materials</span>
+<span class="kd">const</span><span class="w"> </span><span class="nx">redPlastic</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="ow">new</span><span class="w"> </span><span class="nx">Material</span><span class="p">();</span>
+<span class="nx">redPlastic</span><span class="p">.</span><span class="nx">name</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s2">&quot;red_plastic&quot;</span><span class="p">;</span>
+<span class="nx">redPlastic</span><span class="p">.</span><span class="nx">color</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="ow">new</span><span class="w"> </span><span class="nx">BABYLON</span><span class="p">.</span><span class="nx">Color4</span><span class="p">(</span><span class="mf">1</span><span class="p">,</span><span class="w"> </span><span class="mf">0</span><span class="p">,</span><span class="w"> </span><span class="mf">0</span><span class="p">,</span><span class="w"> </span><span class="mf">1</span><span class="p">);</span>
+<span class="nx">materialMap</span><span class="p">.</span><span class="nx">set</span><span class="p">(</span><span class="s2">&quot;red_plastic&quot;</span><span class="p">,</span><span class="w"> </span><span class="nx">redPlastic</span><span class="p">);</span>
+
+<span class="c1">// Use reference in visual</span>
+<span class="kd">const</span><span class="w"> </span><span class="nx">visual</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="ow">new</span><span class="w"> </span><span class="nx">Visual</span><span class="p">();</span>
+<span class="kd">const</span><span class="w"> </span><span class="nx">materialRef</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="ow">new</span><span class="w"> </span><span class="nx">Material</span><span class="p">();</span>
+<span class="nx">materialRef</span><span class="p">.</span><span class="nx">name</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s2">&quot;red_plastic&quot;</span><span class="p">;</span><span class="w"> </span><span class="c1">// References the material above</span>
+<span class="nx">visual</span><span class="p">.</span><span class="nx">material</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="nx">materialRef</span><span class="p">;</span>
+</code></pre></div>
+<h2 id="color-format">Color Format</h2>
+<h3 id="babyloncolor4-components">BABYLON.Color4 Components</h3>
+<div class="highlight"><pre><span></span><code><span class="kd">const</span><span class="w"> </span><span class="nx">color</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="ow">new</span><span class="w"> </span><span class="nx">BABYLON</span><span class="p">.</span><span class="nx">Color4</span><span class="p">(</span><span class="nx">r</span><span class="p">,</span><span class="w"> </span><span class="nx">g</span><span class="p">,</span><span class="w"> </span><span class="nx">b</span><span class="p">,</span><span class="w"> </span><span class="nx">a</span><span class="p">);</span>
+</code></pre></div>
+<ul>
+<li><strong>r</strong>: Red component (0.0 to 1.0)</li>
+<li><strong>g</strong>: Green component (0.0 to 1.0)  </li>
+<li><strong>b</strong>: Blue component (0.0 to 1.0)</li>
+<li><strong>a</strong>: Alpha/opacity (0.0 = transparent, 1.0 = opaque)</li>
+</ul>
+<h3 id="common-colors">Common Colors</h3>
+<div class="highlight"><pre><span></span><code><span class="c1">// Primary colors</span>
+<span class="kd">const</span><span class="w"> </span><span class="nx">red</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="ow">new</span><span class="w"> </span><span class="nx">BABYLON</span><span class="p">.</span><span class="nx">Color4</span><span class="p">(</span><span class="mf">1</span><span class="p">,</span><span class="w"> </span><span class="mf">0</span><span class="p">,</span><span class="w"> </span><span class="mf">0</span><span class="p">,</span><span class="w"> </span><span class="mf">1</span><span class="p">);</span>
+<span class="kd">const</span><span class="w"> </span><span class="nx">green</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="ow">new</span><span class="w"> </span><span class="nx">BABYLON</span><span class="p">.</span><span class="nx">Color4</span><span class="p">(</span><span class="mf">0</span><span class="p">,</span><span class="w"> </span><span class="mf">1</span><span class="p">,</span><span class="w"> </span><span class="mf">0</span><span class="p">,</span><span class="w"> </span><span class="mf">1</span><span class="p">);</span>
+<span class="kd">const</span><span class="w"> </span><span class="nx">blue</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="ow">new</span><span class="w"> </span><span class="nx">BABYLON</span><span class="p">.</span><span class="nx">Color4</span><span class="p">(</span><span class="mf">0</span><span class="p">,</span><span class="w"> </span><span class="mf">0</span><span class="p">,</span><span class="w"> </span><span class="mf">1</span><span class="p">,</span><span class="w"> </span><span class="mf">1</span><span class="p">);</span>
+
+<span class="c1">// Neutral colors</span>
+<span class="kd">const</span><span class="w"> </span><span class="nx">white</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="ow">new</span><span class="w"> </span><span class="nx">BABYLON</span><span class="p">.</span><span class="nx">Color4</span><span class="p">(</span><span class="mf">1</span><span class="p">,</span><span class="w"> </span><span class="mf">1</span><span class="p">,</span><span class="w"> </span><span class="mf">1</span><span class="p">,</span><span class="w"> </span><span class="mf">1</span><span class="p">);</span>
+<span class="kd">const</span><span class="w"> </span><span class="nx">black</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="ow">new</span><span class="w"> </span><span class="nx">BABYLON</span><span class="p">.</span><span class="nx">Color4</span><span class="p">(</span><span class="mf">0</span><span class="p">,</span><span class="w"> </span><span class="mf">0</span><span class="p">,</span><span class="w"> </span><span class="mf">0</span><span class="p">,</span><span class="w"> </span><span class="mf">1</span><span class="p">);</span>
+<span class="kd">const</span><span class="w"> </span><span class="nx">gray</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="ow">new</span><span class="w"> </span><span class="nx">BABYLON</span><span class="p">.</span><span class="nx">Color4</span><span class="p">(</span><span class="mf">0.5</span><span class="p">,</span><span class="w"> </span><span class="mf">0.5</span><span class="p">,</span><span class="w"> </span><span class="mf">0.5</span><span class="p">,</span><span class="w"> </span><span class="mf">1</span><span class="p">);</span>
+
+<span class="c1">// Material-like colors</span>
+<span class="kd">const</span><span class="w"> </span><span class="nx">gold</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="ow">new</span><span class="w"> </span><span class="nx">BABYLON</span><span class="p">.</span><span class="nx">Color4</span><span class="p">(</span><span class="mf">1</span><span class="p">,</span><span class="w"> </span><span class="mf">0.84</span><span class="p">,</span><span class="w"> </span><span class="mf">0</span><span class="p">,</span><span class="w"> </span><span class="mf">1</span><span class="p">);</span>
+<span class="kd">const</span><span class="w"> </span><span class="nx">silver</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="ow">new</span><span class="w"> </span><span class="nx">BABYLON</span><span class="p">.</span><span class="nx">Color4</span><span class="p">(</span><span class="mf">0.75</span><span class="p">,</span><span class="w"> </span><span class="mf">0.75</span><span class="p">,</span><span class="w"> </span><span class="mf">0.75</span><span class="p">,</span><span class="w"> </span><span class="mf">1</span><span class="p">);</span>
+<span class="kd">const</span><span class="w"> </span><span class="nx">copper</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="ow">new</span><span class="w"> </span><span class="nx">BABYLON</span><span class="p">.</span><span class="nx">Color4</span><span class="p">(</span><span class="mf">0.72</span><span class="p">,</span><span class="w"> </span><span class="mf">0.45</span><span class="p">,</span><span class="w"> </span><span class="mf">0.20</span><span class="p">,</span><span class="w"> </span><span class="mf">1</span><span class="p">);</span>
+</code></pre></div>
+<h2 id="texture-support">Texture Support</h2>
+<h3 id="supported-formats">Supported Formats</h3>
+<ul>
+<li><strong>PNG</strong>: Best for images with transparency</li>
+<li><strong>JPG/JPEG</strong>: Good for photographs and solid textures</li>
+<li><strong>GIF</strong>: Basic support</li>
+<li><strong>BMP</strong>: Basic support</li>
+</ul>
+<h3 id="texture-properties">Texture Properties</h3>
+<div class="highlight"><pre><span></span><code><span class="c1">// Babylon.js automatically handles:</span>
+<span class="c1">// - Texture loading and caching</span>
+<span class="c1">// - Alpha channel support</span>
+<span class="c1">// - Texture filtering and mipmapping</span>
+<span class="c1">// - UV coordinate mapping</span>
+</code></pre></div>
+<h2 id="material-properties">Material Properties</h2>
+<h3 id="babylonjs-standardmaterial-properties">Babylon.js StandardMaterial Properties</h3>
+<p>When created, materials have these characteristics:</p>
+<div class="highlight"><pre><span></span><code><span class="c1">// Applied automatically:</span>
+<span class="nx">material</span><span class="p">.</span><span class="nx">backFaceCulling</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="kc">false</span><span class="p">;</span><span class="w"> </span><span class="c1">// Render both sides</span>
+<span class="nx">material</span><span class="p">.</span><span class="nx">diffuseColor</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="nx">color</span><span class="p">;</span><span class="w">    </span><span class="c1">// Base color</span>
+<span class="nx">material</span><span class="p">.</span><span class="nx">alpha</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="nx">color</span><span class="p">.</span><span class="nx">a</span><span class="p">;</span><span class="w">         </span><span class="c1">// Transparency</span>
+<span class="nx">material</span><span class="p">.</span><span class="nx">diffuseTexture</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="nx">texture</span><span class="p">;</span><span class="w"> </span><span class="c1">// If filename specified</span>
+</code></pre></div>
+<h3 id="advanced-properties">Advanced Properties</h3>
+<p>For custom material properties, access the Babylon.js material:</p>
+<div class="highlight"><pre><span></span><code><span class="nx">material</span><span class="p">.</span><span class="nx">create</span><span class="p">(</span><span class="nx">scene</span><span class="p">);</span>
+<span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="nx">material</span><span class="p">.</span><span class="nx">material</span><span class="w"> </span><span class="ow">instanceof</span><span class="w"> </span><span class="nx">BABYLON</span><span class="p">.</span><span class="nx">StandardMaterial</span><span class="p">)</span><span class="w"> </span><span class="p">{</span>
+<span class="w">    </span><span class="nx">material</span><span class="p">.</span><span class="nx">material</span><span class="p">.</span><span class="nx">specularColor</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="ow">new</span><span class="w"> </span><span class="nx">BABYLON</span><span class="p">.</span><span class="nx">Color3</span><span class="p">(</span><span class="mf">1</span><span class="p">,</span><span class="w"> </span><span class="mf">1</span><span class="p">,</span><span class="w"> </span><span class="mf">1</span><span class="p">);</span>
+<span class="w">    </span><span class="nx">material</span><span class="p">.</span><span class="nx">material</span><span class="p">.</span><span class="nx">specularPower</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mf">32</span><span class="p">;</span>
+<span class="w">    </span><span class="nx">material</span><span class="p">.</span><span class="nx">material</span><span class="p">.</span><span class="nx">emissiveColor</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="ow">new</span><span class="w"> </span><span class="nx">BABYLON</span><span class="p">.</span><span class="nx">Color3</span><span class="p">(</span><span class="mf">0.1</span><span class="p">,</span><span class="w"> </span><span class="mf">0.1</span><span class="p">,</span><span class="w"> </span><span class="mf">0.1</span><span class="p">);</span>
+<span class="p">}</span>
+</code></pre></div>
+<h2 id="integration-with-robot">Integration with Robot</h2>
+<h3 id="default-materials">Default Materials</h3>
+<p>Every Robot gets these materials automatically:</p>
+<div class="highlight"><pre><span></span><code><span class="c1">// Default gray material</span>
+<span class="kd">const</span><span class="w"> </span><span class="nx">defaultMat</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="ow">new</span><span class="w"> </span><span class="nx">Material</span><span class="p">();</span>
+<span class="nx">defaultMat</span><span class="p">.</span><span class="nx">name</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s2">&quot;default&quot;</span><span class="p">;</span>
+<span class="nx">defaultMat</span><span class="p">.</span><span class="nx">color</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="ow">new</span><span class="w"> </span><span class="nx">BABYLON</span><span class="p">.</span><span class="nx">Color4</span><span class="p">(</span><span class="mf">0.5</span><span class="p">,</span><span class="w"> </span><span class="mf">0.5</span><span class="p">,</span><span class="w"> </span><span class="mf">0.5</span><span class="p">,</span><span class="w"> </span><span class="mf">1</span><span class="p">);</span>
+
+<span class="c1">// Collision visualization material  </span>
+<span class="kd">const</span><span class="w"> </span><span class="nx">collisionMat</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="ow">new</span><span class="w"> </span><span class="nx">CollisionMaterial</span><span class="p">();</span>
+</code></pre></div>
+<h3 id="urdf-material-loading">URDF Material Loading</h3>
+<div class="highlight"><pre><span></span><code><span class="c1">// Materials are typically loaded from URDF files</span>
+<span class="c1">// and stored in the robot&#39;s material map</span>
+<span class="k">for</span><span class="w"> </span><span class="p">(</span><span class="kd">const</span><span class="w"> </span><span class="p">[</span><span class="nx">name</span><span class="p">,</span><span class="w"> </span><span class="nx">material</span><span class="p">]</span><span class="w"> </span><span class="k">of</span><span class="w"> </span><span class="nx">robot</span><span class="p">.</span><span class="nx">materials</span><span class="p">)</span><span class="w"> </span><span class="p">{</span>
+<span class="w">    </span><span class="nx">material</span><span class="p">.</span><span class="nx">create</span><span class="p">(</span><span class="nx">scene</span><span class="p">);</span>
+<span class="w">    </span><span class="nx">console</span><span class="p">.</span><span class="nx">log</span><span class="p">(</span><span class="sb">`Created material: </span><span class="si">${</span><span class="nx">name</span><span class="si">}</span><span class="sb">`</span><span class="p">);</span>
+<span class="p">}</span>
+</code></pre></div>
+<h2 id="performance-considerations">Performance Considerations</h2>
+<h3 id="material-sharing">Material Sharing</h3>
+<div class="highlight"><pre><span></span><code><span class="c1">// Reuse materials across multiple objects</span>
+<span class="kd">const</span><span class="w"> </span><span class="nx">sharedMaterial</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="nx">materialMap</span><span class="p">.</span><span class="nx">get</span><span class="p">(</span><span class="s2">&quot;aluminum&quot;</span><span class="p">);</span>
+<span class="nx">visual1</span><span class="p">.</span><span class="nx">material</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="nx">sharedMaterial</span><span class="p">;</span>
+<span class="nx">visual2</span><span class="p">.</span><span class="nx">material</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="nx">sharedMaterial</span><span class="p">;</span><span class="w"> </span><span class="c1">// Same material instance</span>
+</code></pre></div>
+<h3 id="texture-optimization">Texture Optimization</h3>
+<ul>
+<li>Use appropriate texture sizes (512x512, 1024x1024)</li>
+<li>Compress textures when possible</li>
+<li>Avoid excessive transparency for performance</li>
+</ul>
+<h3 id="memory-management">Memory Management</h3>
+<div class="highlight"><pre><span></span><code><span class="c1">// Always dispose materials when done</span>
+<span class="nx">material</span><span class="p">.</span><span class="nx">dispose</span><span class="p">();</span>
+
+<span class="c1">// Reference materials are disposed by the Robot</span>
+<span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="o">!</span><span class="nx">material</span><span class="p">.</span><span class="nx">isReference</span><span class="p">())</span><span class="w"> </span><span class="p">{</span>
+<span class="w">    </span><span class="nx">material</span><span class="p">.</span><span class="nx">dispose</span><span class="p">();</span>
+<span class="p">}</span>
+</code></pre></div>
+<h2 id="error-handling">Error Handling</h2>
+<p>The Material class provides robust error handling:
+- Handles missing texture files gracefully
+- Provides fallback to color-based materials
+- Safe disposal of Babylon.js resources
+- Logs warnings for invalid material properties</p>
+              
+            </div>
+          </div><footer>
+    <div class="rst-footer-buttons" role="navigation" aria-label="Footer Navigation">
+        <a href="visual.html" class="btn btn-neutral float-left" title="Visual"><span class="icon icon-circle-arrow-left"></span> Previous</a>
+        <a href="geometry.html" class="btn btn-neutral float-right" title="Geometry Types">Next <span class="icon icon-circle-arrow-right"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <!-- Copyright etc -->
+  </div>
+
+  Built with <a href="https://www.mkdocs.org/">MkDocs</a> using a <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>.
+</footer>
+          
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+
+  <div class="rst-versions" role="note" aria-label="Versions">
+  <span class="rst-current-version" data-toggle="rst-current-version">
+    
+        <span>
+          <a href="https://github.com/ranch-hand-robotics/babylon_ros" class="fa fa-github" style="color: #fcfcfc"> GitHub</a>
+        </span>
+    
+    
+      <span><a href="visual.html" style="color: #fcfcfc">&laquo; Previous</a></span>
+    
+    
+      <span><a href="geometry.html" style="color: #fcfcfc">Next &raquo;</a></span>
+    
+  </span>
+</div>
+    <script src="../js/jquery-3.6.0.min.js"></script>
+    <script>var base_url = "..";</script>
+    <script src="../js/theme_extra.js"></script>
+    <script src="../js/theme.js"></script>
+      <script src="../search/main.js"></script>
+    <script>
+        jQuery(function () {
+            SphinxRtdTheme.Navigation.enable(true);
+        });
+    </script>
+
+</body>
+</html>
