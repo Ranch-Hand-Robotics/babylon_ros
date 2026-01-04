@@ -1079,7 +1079,7 @@ export class RobotScene {
             that.clearStatus();
           }
 
-          // find the visual that has this 
+          // find the visual that has this mesh
           // This is messy for lots of meshes.
           // Maybe highlight the mesh tree?
           /*
