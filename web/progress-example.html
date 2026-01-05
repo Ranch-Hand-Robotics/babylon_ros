@@ -141,7 +141,12 @@
                     if (progress < 100) {
                         progressText.textContent = `Loading meshes: ${loaded} of ${total}`;
                     } else {
-                        progressText.textContent = 'Finalizing...';
+                        progressText.textContent = 'Complete!';
+                        
+                        // Hide progress overlay when all meshes are fully loaded
+                        setTimeout(() => {
+                            progressOverlay.classList.add('hidden');
+                        }, 500);
                     }
                 });
                 
@@ -156,10 +161,8 @@
                 progressText.textContent = 'Parsing URDF...';
                 await robotScene.applyURDF(urdfText);
                 
-                // Hide progress overlay after loading completes
-                setTimeout(() => {
-                    progressOverlay.classList.add('hidden');
-                }, 500);
+                // Note: The progress overlay will be hidden automatically by the callback
+                // when progress reaches 100%. No manual hiding needed here.
                 
             } catch (error) {
                 console.error('Error loading robot:', error);

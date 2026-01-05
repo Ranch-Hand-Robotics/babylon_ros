@@ -58,6 +58,7 @@ export class RobotScene {
   private loadedMeshes: number = 0;
   private meshLoadProgress: Map<string, number> = new Map();
   private onProgressCallback?: (loaded: number, total: number, progress: number) => void;
+  private currentLoadSessionId: number = 0; // Track which load session callbacks belong to
   
   // Hamburger menu properties
   private hamburgerButton: GUI.Button | undefined = undefined;
@@ -1172,6 +1173,10 @@ export class RobotScene {
       if (this.scene) {
         this.currentURDF = urdfText;
         
+        // Increment session ID to invalidate callbacks from previous loads
+        this.currentLoadSessionId++;
+        const sessionId = this.currentLoadSessionId;
+        
         // Reset mesh loading tracking and framing flag
         this.meshLoadPromises = [];
         this.pendingMeshLoads = 0;
@@ -1205,10 +1210,16 @@ export class RobotScene {
               const meshId = `mesh_${meshIndex++}`;
               this.meshLoadProgress.set(meshId, 0);
               
+              // Store the Mesh geometry with proper typing
+              const meshGeometry: Mesh = visual.geometry;
+              
               // Set up progress callback for individual mesh
-              // Note: setLoadProgressCallback only exists on Mesh geometry, not on primitive geometries
-              // The optional chaining ensures we only call it when available
-              visual.geometry.setLoadProgressCallback?.((event: BABYLON.ISceneLoaderProgressEvent) => {
+              meshGeometry.setLoadProgressCallback((event: BABYLON.ISceneLoaderProgressEvent) => {
+                // Ignore callbacks from previous load sessions
+                if (sessionId !== this.currentLoadSessionId) {
+                  return;
+                }
+                
                 // Track progress for this specific mesh (0-100)
                 const meshProgress = event.lengthComputable && event.total > 0
                   ? (event.loaded / event.total) * 100
@@ -1220,7 +1231,13 @@ export class RobotScene {
               });
               
               const meshLoadPromise = new Promise<void>((resolve) => {
-                visual.geometry?.setLoadCompleteCallback?.(() => {
+                meshGeometry.setLoadCompleteCallback(() => {
+                  // Ignore callbacks from previous load sessions
+                  if (sessionId !== this.currentLoadSessionId) {
+                    resolve();
+                    return;
+                  }
+                  
                   this.pendingMeshLoads--;
                   this.loadedMeshes++;
                   this.meshLoadProgress.set(meshId, 100);
