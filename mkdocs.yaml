@@ -5,6 +5,7 @@ nav:
   - Home: index.md
   - Installation: installation.md
   - URDF Viewer: urdf.md
+  - Progress Tracking: progress-tracking.md
   - API Reference:
     - Overview: api-overview.md
     - Core Classes:

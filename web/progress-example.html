@@ -1,0 +1,178 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>URDF Viewer with Progress Bar</title>
+    <style>
+        html, body {
+            overflow: hidden;
+            width: 100%;
+            height: 100%;
+            margin: 0;
+            padding: 0;
+            font-family: Arial, sans-serif;
+        }
+
+        #renderCanvas {
+            width: 100%;
+            height: 100%;
+            touch-action: none;
+        }
+
+        #progress-overlay {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.8);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 1000;
+        }
+
+        #progress-overlay.hidden {
+            display: none;
+        }
+
+        #progress-content {
+            background: white;
+            padding: 30px;
+            border-radius: 10px;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+            min-width: 400px;
+            text-align: center;
+        }
+
+        #progress-title {
+            font-size: 18px;
+            font-weight: bold;
+            margin-bottom: 15px;
+            color: #333;
+        }
+
+        #progress-container {
+            width: 100%;
+            height: 30px;
+            background-color: #e0e0e0;
+            border-radius: 15px;
+            overflow: hidden;
+            margin-bottom: 10px;
+        }
+
+        #progress-bar {
+            width: 0%;
+            height: 100%;
+            background: linear-gradient(90deg, #4CAF50, #45a049);
+            transition: width 0.3s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-weight: bold;
+            font-size: 12px;
+        }
+
+        #progress-text {
+            font-size: 14px;
+            color: #666;
+            margin-top: 10px;
+        }
+
+        #loading-spinner {
+            display: inline-block;
+            width: 20px;
+            height: 20px;
+            border: 3px solid rgba(76, 175, 80, 0.3);
+            border-radius: 50%;
+            border-top-color: #4CAF50;
+            animation: spin 1s ease-in-out infinite;
+            margin-right: 10px;
+            vertical-align: middle;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+    </style>
+</head>
+<body>
+    <!-- Canvas for 3D rendering -->
+    <canvas id="renderCanvas" touch-action="none"></canvas>
+    
+    <!-- Progress overlay -->
+    <div id="progress-overlay">
+        <div id="progress-content">
+            <div id="progress-title">
+                <span id="loading-spinner"></span>
+                Loading Robot Model...
+            </div>
+            <div id="progress-container">
+                <div id="progress-bar">0%</div>
+            </div>
+            <div id="progress-text">Initializing...</div>
+        </div>
+    </div>
+    
+    <!-- Include babylon_ros library -->
+    <script src="./ros.js"></script>
+    
+    <script>
+        async function loadRobotWithProgress() {
+            const canvas = document.getElementById('renderCanvas');
+            const progressOverlay = document.getElementById('progress-overlay');
+            const progressBar = document.getElementById('progress-bar');
+            const progressText = document.getElementById('progress-text');
+            
+            try {
+                // Create the robot scene
+                const robotScene = new babylon_ros.RobotScene();
+                await robotScene.createScene(canvas);
+                
+                // Set up progress tracking callback
+                robotScene.setLoadProgressCallback((loaded, total, progress) => {
+                    // Update progress bar width and text
+                    progressBar.style.width = progress + '%';
+                    progressBar.textContent = Math.round(progress) + '%';
+                    
+                    // Update status text
+                    if (progress < 100) {
+                        progressText.textContent = `Loading meshes: ${loaded} of ${total}`;
+                    } else {
+                        progressText.textContent = 'Complete!';
+                        
+                        // Hide progress overlay when all meshes are fully loaded
+                        setTimeout(() => {
+                            progressOverlay.classList.add('hidden');
+                        }, 500);
+                    }
+                });
+                
+                // Load a URDF file
+                // You can change this URL to load different robots
+                const urdfUrl = 'https://raw.githubusercontent.com/Ranch-Hand-Robotics/babylon_ros/main/test/testdata/r2.urdf';
+                
+                progressText.textContent = 'Downloading URDF...';
+                const urdfResponse = await fetch(urdfUrl);
+                const urdfText = await urdfResponse.text();
+                
+                progressText.textContent = 'Parsing URDF...';
+                await robotScene.applyURDF(urdfText);
+                
+                // Note: The progress overlay will be hidden automatically by the callback
+                // when progress reaches 100%. No manual hiding needed here.
+                
+            } catch (error) {
+                console.error('Error loading robot:', error);
+                progressText.textContent = 'Error loading robot: ' + error.message;
+                progressText.style.color = 'red';
+            }
+        }
+        
+        // Start loading when page is ready
+        window.addEventListener('load', loadRobotWithProgress);
+    </script>
+</body>
+</html>

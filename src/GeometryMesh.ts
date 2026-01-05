@@ -21,6 +21,7 @@ export class Mesh implements IGeometry {
     private ext: string = "";
     private name: string = "mesh";
     private onLoadComplete?: () => void;
+    private onLoadProgress?: (event: BABYLON.ISceneLoaderProgressEvent) => void;
 
     constructor(uri: string, scale: BABYLON.Vector3) {
         this.uri = uri;
@@ -29,6 +30,10 @@ export class Mesh implements IGeometry {
     
     public setLoadCompleteCallback(callback: () => void): void {
         this.onLoadComplete = callback;
+    }
+    
+    public setLoadProgressCallback(callback: (event: BABYLON.ISceneLoaderProgressEvent) => void): void {
+        this.onLoadProgress = callback;
     }
     
     private meshCallback(scene: BABYLON.Scene, meshes : BABYLON.AbstractMesh[], particleSystems : BABYLON.IParticleSystem[] | undefined, skeletons : BABYLON.Skeleton[] | undefined, animationGroups: BABYLON.AnimationGroup[], transformNodes: BABYLON.TransformNode[], geometries: BABYLON.Geometry[], lights: BABYLON.Light[], spriteManagers: BABYLON.ISpriteManager[]) {
@@ -106,7 +111,16 @@ export class Mesh implements IGeometry {
             this.transform.scaling = this.scale;
 
             // Force the file to be read as base64 encoded data blob
-            BABYLON.SceneLoader.ImportMesh(null, "", "data:;base64," + meshdata, scene, (mesh, ps, sk, ag, tn, g, l, sm) => {this.meshCallback(scene, mesh, ps, sk, ag, tn, g, l,sm)}, null, null, this.ext);
+            BABYLON.SceneLoader.ImportMesh(
+                null, 
+                "", 
+                "data:;base64," + meshdata, 
+                scene, 
+                (mesh, ps, sk, ag, tn, g, l, sm) => {this.meshCallback(scene, mesh, ps, sk, ag, tn, g, l,sm)}, 
+                this.onLoadProgress, 
+                null, 
+                this.ext
+            );
         } else {
             let filename = this.uri.substring(this.uri.lastIndexOf('/') + 1);
             if (filename) {
@@ -115,7 +129,14 @@ export class Mesh implements IGeometry {
                 this.name = filename.substring(0, filename.lastIndexOf('.'));
                 this.transform = new BABYLON.TransformNode(`mesh_${this.name}`, scene);
                 this.transform.scaling = this.scale;
-                BABYLON.SceneLoader.ImportMesh(null, base, filename, scene, (mesh, ps, sk, ag, tn, g, l, sm) => {this.meshCallback(scene, mesh, ps, sk, ag, tn, g, l, sm)});
+                BABYLON.SceneLoader.ImportMesh(
+                    null, 
+                    base, 
+                    filename, 
+                    scene, 
+                    (mesh, ps, sk, ag, tn, g, l, sm) => {this.meshCallback(scene, mesh, ps, sk, ag, tn, g, l, sm)},
+                    this.onLoadProgress
+                );
             }
         }
     }

@@ -113,4 +113,48 @@ describe("Testing Rendering Loading", () => {
             global.document.createElement = originalCreateElement;
         }
     }, 10000); // Increase timeout for this test
+
+    test('Test progress callback functionality', async () => {
+        const robotScene = new RobotScene();
+        
+        // Mock the engine and scene
+        if (engine && scene) {
+            robotScene.engine = engine;
+            robotScene.scene = scene;
+        }
+        
+        // Set up progress tracking
+        const progressUpdates: Array<{loaded: number, total: number, progress: number}> = [];
+        
+        robotScene.setLoadProgressCallback((loaded, total, progress) => {
+            progressUpdates.push({loaded, total, progress});
+        });
+        
+        // Load a URDF with meshes
+        const basicUrdfFilename = path.join(__dirname, '/testdata/r2.urdf');
+        const basicUrdf = await fs.readFile(basicUrdfFilename);
+        
+        await robotScene.applyURDF(basicUrdf.toString());
+        
+        // Wait a bit for any initial progress updates
+        await new Promise(resolve => setTimeout(resolve, 500));
+        
+        // Verify progress callback was called
+        expect(progressUpdates.length).toBeGreaterThan(0);
+        
+        // First update should have 0 progress
+        expect(progressUpdates[0].progress).toBe(0);
+        expect(progressUpdates[0].loaded).toBe(0);
+        expect(progressUpdates[0].total).toBeGreaterThan(0);
+        
+        // Verify that total meshes count is correct
+        expect(progressUpdates[0].total).toBe(4); // r2.urdf has 4 mesh files
+        
+        // Note: In the test environment, remote meshes won't actually load,
+        // so we can't verify completion to 100%. The important thing is that
+        // the progress tracking infrastructure is set up correctly.
+        
+        // Verify setLoadProgressCallback method exists and is callable
+        expect(typeof robotScene.setLoadProgressCallback).toBe('function');
+    }, 30000); // Increase timeout for mesh loading
 });
