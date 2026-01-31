@@ -94,6 +94,39 @@ Sets the camera distance from its target.
 robotScene.setCameraRadius(5.0);
 ```
 
+#### `setDefaultCameraPosition(options: object): void`
+
+Sets the default camera position angles used when resetting the camera or initializing the scene.
+
+**Parameters:**
+- `options`: object - Camera position configuration
+  - `alpha?: number` - Horizontal rotation around Y-axis in radians (default: -π/3)
+  - `beta?: number` - Vertical rotation from Y-axis in radians (default: 5π/12)
+  - `radius?: number` - Distance from target (default: 1)
+
+**Example:**
+```typescript
+// Set camera to look from a different angle
+robotScene.setDefaultCameraPosition({
+  alpha: Math.PI / 2,      // 90 degrees - view from side
+  beta: Math.PI / 4,       // 45 degrees - elevated view
+  radius: 10               // 10 units away
+});
+
+// Use a custom angle to match your coordinate system
+robotScene.setDefaultCameraPosition({
+  alpha: 2 * Math.PI / 3,  // 120 degrees
+  beta: 5 * Math.PI / 12   // 75 degrees
+});
+```
+
+**Notes:**
+- In BabylonJS ArcRotateCamera:
+  - `alpha` controls horizontal rotation (0 = +Z axis, π/2 = +X axis, π = -Z axis)
+  - `beta` controls vertical angle (0 = top-down, π/2 = horizontal, π = bottom-up)
+  - These defaults apply when calling `resetCamera()` if no auto-framing has occurred
+  - Auto-framing (when a robot is loaded) preserves these angles while adjusting distance
+
 ### Visual Configuration
 
 #### `setBackgroundColor(hexColor: string): void`
@@ -163,6 +196,9 @@ Sets all visual properties at once for convenient bulk configuration.
 **Parameters:**
 - `config`: object - Complete visual configuration
   - `cameraRadius?: number` - Camera distance from target
+  - `defaultCameraAlpha?: number` - Default horizontal camera angle in radians
+  - `defaultCameraBeta?: number` - Default vertical camera angle in radians
+  - `defaultCameraRadius?: number` - Default camera distance from target
   - `backgroundColor?: string` - Scene background color (hex)
   - `gridLineColor?: string` - Grid line color (hex)
   - `gridMainColor?: string` - Grid background color (hex)
@@ -182,6 +218,9 @@ Sets all visual properties at once for convenient bulk configuration.
 ```typescript
 robotScene.setVisualConfig({
   cameraRadius: 8.0,
+  defaultCameraAlpha: -Math.PI / 3,  // Camera viewing angle
+  defaultCameraBeta: 5 * Math.PI / 12,
+  defaultCameraRadius: 5,
   backgroundColor: "#2a2a2a",
   gridLineColor: "#00AA00",
   gridMainColor: "#003300",
@@ -302,6 +341,8 @@ await robotScene.applyURDF(urdfContent);
 // Configure visual appearance using the new API
 robotScene.setVisualConfig({
   cameraRadius: 6.0,
+  defaultCameraAlpha: -Math.PI / 3,  // Default camera angle
+  defaultCameraBeta: 5 * Math.PI / 12,
   backgroundColor: "#1e1e1e",
   gridLineColor: "#00AA00",
   gridMainColor: "#002200",
@@ -318,6 +359,11 @@ robotScene.setVisualConfig({
 // Or set properties individually
 robotScene.setBackgroundColor("#2a2a2a");
 robotScene.setCameraRadius(8.0);
+robotScene.setDefaultCameraPosition({
+  alpha: Math.PI,       // Camera on opposite side
+  beta: Math.PI / 3,
+  radius: 10
+});
 robotScene.setGridProperties({
   lineColor: "#FF6600",
   mainColor: "#330000",
