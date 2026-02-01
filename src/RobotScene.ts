@@ -54,8 +54,8 @@ export class RobotScene {
   private savedFramingBeta: number = 5 * Math.PI / 12;
   
   // Default camera position configuration
-  private defaultCameraAlpha: number = -Math.PI / 3; // Horizontal angle (rotation around Y-axis)
-  private defaultCameraBeta: number = 5 * Math.PI / 12; // Vertical angle (rotation from Y-axis)
+  private defaultCameraAlpha: number = -5 * Math.PI / 4; // Horizontal angle (rotation around Y-axis)
+  private defaultCameraBeta: number = Math.PI / 4; // Vertical angle (rotation from Y-axis)
   private defaultCameraRadius: number = 1; // Distance from target
   
   // Progress tracking properties
