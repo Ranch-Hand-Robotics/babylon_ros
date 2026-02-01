@@ -138,7 +138,7 @@ export class JointPositionGizmo extends BABYLON.Gizmo {
 
         // Build Mesh + Collider
         const arrow = JointPositionGizmo._CreateArrow(gizmoLayer.utilityLayerScene, this._coloredMaterial, thickness);
-        const collider = JointPositionGizmo._CreateArrow(gizmoLayer.utilityLayerScene, this._coloredMaterial, thickness * 8, true);        // Add to Root Node
+        const collider = JointPositionGizmo._CreateArrow(gizmoLayer.utilityLayerScene, this._coloredMaterial, thickness * 20, true);        // Add to Root Node
         this._gizmoMesh = new BABYLON.Mesh("", gizmoLayer.utilityLayerScene);
         this._gizmoMesh.addChild(arrow as BABYLON.Mesh);
         this._gizmoMesh.addChild(collider as BABYLON.Mesh);
