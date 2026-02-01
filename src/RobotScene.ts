@@ -50,8 +50,13 @@ export class RobotScene {
   private meshLoadPromises: Promise<void>[] = [];
   private savedFramingTarget: BABYLON.Vector3 = new BABYLON.Vector3(0, 0, 0);
   private savedFramingRadius: number = 1;
-  private savedFramingAlpha: number = 2 * Math.PI / 3;
+  private savedFramingAlpha: number = -Math.PI / 3;
   private savedFramingBeta: number = 5 * Math.PI / 12;
+  
+  // Default camera position configuration
+  private defaultCameraAlpha: number = -5 * Math.PI / 4; // Horizontal angle (rotation around Y-axis)
+  private defaultCameraBeta: number = Math.PI / 4; // Vertical angle (rotation from Y-axis)
+  private defaultCameraRadius: number = 1; // Distance from target
   
   // Progress tracking properties
   private totalMeshes: number = 0;
@@ -386,10 +391,10 @@ export class RobotScene {
         this.camera.beta = this.savedFramingBeta;
       } else {
         // Fall back to default position if no framing has been done
-        this.camera.alpha = 2 * Math.PI / 3;
-        this.camera.beta = 5 * Math.PI / 12;
+        this.camera.alpha = this.defaultCameraAlpha;
+        this.camera.beta = this.defaultCameraBeta;
         this.camera.target = new BABYLON.Vector3(0, 0, 0);
-        this.camera.radius = 1;
+        this.camera.radius = this.defaultCameraRadius;
       }
     }
   }
@@ -401,6 +406,26 @@ export class RobotScene {
   public setCameraRadius(radius: number): void {
     if (this.camera) {
       this.camera.radius = radius;
+    }
+  }
+
+  /**
+   * Sets the default camera position angles
+   * @param options Camera position configuration
+   */
+  public setDefaultCameraPosition(options: {
+    alpha?: number;  // Horizontal rotation around Y-axis (in radians)
+    beta?: number;   // Vertical rotation from Y-axis (in radians)
+    radius?: number; // Distance from target
+  }): void {
+    if (options.alpha !== undefined) {
+      this.defaultCameraAlpha = options.alpha;
+    }
+    if (options.beta !== undefined) {
+      this.defaultCameraBeta = options.beta;
+    }
+    if (options.radius !== undefined) {
+      this.defaultCameraRadius = options.radius;
     }
   }
 
@@ -517,6 +542,9 @@ export class RobotScene {
    */
   public setVisualConfig(config: {
     cameraRadius?: number;
+    defaultCameraAlpha?: number;
+    defaultCameraBeta?: number;
+    defaultCameraRadius?: number;
     backgroundColor?: string;
     gridLineColor?: string;
     gridMainColor?: string;
@@ -532,6 +560,16 @@ export class RobotScene {
   }): void {
     if (config.cameraRadius !== undefined) {
       this.setCameraRadius(config.cameraRadius);
+    }
+
+    // Set default camera position if any are provided
+    const cameraPositionOptions: Parameters<typeof this.setDefaultCameraPosition>[0] = {};
+    if (config.defaultCameraAlpha !== undefined) cameraPositionOptions.alpha = config.defaultCameraAlpha;
+    if (config.defaultCameraBeta !== undefined) cameraPositionOptions.beta = config.defaultCameraBeta;
+    if (config.defaultCameraRadius !== undefined) cameraPositionOptions.radius = config.defaultCameraRadius;
+
+    if (Object.keys(cameraPositionOptions).length > 0) {
+      this.setDefaultCameraPosition(cameraPositionOptions);
     }
 
     if (config.backgroundColor !== undefined) {
@@ -1414,8 +1452,8 @@ export class RobotScene {
 
     // Keep the same viewing angles but ensure good framing
     // You can adjust these angles if needed
-    this.camera.alpha = 2 * Math.PI / 3;
-    this.camera.beta = 5 * Math.PI / 12;
+    this.camera.alpha = this.defaultCameraAlpha;
+    this.camera.beta = this.defaultCameraBeta;
     
     // Save the framing information for resetCamera()
     this.savedFramingTarget = center.clone();
@@ -1702,7 +1740,7 @@ export class RobotScene {
     this.createEnhancedGround();
     
     // Set up camera with improved settings
-    this.camera = new BABYLON.ArcRotateCamera("camera1", 2 * Math.PI / 3, 5 * Math.PI / 12, 1, new BABYLON.Vector3(0, 0, 0), this.scene);
+    this.camera = new BABYLON.ArcRotateCamera("camera1", this.defaultCameraAlpha, this.defaultCameraBeta, this.defaultCameraRadius, new BABYLON.Vector3(0, 0, 0), this.scene);
     this.camera.wheelDeltaPercentage = 0.01;
     this.camera.minZ = 0.05;
     this.camera.maxZ = 1000;

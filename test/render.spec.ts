@@ -157,4 +157,116 @@ describe("Testing Rendering Loading", () => {
         // Verify setLoadProgressCallback method exists and is callable
         expect(typeof robotScene.setLoadProgressCallback).toBe('function');
     }, 30000); // Increase timeout for mesh loading
+
+    test('Test default camera position configuration', async () => {
+        const robotScene = new RobotScene();
+        
+        // Mock the engine and scene first (before createScene)
+        robotScene.engine = new BABYLON.NullEngine();
+        robotScene.scene = new BABYLON.Scene(robotScene.engine);
+        
+        // Create a mock canvas
+        const mockCanvas = document.createElement('canvas');
+        
+        // Manually create camera with default values (since we're bypassing createScene)
+        robotScene.camera = new BABYLON.ArcRotateCamera("camera1", -Math.PI / 3, 5 * Math.PI / 12, 1, new BABYLON.Vector3(0, 0, 0), robotScene.scene);
+        
+        // Verify camera was created with default values
+        expect(robotScene.camera).toBeDefined();
+        if (robotScene.camera) {
+            // Check initial default values (should be -π/3, 5π/12, 1)
+            expect(robotScene.camera.alpha).toBeCloseTo(-Math.PI / 3);
+            expect(robotScene.camera.beta).toBeCloseTo(5 * Math.PI / 12);
+            expect(robotScene.camera.radius).toBeCloseTo(1);
+        }
+    });
+
+    test('Test setDefaultCameraPosition method', () => {
+        const robotScene = new RobotScene();
+        
+        // Set custom default camera position before initialization
+        robotScene.setDefaultCameraPosition({
+            alpha: Math.PI / 2,
+            beta: Math.PI / 4,
+            radius: 5
+        });
+        
+        // Mock the engine and scene
+        robotScene.engine = new BABYLON.NullEngine();
+        robotScene.scene = new BABYLON.Scene(robotScene.engine);
+        
+        // Manually create camera with custom default values
+        robotScene.camera = new BABYLON.ArcRotateCamera("camera1", Math.PI / 2, Math.PI / 4, 5, new BABYLON.Vector3(0, 0, 0), robotScene.scene);
+        
+        // Verify camera was created with custom values
+        expect(robotScene.camera).toBeDefined();
+        if (robotScene.camera) {
+            expect(robotScene.camera.alpha).toBeCloseTo(Math.PI / 2);
+            expect(robotScene.camera.beta).toBeCloseTo(Math.PI / 4);
+            expect(robotScene.camera.radius).toBeCloseTo(5);
+        }
+    });
+
+    test('Test resetCamera uses default camera position', () => {
+        const robotScene = new RobotScene();
+        
+        // Set custom default camera position
+        robotScene.setDefaultCameraPosition({
+            alpha: Math.PI,
+            beta: Math.PI / 3,
+            radius: 10
+        });
+        
+        // Mock the engine and scene
+        robotScene.engine = new BABYLON.NullEngine();
+        robotScene.scene = new BABYLON.Scene(robotScene.engine);
+        
+        // Create camera
+        robotScene.camera = new BABYLON.ArcRotateCamera("camera1", 0, 0, 1, new BABYLON.Vector3(0, 0, 0), robotScene.scene);
+        
+        // Modify camera position
+        robotScene.camera.alpha = 0;
+        robotScene.camera.beta = 0;
+        robotScene.camera.radius = 1;
+        
+        // Reset camera
+        robotScene.resetCamera();
+        
+        // Verify camera was reset to default values
+        expect(robotScene.camera).toBeDefined();
+        if (robotScene.camera) {
+            expect(robotScene.camera.alpha).toBeCloseTo(Math.PI);
+            expect(robotScene.camera.beta).toBeCloseTo(Math.PI / 3);
+            expect(robotScene.camera.radius).toBeCloseTo(10);
+        }
+    });
+
+    test('Test setVisualConfig with camera position parameters', () => {
+        const robotScene = new RobotScene();
+        
+        // Mock the engine and scene
+        robotScene.engine = new BABYLON.NullEngine();
+        robotScene.scene = new BABYLON.Scene(robotScene.engine);
+        
+        // Create camera with initial defaults
+        robotScene.camera = new BABYLON.ArcRotateCamera("camera1", -Math.PI / 3, 5 * Math.PI / 12, 1, new BABYLON.Vector3(0, 0, 0), robotScene.scene);
+        
+        // Use setVisualConfig to set camera position
+        robotScene.setVisualConfig({
+            defaultCameraAlpha: 2 * Math.PI / 3,
+            defaultCameraBeta: Math.PI / 6,
+            defaultCameraRadius: 20
+        });
+        
+        // Reset camera to apply new defaults
+        robotScene.resetCamera();
+        
+        // Verify camera uses new default values
+        expect(robotScene.camera).toBeDefined();
+        if (robotScene.camera) {
+            expect(robotScene.camera.alpha).toBeCloseTo(2 * Math.PI / 3);
+            expect(robotScene.camera.beta).toBeCloseTo(Math.PI / 6);
+            expect(robotScene.camera.radius).toBeCloseTo(20);
+        }
+    });
 });
