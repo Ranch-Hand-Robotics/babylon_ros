@@ -19,6 +19,7 @@ export class ViewCubeGizmo {
   private homeButton: GUI.Button;
   private resetCameraCallback: () => void;
   private faceButtons: Map<string, GUI.Button> = new Map();
+  private currentAnimationFrame: number | null = null;
   
   // Face orientations for the view cube
   // Each entry is [alpha, beta] for camera positioning
@@ -223,6 +224,12 @@ export class ViewCubeGizmo {
       return;
     }
     
+    // Cancel any in-progress animation
+    if (this.currentAnimationFrame !== null) {
+      cancelAnimationFrame(this.currentAnimationFrame);
+      this.currentAnimationFrame = null;
+    }
+    
     const [targetAlpha, targetBeta] = orientation;
     
     // Smoothly animate camera to target orientation
@@ -246,7 +253,9 @@ export class ViewCubeGizmo {
       this.camera.beta = startBeta + (targetBeta - startBeta) * eased;
       
       if (frame < frameCount) {
-        requestAnimationFrame(animation);
+        this.currentAnimationFrame = requestAnimationFrame(animation);
+      } else {
+        this.currentAnimationFrame = null;
       }
     };
     
@@ -285,7 +294,6 @@ export class ViewCubeGizmo {
             this.rotateCameraToFace('Z-');
             break;
           case 'h':
-          case 'home':
             this.resetCameraCallback();
             break;
         }
