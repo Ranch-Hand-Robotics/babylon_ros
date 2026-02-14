@@ -12,6 +12,7 @@ import {Link} from './Link';
 import {Visual} from './Visual';
 import { JointRotationGizmo } from './JointRotationGizmo';
 import { JointPositionGizmo } from './JointPositionGizmo';
+import { ViewCubeGizmo } from './ViewCubeGizmo';
 import { Mesh } from './GeometryMesh';
 
 import * as GUI from 'babylonjs-gui';
@@ -79,6 +80,9 @@ export class RobotScene {
   
   // Enhanced visuals properties
   private enhancedVisualsEnabled: boolean = true;
+  
+  // View cube gizmo
+  private viewCubeGizmo: ViewCubeGizmo | undefined = undefined;
       
 
   clearStatus() {
@@ -1068,6 +1072,17 @@ export class RobotScene {
     
     // Create hamburger menu system
     this.createHamburgerMenu();
+    
+    // Create view cube gizmo for navigation
+    if (this.camera && this.UILayer) {
+      this.viewCubeGizmo = new ViewCubeGizmo(
+        this.scene,
+        this.camera,
+        this.UILayer,
+        () => this.resetCamera()
+      );
+      this.viewCubeGizmo.setupKeyboardControls();
+    }
 
     let that = this;
     this.scene.onPointerDown = function castRay() {
