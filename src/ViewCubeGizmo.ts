@@ -8,7 +8,15 @@ import * as GUI from 'babylonjs-gui';
 
 /**
  * ViewCubeGizmo - A 3D navigation cube for camera orientation control
- * Positioned in the lower right corner of the viewport
+ * Positioned in the lower right corner of the viewport.
+ * 
+ * Features:
+ * - 6 clickable face buttons (X+/X-, Y+/Y-, Z+/Z-) in a cross pattern
+ * - Color-coded buttons matching world axis colors (Red=X, Green=Y, Blue=Z)
+ * - Smooth animated camera rotations with easing
+ * - Home button to reset camera to default orientation
+ * - Keyboard shortcuts: 1-6 for faces, H for home
+ * - Visual feedback highlighting the active face
  */
 export class ViewCubeGizmo {
   private scene: BABYLON.Scene;
@@ -101,15 +109,16 @@ export class ViewCubeGizmo {
     // Layout the faces in a cross pattern
     // Top row: [empty, Z+, empty]
     // Middle row: [Y-, X+, Y+]
-    // Bottom row: [empty, Z-, X-]
+    // Bottom row: [X-, Z-, empty]
+    // This places opposing faces visually separated for intuitive navigation
     
     const layout = [
       { face: 'Z+', row: 0, col: 1 },
       { face: 'Y-', row: 1, col: 0 },
       { face: 'X+', row: 1, col: 1 },
       { face: 'Y+', row: 1, col: 2 },
-      { face: 'Z-', row: 2, col: 1 },
-      { face: 'X-', row: 2, col: 2 }
+      { face: 'X-', row: 2, col: 0 },
+      { face: 'Z-', row: 2, col: 1 }
     ];
 
     for (const { face, row, col } of layout) {
