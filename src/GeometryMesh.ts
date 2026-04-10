@@ -82,6 +82,15 @@ export class Mesh implements IGeometry {
                             }
                         }
                     });
+                } else if (this.ext.toLowerCase().indexOf('.3mf') !== -1) {
+                    this.meshes.forEach(m => {
+                        if (this.transform != undefined) {
+                            m.parent = this.transform;
+                            if (this.material != undefined && this.material.material != undefined) {
+                                m.material = this.material.material;
+                            }
+                        }
+                    });
                 } 
             }
         }

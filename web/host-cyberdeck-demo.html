@@ -1,0 +1,943 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>DECK CONFIGURATOR — Cyberdeck.city 3D Builder</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=Share+Tech+Mono&display=swap" rel="stylesheet">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        :root {
+            /* Cyberdeck.city color palette */
+            --cyan: #00ffff;
+            --magenta: #ff0080;
+            --green: #00ff41;
+            --orange: #ff6600;
+            
+            /* Backgrounds */
+            --bg-primary: #0a0a12;
+            --bg-secondary: #0f0f1a;
+            --bg-card: #16161d;
+            --bg-tertiary: #1a1a24;
+            
+            /* Text */
+            --text-primary: #f0f0f0;
+            --text-secondary: #b0b0b0;
+            --text-muted: #606070;
+            
+            /* Borders */
+            --border: #303040;
+            --border-cyan: #00ffff40;
+            
+            /* Glows */
+            --glow-cyan: 0 0 10px rgba(0, 255, 255, 0.6);
+            --glow-magenta: 0 0 10px rgba(255, 0, 128, 0.6);
+            --glow-green: 0 0 10px rgba(0, 255, 65, 0.6);
+            
+            /* Fonts */
+            --font-display: 'Orbitron', monospace;
+            --font-mono: 'Share Tech Mono', monospace;
+            
+            /* Spacing */
+            --spacing-xs: 0.5rem;
+            --spacing-sm: 1rem;
+            --spacing-md: 1.5rem;
+            --spacing-lg: 2rem;
+        }
+
+        html {
+            background: var(--bg-primary);
+            color: var(--text-primary);
+        }
+
+        body {
+            font-family: 'Helvetica Neue', Arial, sans-serif;
+            background: var(--bg-primary);
+            color: var(--text-primary);
+            line-height: 1.6;
+            overflow-x: hidden;
+        }
+
+        /* ──────────────────────────────────────────────────── */
+        /* NAVIGATION                                           */
+        /* ──────────────────────────────────────────────────── */
+        .nav {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 20px 40px;
+            background: var(--bg-secondary);
+            border-bottom: 1px solid var(--border-cyan);
+            position: relative;
+            z-index: 100;
+        }
+
+        .nav-logo {
+            font-family: var(--font-display);
+            font-size: 1.2rem;
+            font-weight: 700;
+            letter-spacing: 0.2em;
+            color: var(--cyan);
+            text-shadow: var(--glow-cyan);
+            text-decoration: none;
+        }
+
+        .nav-logo span {
+            color: var(--magenta);
+        }
+
+        .nav-links {
+            display: flex;
+            list-style: none;
+            gap: 40px;
+            align-items: center;
+        }
+
+        .nav-links a {
+            color: var(--text-secondary);
+            text-decoration: none;
+            font-size: 0.9rem;
+            letter-spacing: 0.05em;
+            transition: color 0.2s;
+        }
+
+        .nav-links a:hover {
+            color: var(--cyan);
+            text-shadow: var(--glow-cyan);
+        }
+
+        /* ──────────────────────────────────────────────────── */
+        /* HEADER / HERO                                        */
+        /* ──────────────────────────────────────────────────── */
+        .header {
+            padding: 60px 40px;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .header::before {
+            content: '';
+            position: absolute;
+            inset: 0;
+            background-image:
+                linear-gradient(rgba(0,255,255,0.03) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(0,255,255,0.03) 1px, transparent 1px);
+            background-size: 40px 40px;
+            pointer-events: none;
+        }
+
+        .header::after {
+            content: '';
+            position: absolute;
+            left: 0; right: 0; top: 0;
+            height: 300px;
+            background: radial-gradient(ellipse 80% 40% at 50% 0%, rgba(0,255,255,0.1) 0%, transparent 70%);
+            pointer-events: none;
+        }
+
+        .header-content {
+            position: relative;
+            z-index: 1;
+            max-width: 800px;
+        }
+
+        .header-label {
+            font-size: 0.75rem;
+            letter-spacing: 0.3em;
+            color: var(--cyan);
+            text-transform: uppercase;
+            margin-bottom: 20px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .header-label::before {
+            content: '▹';
+            color: var(--magenta);
+        }
+
+        .header-title {
+            font-family: var(--font-display);
+            font-size: clamp(2rem, 5vw, 3.5rem);
+            font-weight: 900;
+            line-height: 1.1;
+            margin-bottom: 20px;
+            letter-spacing: 0.05em;
+        }
+
+        .header-title .accent {
+            color: var(--cyan);
+            text-shadow: var(--glow-cyan);
+            display: block;
+        }
+
+        .header-subtitle {
+            font-size: 1rem;
+            color: var(--text-secondary);
+            margin-bottom: 30px;
+            line-height: 1.7;
+            max-width: 600px;
+        }
+
+        .terminal-banner {
+            background: #050810;
+            border: 1px solid var(--cyan);
+            border-radius: 4px;
+            padding: 16px 20px;
+            font-family: var(--font-mono);
+            font-size: 0.85rem;
+            color: var(--green);
+            margin-bottom: 30px;
+            position: relative;
+            line-height: 1.8;
+        }
+
+        .terminal-banner::before {
+            content: '● ● ●';
+            position: absolute;
+            top: 6px; left: 10px;
+            font-size: 0.5rem;
+            letter-spacing: 3px;
+            color: var(--text-muted);
+        }
+
+        .terminal-banner-line {
+            margin-top: 12px;
+        }
+
+        .terminal-banner-line:first-child {
+            margin-top: 0;
+        }
+
+        .prompt {
+            color: var(--cyan);
+            font-weight: bold;
+        }
+
+        .dim {
+            color: var(--text-muted);
+        }
+
+        /* ──────────────────────────────────────────────────── */
+        /* MAIN LAYOUT                                          */
+        /* ──────────────────────────────────────────────────── */
+        .container {
+            display: grid;
+            grid-template-columns: 1.2fr 1fr;
+            gap: 30px;
+            padding: 40px;
+            max-width: 1600px;
+            margin: 0 auto;
+        }
+
+        @media (max-width: 1200px) {
+            .container {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        /* ──────────────────────────────────────────────────── */
+        /* VIEWER SECTION                                       */
+        /* ──────────────────────────────────────────────────── */
+        .viewer-panel {
+            background: var(--bg-card);
+            border: 1px solid var(--border-cyan);
+            border-radius: 4px;
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+            min-height: 600px;
+        }
+
+        .viewer-header {
+            background: var(--bg-tertiary);
+            padding: 16px 20px;
+            border-bottom: 1px solid var(--border);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        .viewer-title {
+            font-family: var(--font-display);
+            font-size: 0.9rem;
+            font-weight: 700;
+            letter-spacing: 0.1em;
+            text-transform: uppercase;
+            color: var(--cyan);
+            text-shadow: var(--glow-cyan);
+        }
+
+        .viewer-status {
+            font-family: var(--font-mono);
+            font-size: 0.75rem;
+            color: var(--text-muted);
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .status-dot {
+            width: 6px;
+            height: 6px;
+            border-radius: 50%;
+            background: var(--green);
+            box-shadow: var(--glow-green);
+            animation: pulse 2s infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.5; }
+        }
+
+        #viewerContainer {
+            flex: 1;
+            position: relative;
+            background: linear-gradient(135deg, #050810 0%, #0a1020 100%);
+        }
+
+        #viewerContainer iframe {
+            width: 100%;
+            height: 100%;
+            border: none;
+        }
+
+        /* ──────────────────────────────────────────────────── */
+        /* CONTROL PANEL                                        */
+        /* ──────────────────────────────────────────────────── */
+        .control-panel {
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+        }
+
+        .config-card {
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            border-radius: 4px;
+            padding: 20px;
+            transition: border-color 0.2s, box-shadow 0.2s;
+        }
+
+        .config-card:hover {
+            border-color: var(--cyan);
+            box-shadow: 0 0 20px rgba(0,255,255,0.1);
+        }
+
+        .config-card-title {
+            font-family: var(--font-display);
+            font-size: 0.85rem;
+            font-weight: 700;
+            letter-spacing: 0.1em;
+            text-transform: uppercase;
+            color: var(--cyan);
+            margin-bottom: 15px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .config-card-title::before {
+            content: '▹';
+            color: var(--magenta);
+        }
+
+        .config-group {
+            margin-bottom: 15px;
+        }
+
+        .config-group:last-child {
+            margin-bottom: 0;
+        }
+
+        .config-label {
+            display: block;
+            font-size: 0.8rem;
+            color: var(--text-secondary);
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            margin-bottom: 8px;
+            font-family: var(--font-mono);
+        }
+
+        .config-input {
+            width: 100%;
+            padding: 10px 12px;
+            background: var(--bg-secondary);
+            border: 1px solid var(--border);
+            color: var(--text-primary);
+            font-family: var(--font-mono);
+            font-size: 0.85rem;
+            border-radius: 3px;
+            transition: border-color 0.2s;
+        }
+
+        .config-input:focus {
+            outline: none;
+            border-color: var(--cyan);
+            box-shadow: 0 0 10px rgba(0,255,255,0.3);
+        }
+
+        .config-input[readonly] {
+            background: var(--bg-tertiary);
+            color: var(--text-muted);
+        }
+
+        /* ──────────────────────────────────────────────────── */
+        /* BUTTONS                                              */
+        /* ──────────────────────────────────────────────────── */
+        .button-group {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 10px;
+        }
+
+        .button-group.full {
+            grid-template-columns: 1fr;
+        }
+
+        button, .btn {
+            padding: 12px 16px;
+            border: 1px solid transparent;
+            border-radius: 3px;
+            font-family: var(--font-display);
+            font-size: 0.85rem;
+            font-weight: 700;
+            letter-spacing: 0.05em;
+            text-transform: uppercase;
+            cursor: pointer;
+            transition: all 0.2s;
+            text-decoration: none;
+            display: inline-block;
+            text-align: center;
+        }
+
+        .btn-primary {
+            background: var(--cyan);
+            color: var(--bg-primary);
+            border-color: var(--cyan);
+            box-shadow: 0 0 15px rgba(0,255,255,0.3);
+        }
+
+        .btn-primary:hover {
+            background: var(--magenta);
+            border-color: var(--magenta);
+            box-shadow: 0 0 20px rgba(255,0,128,0.5);
+            transform: translateY(-2px);
+        }
+
+        .btn-secondary {
+            background: transparent;
+            color: var(--cyan);
+            border-color: var(--cyan);
+        }
+
+        .btn-secondary:hover {
+            background: var(--cyan);
+            color: var(--bg-primary);
+            box-shadow: 0 0 20px rgba(0,255,255,0.5);
+        }
+
+        .btn-success {
+            background: var(--green);
+            color: var(--bg-primary);
+            border-color: var(--green);
+            box-shadow: 0 0 15px rgba(0,255,65,0.3);
+        }
+
+        .btn-success:hover {
+            background: var(--cyan);
+            border-color: var(--cyan);
+            box-shadow: 0 0 20px rgba(0,255,255,0.5);
+            transform: translateY(-2px);
+        }
+
+        button:active, .btn:active {
+            transform: scale(0.98);
+        }
+
+        /* ──────────────────────────────────────────────────── */
+        /* MODEL CONFIG DISPLAY                                 */
+        /* ──────────────────────────────────────────────────── */
+        .config-display {
+            background: #050810;
+            border: 1px dashed var(--border-cyan);
+            padding: 12px;
+            border-radius: 3px;
+            font-family: var(--font-mono);
+            font-size: 0.75rem;
+            color: var(--green);
+            max-height: 150px;
+            overflow-y: auto;
+            line-height: 1.5;
+        }
+
+        .config-display-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 6px;
+        }
+
+        .config-display-item:last-child {
+            margin-bottom: 0;
+        }
+
+        .config-key {
+            color: var(--cyan);
+        }
+
+        .config-value {
+            color: var(--green);
+        }
+
+        /* ──────────────────────────────────────────────────── */
+        /* ACTION PAYLOAD                                       */
+        /* ──────────────────────────────────────────────────── */
+        .action-output {
+            background: #050810;
+            border: 1px solid var(--green);
+            border-radius: 3px;
+            padding: 12px;
+            font-family: var(--font-mono);
+            font-size: 0.7rem;
+            color: var(--green);
+            max-height: 120px;
+            overflow-y: auto;
+            line-height: 1.4;
+            word-break: break-all;
+            white-space: pre-wrap;
+        }
+
+        /* ──────────────────────────────────────────────────── */
+        /* FOOTER                                               */
+        /* ──────────────────────────────────────────────────── */
+        .footer {
+            margin-top: 60px;
+            padding: 40px;
+            border-top: 1px solid var(--border-cyan);
+            text-align: center;
+            color: var(--text-muted);
+            font-size: 0.85rem;
+        }
+
+        .footer-logo {
+            font-family: var(--font-display);
+            font-size: 1rem;
+            font-weight: 700;
+            color: var(--cyan);
+            text-shadow: var(--glow-cyan);
+            display: block;
+            margin-bottom: 10px;
+        }
+
+        .footer-logo span {
+            color: var(--magenta);
+        }
+
+        .footer-links {
+            list-style: none;
+            display: flex;
+            justify-content: center;
+            gap: 20px;
+            margin-bottom: 15px;
+            flex-wrap: wrap;
+        }
+
+        .footer-links a {
+            color: var(--text-secondary);
+            text-decoration: none;
+            transition: color 0.2s;
+            font-size: 0.85rem;
+        }
+
+        .footer-links a:hover {
+            color: var(--cyan);
+            text-shadow: var(--glow-cyan);
+        }
+
+        /* ──────────────────────────────────────────────────── */
+        /* RESPONSIVE                                           */
+        /* ──────────────────────────────────────────────────── */
+        @media (max-width: 768px) {
+            .nav {
+                padding: 16px 20px;
+                flex-direction: column;
+                gap: 16px;
+                text-align: center;
+            }
+
+            .nav-links {
+                gap: 20px;
+            }
+
+            .header {
+                padding: 40px 20px;
+            }
+
+            .container {
+                padding: 20px;
+                gap: 20px;
+            }
+
+            .button-group {
+                grid-template-columns: 1fr;
+            }
+
+            .footer {
+                padding: 30px 20px;
+            }
+        }
+
+        /* Scrollbar styling */
+        ::-webkit-scrollbar {
+            width: 8px;
+        }
+
+        ::-webkit-scrollbar-track {
+            background: var(--bg-secondary);
+        }
+
+        ::-webkit-scrollbar-thumb {
+            background: var(--cyan);
+            border-radius: 4px;
+        }
+
+        ::-webkit-scrollbar-thumb:hover {
+            background: var(--magenta);
+        }
+    </style>
+</head>
+<body>
+    <!-- NAVIGATION -->
+    <nav class="nav">
+        <a href="#" class="nav-logo">CYBERDECK<span>.</span>CITY</a>
+        <ul class="nav-links">
+            <li><a href="https://cyberdeck.city">← Back to Shop</a></li>
+            <li><a href="https://github.com/Ranch-Hand-Robotics/babylon_ros" target="_blank">babylon_ros</a></li>
+        </ul>
+    </nav>
+
+    <!-- HEADER -->
+    <section class="header">
+        <div class="header-content">
+            <p class="header-label">3D Model Configurator</p>
+            <h1 class="header-title">
+                DECK
+                <span class="accent">NOMAD</span>
+            </h1>
+            <p class="header-subtitle">
+                Real-time 3D visualization of your custom cyberdeck build. Adjust parameters, preview geometry,
+                and generate your complete Bill of Materials instantly.
+            </p>
+            <div class="terminal-banner">
+                <div class="terminal-banner-line">
+                    <span class="prompt">$</span> deck_nomad.configure()
+                </div>
+                <div class="terminal-banner-line dim">
+                    ▶ Initializing babylon_ros v0.5.0
+                </div>
+                <div class="terminal-banner-line dim">
+                    ▶ Loading deck_nomad SCAD parameters...
+                </div>
+                <div class="terminal-banner-line">
+                    <span class="prompt">screen_size</span> = 7" IPS
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- MAIN CONTENT -->
+    <div class="container">
+        <!-- VIEWER -->
+        <div class="viewer-panel">
+            <div class="viewer-header">
+                <div class="viewer-title">◉ 3D Preview</div>
+                <div class="viewer-status">
+                    <span class="status-dot"></span>
+                    <span>Live Render</span>
+                </div>
+            </div>
+            <div id="viewerContainer">
+                <div style="display: flex; align-items: center; justify-content: center; height: 100%; color: var(--text-muted); font-family: var(--font-mono); text-align: center;">
+                    ▶ Loading babylon_ros viewer...
+                </div>
+            </div>
+        </div>
+
+        <!-- CONTROLS -->
+        <div class="control-panel">
+            <!-- Model Configuration -->
+            <div class="config-card">
+                <div class="config-card-title">Model Configuration</div>
+
+                <div class="config-group">
+                    <label class="config-label">Model File</label>
+                    <input type="text" class="config-input" id="modelUrl" placeholder="/test-model.scad" value="/test-model.scad">
+                </div>
+
+                <div class="button-group full">
+                    <button class="btn btn-primary" id="loadBtn">⟳ Load Model</button>
+                </div>
+            </div>
+
+            <!-- Current Configuration -->
+            <div class="config-card">
+                <div class="config-card-title">Live Parameters</div>
+                <div class="config-display" id="configDisplay">
+                    <div class="config-display-item">
+                        <span class="config-key">Status:</span>
+                        <span class="config-value">awaiting_model</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Build Action -->
+            <div class="config-card">
+                <div class="config-card-title">Order System</div>
+
+                <div class="config-group">
+                    <label class="config-label">Deck Configuration JSON</label>
+                    <input type="text" class="config-input" id="deckName" placeholder="my_nomad_v2" value="">
+                </div>
+
+                <div class="button-group">
+                    <button class="btn btn-success" id="generateBomBtn">📋 Generate BOM</button>
+                    <button class="btn btn-secondary" id="exportJsonBtn">💾 Export JSON</button>
+                </div>
+
+                <div style="margin-top: 15px;">
+                    <label class="config-label">Order Payload</label>
+                    <div class="action-output" id="actionOutput">
+                        { waiting for action... }
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- FOOTER -->
+    <footer class="footer">
+        <span class="footer-logo">CYBERDECK<span>.</span>CITY</span>
+        <ul class="footer-links">
+            <li><a href="https://cyberdeck.city">Home</a></li>
+            <li><a href="https://cyberdeck.city/configure">Configurator</a></li>
+            <li><a href="https://github.com/Ranch-Hand-Robotics/babylon_ros">babylon_ros</a></li>
+            <li><a href="https://github.com/Ranch-Hand-Robotics/IsoGridScad">IsoGridScad</a></li>
+        </ul>
+        <p>
+            Powered by <a href="https://github.com/Ranch-Hand-Robotics/babylon_ros" style="color: var(--cyan);">babylon_ros</a>
+            &amp; <a href="https://www.babylonjs.com/" style="color: var(--cyan);">Babylon.js</a><br>
+            <small>© 2077 Cyberdeck.city — Build your deck. Go dark.</small>
+        </p>
+    </footer>
+
+    <script>
+        let currentModelConfig = null;
+        let viewerIframe = null;
+        let viewerReady = false;
+
+        // Initialize viewer
+        async function initViewer() {
+            const container = document.getElementById('viewerContainer');
+            
+            // Load with default model via URL parameter
+            const initialModel = '/test-model.scad';
+            const viewerUrl = `viewer-openscad.html?model=${encodeURIComponent(initialModel)}`;
+            
+            const iframe = document.createElement('iframe');
+            iframe.src = viewerUrl;
+            iframe.style.width = '100%';
+            iframe.style.height = '100%';
+            iframe.style.border = 'none';
+            iframe.id = 'modelViewerIframe';
+
+            container.innerHTML = '';
+            container.appendChild(iframe);
+            viewerIframe = iframe;
+
+            // Setup host integration after viewer loads
+            iframe.onload = () => {
+                console.log('%c✓ Viewer loaded', 'color: #00ff41; font-weight: bold;');
+                setupHostIntegration();
+            };
+        }
+
+        function setupHostIntegration() {
+            if (!viewerIframe) return;
+            
+            try {
+                viewerIframe.contentWindow.modelViewerHost = {
+                    onConfigurationChange: function(detail) {
+                        console.log('%c✓ Config changed:', 'color: #00ffff;', detail);
+                        currentModelConfig = detail;
+                        updateConfigDisplay(detail);
+                    },
+                    onModelLoaded: function(detail) {
+                        console.log('%c✓ Model loaded:', 'color: #00ffff;', detail);
+                        currentModelConfig = detail;
+                        updateConfigDisplay(detail);
+                        viewerReady = true;
+                    }
+                };
+                
+                console.log('%c✓ Host integration ready', 'color: #00ff41;');
+            } catch (e) {
+                console.error('%c✗ Host integration failed:', 'color: #ff0080;', e);
+            }
+        }
+
+        // Update config display
+        function updateConfigDisplay(config) {
+            if (!config || !config.configuration) {
+                document.getElementById('configDisplay').innerHTML = `
+                    <div class="config-display-item">
+                        <span class="config-key">Status:</span>
+                        <span class="config-value">no_model</span>
+                    </div>
+                `;
+                return;
+            }
+
+            const items = [
+                `<div class="config-display-item"><span class="config-key">model:</span><span class="config-value">${config.modelName}</span></div>`,
+                `<div class="config-display-item"><span class="config-key">params:</span><span class="config-value">${Object.keys(config.configuration).length}</span></div>`
+            ];
+
+            Object.entries(config.configuration).forEach(([key, val]) => {
+                const displayVal = typeof val === 'object' ? JSON.stringify(val) : val;
+                items.push(
+                    `<div class="config-display-item"><span class="config-key">${key}:</span><span class="config-value">${displayVal}</span></div>`
+                );
+            });
+
+            document.getElementById('configDisplay').innerHTML = items.join('');
+        }
+
+        // Generate BOM
+        function generateBOM() {
+            if (!currentModelConfig) {
+                alert('⚠ Load a model first');
+                return;
+            }
+
+            const deckName = document.getElementById('deckName').value || 'nomad_build';
+            const payload = {
+                action: 'generate_bom',
+                timestamp: new Date().toISOString(),
+                deck_name: deckName,
+                model: currentModelConfig.modelName,
+                parameters: currentModelConfig.configuration,
+                bom_items: [
+                    { sku: 'DISPLAY-7IPS', qty: 1, name: '7" IPS Display Kit', price: 54.99 },
+                    { sku: 'SBC-RPi4B', qty: 1, name: 'Compute Module (RPi 4B)', price: 65.00 },
+                    { sku: 'KBD-40ORT', qty: 1, name: 'Ortholinear Keyboard', price: 44.99 },
+                    { sku: 'PWR-10KMA', qty: 1, name: '10,000 mAh Power Pack', price: 39.99 },
+                    { sku: 'CASE-PANEL', qty: 1, name: 'IsoGrid Panel Set', price: 22.99 }
+                ],
+                bom_total: 227.96,
+                order_url: 'https://shop.cyberdeck.city/checkout?bom=' + btoa(JSON.stringify(currentModelConfig.configuration))
+            };
+
+            displayPayload(payload);
+            alert(`✓ BOM Generated\n\nTotal: $${payload.bom_total}\n\nCheck output below`);
+        }
+
+        // Export JSON
+        function exportJSON() {
+            if (!currentModelConfig) {
+                alert('⚠ Load a model first');
+                return;
+            }
+
+            const deckName = document.getElementById('deckName').value || 'nomad_build';
+            const payload = {
+                action: 'export_configuration',
+                timestamp: new Date().toISOString(),
+                deck_name: deckName,
+                model: currentModelConfig.modelName,
+                parameters: currentModelConfig.configuration,
+                export_format: 'application/json',
+                scad_variable_overrides: buildSCADOverrides(currentModelConfig.configuration)
+            };
+
+            displayPayload(payload);
+
+            // Trigger download
+            const json = JSON.stringify(payload, null, 2);
+            const blob = new Blob([json], { type: 'application/json' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `${deckName}_configuration.json`;
+            a.click();
+        }
+
+        // Build SCAD overrides
+        function buildSCADOverrides(config) {
+            const overrides = [];
+            Object.entries(config).forEach(([key, val]) => {
+                if (typeof val === 'number') {
+                    overrides.push(`${key} = ${val};`);
+                } else if (typeof val === 'string') {
+                    overrides.push(`${key} = "${val}";`);
+                } else if (typeof val === 'boolean') {
+                    overrides.push(`${key} = ${val ? 'true' : 'false'};`);
+                }
+            });
+            return overrides.join('\n');
+        }
+
+        // Display payload
+        function displayPayload(payload) {
+            document.getElementById('actionOutput').textContent = JSON.stringify(payload, null, 2);
+        }
+
+        // Event listeners
+        document.getElementById('loadBtn').addEventListener('click', () => {
+            const url = document.getElementById('modelUrl').value;
+            if (!url) {
+                alert('⚠ Enter model URL');
+                return;
+            }
+            
+            if (!viewerIframe) {
+                alert('⚠ Viewer not initialized');
+                return;
+            }
+            
+            console.log('%c⟳ Loading model:', 'color: #ffff00;', url);
+            
+            // Reload iframe with new model URL parameter
+            viewerIframe.src = `viewer-openscad.html?model=${encodeURIComponent(url)}`;
+            
+            // Re-setup host integration after reload
+            viewerIframe.onload = () => {
+                console.log('%c✓ Model viewer reloaded', 'color: #00ff41;');
+                setupHostIntegration();
+            };
+        });
+
+        document.getElementById('generateBomBtn').addEventListener('click', generateBOM);
+        document.getElementById('exportJsonBtn').addEventListener('click', exportJSON);
+
+        // Initialize on load
+        window.addEventListener('DOMContentLoaded', initViewer);
+
+        console.log('%c╔════════════════════════════════════════════════════╗', 'color: #00ffff; font-family: monospace');
+        console.log('%c║  CYBERDECK.CITY — DECK NOMAD CONFIGURATOR v0.5    ║', 'color: #00ffff; font-family: monospace');
+        console.log('%c╚════════════════════════════════════════════════════╝', 'color: #00ffff; font-family: monospace');
+        console.log('%cPowered by babylon_ros + Babylon.js', 'color: #00ff41; font-family: monospace');
+        console.log('%cModel: deck_nomad OpenSCAD parameters', 'color: #ff0080; font-family: monospace');
+    </script>
+</body>
+</html>

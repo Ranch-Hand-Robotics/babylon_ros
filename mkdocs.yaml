@@ -21,6 +21,7 @@ nav:
       - Gizmos: api/gizmos.md
     - Utilities:
       - Helper Functions: api/utilities.md
+    - OpenScad: openscad.md
 
 theme: 
   name: readthedocs

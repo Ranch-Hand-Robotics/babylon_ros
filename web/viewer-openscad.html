@@ -1,0 +1,1103 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Model Configurator Viewer</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        html, body {
+            width: 100%;
+            height: 100%;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+            background: #1e1e1e;
+            color: #e0e0e0;
+        }
+
+        body {
+            display: flex;
+            overflow: hidden;
+        }
+
+        .container {
+            display: flex;
+            width: 100%;
+            height: 100%;
+        }
+
+        .sidebar {
+            width: 300px;
+            background: #2d2d2d;
+            border-right: 1px solid #3e3e3e;
+            display: flex;
+            flex-direction: column;
+            overflow-y: auto;
+            box-shadow: 2px 0 5px rgba(0,0,0,0.3);
+        }
+
+        .sidebar-header {
+            padding: 16px;
+            border-bottom: 1px solid #3e3e3e;
+            font-weight: 600;
+            font-size: 14px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .sidebar-content {
+            flex: 1;
+            overflow-y: auto;
+            padding: 12px;
+        }
+
+        .file-upload-section {
+            margin-bottom: 20px;
+        }
+
+        .file-upload-label {
+            display: block;
+            margin-bottom: 8px;
+            font-size: 12px;
+            font-weight: 600;
+            text-transform: uppercase;
+            color: #888;
+        }
+
+        .file-upload-input {
+            display: none;
+        }
+
+        .file-upload-button {
+            display: block;
+            width: 100%;
+            padding: 10px 12px;
+            background: #007bff;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 13px;
+            font-weight: 500;
+            transition: background 0.2s;
+        }
+
+        .file-upload-button:hover {
+            background: #0056b3;
+        }
+
+        .file-upload-button:active {
+            background: #00408a;
+        }
+
+        .file-info {
+            margin-top: 8px;
+            padding: 8px;
+            background: #202020;
+            border-radius: 3px;
+            font-size: 12px;
+            word-break: break-word;
+        }
+
+        .customizer-section {
+            margin-bottom: 20px;
+        }
+
+        .customizer-title {
+            font-size: 12px;
+            font-weight: 600;
+            text-transform: uppercase;
+            color: #888;
+            margin-bottom: 12px;
+            padding: 0 4px;
+        }
+
+        .customizer-field {
+            margin-bottom: 12px;
+            padding: 8px;
+            background: #202020;
+            border-radius: 3px;
+        }
+
+        .customizer-field label {
+            display: block;
+            font-size: 12px;
+            font-weight: 500;
+            margin-bottom: 6px;
+        }
+
+        .customizer-field input[type="text"],
+        .customizer-field input[type="number"],
+        .customizer-field select {
+            width: 100%;
+            padding: 6px;
+            background: #1a1a1a;
+            border: 1px solid #404040;
+            color: #e0e0e0;
+            border-radius: 3px;
+            font-size: 12px;
+        }
+
+        .customizer-field input[type="text"]:focus,
+        .customizer-field input[type="number"]:focus,
+        .customizer-field select:focus {
+            outline: none;
+            border-color: #007bff;
+            background: #252525;
+        }
+
+        .customizer-field input[type="range"] {
+            width: 100%;
+            margin: 4px 0;
+        }
+
+        .customizer-field input[type="checkbox"] {
+            margin-right: 6px;
+            cursor: pointer;
+        }
+
+        .slider-wrapper {
+            display: grid;
+            grid-template-columns: 1fr auto;
+            gap: 8px;
+            align-items: center;
+        }
+
+        .slider-value {
+            min-width: 3ch;
+            text-align: right;
+            font-size: 11px;
+            font-family: monospace;
+            color: #999;
+        }
+
+        .vector-inputs {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 4px;
+        }
+
+        .vector-inputs input {
+            font-family: monospace;
+            font-size: 11px;
+        }
+
+        .preset-section {
+            margin-bottom: 20px;
+        }
+
+        .preset-button {
+            display: block;
+            width: 100%;
+            padding: 8px 12px;
+            background: #404040;
+            color: white;
+            border: none;
+            border-radius: 3px;
+            cursor: pointer;
+            font-size: 12px;
+            margin-bottom: 4px;
+            transition: background 0.2s;
+        }
+
+        .preset-button:hover {
+            background: #505050;
+        }
+
+        .export-section {
+            margin-top: 20px;
+            padding-top: 20px;
+            border-top: 1px solid #3e3e3e;
+        }
+
+        .export-button {
+            display: block;
+            width: 100%;
+            padding: 10px 12px;
+            background: #28a745;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 13px;
+            font-weight: 500;
+            transition: background 0.2s;
+            margin-bottom: 8px;
+        }
+
+        .export-button:hover {
+            background: #218838;
+        }
+
+        .export-button:disabled {
+            background: #6c757d;
+            cursor: not-allowed;
+            opacity: 0.6;
+        }
+
+        .viewport {
+            flex: 1;
+            position: relative;
+            background: #000;
+        }
+
+        #renderCanvas {
+            width: 100%;
+            height: 100%;
+            display: block;
+        }
+
+        .controls {
+            position: absolute;
+            bottom: 20px;
+            right: 20px;
+            display: flex;
+            gap: 8px;
+            z-index: 100;
+        }
+
+        .control-button {
+            padding: 8px 12px;
+            background: rgba(0,0,0,0.6);
+            color: white;
+            border: 1px solid #555;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 12px;
+            transition: background 0.2s;
+        }
+
+        .control-button:hover {
+            background: rgba(0,0,0,0.8);
+        }
+
+        .status {
+            position: absolute;
+            bottom: 20px;
+            left: 20px;
+            background: rgba(0,0,0,0.8);
+            color: #e0e0e0;
+            padding: 12px 16px;
+            border-radius: 4px;
+            font-size: 12px;
+            max-width: 300px;
+            z-index: 100;
+        }
+
+        .status.error {
+            background: rgba(220, 53, 69, 0.9);
+            color: white;
+        }
+
+        .status.success {
+            background: rgba(40, 167, 69, 0.9);
+            color: white;
+        }
+
+        .loading-spinner {
+            display: inline-block;
+            width: 12px;
+            height: 12px;
+            border: 2px solid #666;
+            border-top-color: #0ff;
+            border-radius: 50%;
+            animation: spin 0.8s linear infinite;
+            margin-right: 6px;
+            vertical-align: -2px;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        .tabs {
+            display: flex;
+            gap: 0;
+            margin-bottom: 12px;
+            border-bottom: 1px solid #3e3e3e;
+        }
+
+        .tab-button {
+            flex: 1;
+            padding: 8px;
+            background: none;
+            border: none;
+            color: #888;
+            cursor: pointer;
+            font-size: 12px;
+            border-bottom: 2px solid transparent;
+            transition: all 0.2s;
+        }
+
+        .tab-button.active {
+            color: #0ff;
+            border-bottom-color: #0ff;
+        }
+
+        .tab-button:hover {
+            color: #aaa;
+        }
+
+        .tab-content {
+            display: none;
+        }
+
+        .tab-content.active {
+            display: block;
+        }
+
+        .help-text {
+            font-size: 11px;
+            color: #666;
+            margin-top: 4px;
+            line-height: 1.4;
+        }
+
+        .help-text code {
+            background: #1e1e1e;
+            color: #0ff;
+            padding: 2px 4px;
+            border-radius: 2px;
+            font-family: monospace;
+            display: block;
+            margin-top: 3px;
+        }
+
+        .visibility-toggle {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            z-index: 200;
+            background: rgba(0,0,0,0.6);
+            border: 1px solid #555;
+            color: #e0e0e0;
+            padding: 6px 10px;
+            border-radius: 3px;
+            cursor: pointer;
+            font-size: 12px;
+        }
+
+        .sidebar.hidden {
+            display: none;
+        }
+
+        @media (max-width: 768px) {
+            .sidebar {
+                position: absolute;
+                width: 280px;
+                height: 100%;
+                z-index: 1000;
+                left: -280px;
+                transition: left 0.3s;
+            }
+
+            .sidebar.open {
+                left: 0;
+            }
+
+            .viewport {
+                width: 100%;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="sidebar" id="sidebar">
+        <div class="sidebar-header">
+            Configuration
+            <button class="visibility-toggle" id="toggleSidebar" style="position: absolute; top: 6px; right: 6px;">✕</button>
+        </div>
+        <div class="sidebar-content">
+            <!-- File Upload Section -->
+            <div class="file-upload-section">
+                <label class="file-upload-label">Load File</label>
+                <input type="file" id="fileInput" class="file-upload-input" accept=".scad,.urdf,.xacro,.stl">
+                <label for="fileInput" class="file-upload-button" id="fileUploadButton">Choose File</label>
+                <div class="file-info" id="fileInfo" style="display: none;"></div>
+            </div>
+
+            <!-- Tabs for different file types -->
+            <div class="tabs" id="configTabs">
+                <button class="tab-button active" data-tab="model">Model</button>
+                <button class="tab-button" data-tab="urdf">URDF</button>
+            </div>
+
+            <!-- Model Configuration -->
+            <div class="tab-content active" id="model-tab">
+                <div class="customizer-section">
+                    <div class="customizer-title">Configuration Parameters</div>
+                    <div id="customizerContainer" style="display: none;">
+                        <!-- Customizer UI will be rendered here -->
+                    </div>
+                    <div id="noCustomizerMessage" style="font-size: 12px; color: #666; padding: 8px;">
+                        No parameters found
+                    </div>
+                </div>
+
+                <div class="export-section">
+                    <button class="export-button" id="convertButton" disabled>
+                        Convert & Preview
+                    </button>
+                    <button class="export-button" id="downloadButton" disabled style="background: #6c757d;">
+                        Download STL
+                    </button>
+                    <div class="help-text">
+                        Upload a model file or use URL parameters:<br>
+                        <code style="font-size: 10px;">?model=https://example.com/models/cube.scad</code><br>
+                        <code style="font-size: 10px;">?collection=models/&item=cube</code><br>
+                        Parameter controls appear when configurable variables are present.
+                    </div>
+                </div>
+
+                <div class="customizer-section" id="hostControlsSection" style="display: none;">
+                    <div class="customizer-title">Host Actions</div>
+                    <div id="hostControlsContainer"></div>
+                </div>
+            </div>
+
+            <!-- URDF Configuration -->
+            <div class="tab-content" id="urdf-tab">
+                <div class="file-info" style="padding: 8px; background: none; border: none; font-size: 12px; line-height: 1.6; color: #999;">
+                    <strong>URDF/Xacro Support</strong><br>
+                    Upload .urdf or .xacro files to preview robot models. The viewer supports BabylonJS rendering for complex URDF structures with multiple links and joints.
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="viewport" id="viewport">
+        <button class="visibility-toggle" id="toggleSidebarMobile" style="display: none; font-size: 18px; padding: 8px 12px;">☰</button>
+        <canvas id="renderCanvas" touch-action="none"></canvas>
+        <div class="controls" id="controls">
+            <button class="control-button" id="resetView">Reset View</button>
+            <button class="control-button" id="toggleGrid">Toggle Grid</button>
+        </div>
+        <div class="status" id="status" style="display: none;"></div>
+    </div>
+
+    <!-- babylon_ros library -->
+    <script src="./ros.js"></script>
+
+    <script>
+        // Application state
+        const state = {
+            currentFile: null,
+            currentFileContent: null,
+            currentScene: null,
+            currentSTLData: null,
+            robotScene: null,
+            customizerModel: null,
+            customizerValues: {},
+            hostConfig: null
+        };
+
+        const HOST_MESSAGE_SOURCE = 'babylon_ros.viewer';
+        const HOST_COMMAND_SOURCE = 'cyberdeckcity.host';
+
+        // UI Elements
+        const fileUploadButton = document.getElementById('fileUploadButton');
+        const fileInput = document.getElementById('fileInput');
+        const fileInfo = document.getElementById('fileInfo');
+        const renderCanvas = document.getElementById('renderCanvas');
+        const convertButton = document.getElementById('convertButton');
+        const downloadButton = document.getElementById('downloadButton');
+        const statusBar = document.getElementById('status');
+        const sidebar = document.getElementById('sidebar');
+        const viewport = document.getElementById('viewport');
+        const resetViewButton = document.getElementById('resetView');
+        const toggleGridButton = document.getElementById('toggleGrid');
+        const hostControlsSection = document.getElementById('hostControlsSection');
+        const hostControlsContainer = document.getElementById('hostControlsContainer');
+
+        // Initialize babylon_ros
+        let engine = null;
+        let scene = null;
+
+        window.addEventListener("load", async () => {
+            state.hostConfig = window.modelViewerHost || null;
+            setupEventListeners();
+            setupResponsiveUI();
+
+            try {
+                // Initialize renderer
+                if (typeof babylon_ros !== 'undefined' && typeof babylon_ros.RenderTest === 'function') {
+                    engine = new babylon_ros.RenderTest(renderCanvas);
+                }
+
+                // Setup initial scene
+                if (typeof babylon_ros !== 'undefined' && typeof babylon_ros.RenderTestMain === 'function') {
+                    babylon_ros.RenderTestMain();
+                }
+            } catch (error) {
+                console.error('Viewer initialization failed:', error);
+                showStatus('3D viewer init failed, but file upload is available.', 'error');
+            }
+
+            initializeHostControls();
+            // Check for URL parameters and load file if provided
+            await loadFileFromURL();
+
+            if (state.hostConfig?.modelData) {
+                loadModelFromText(
+                    state.hostConfig.modelName || 'host-model.scad',
+                    state.hostConfig.modelData,
+                    'host-config'
+                );
+            }
+
+            dispatchHostEvent('modelviewer:ready', {
+                hostConfigEnabled: Boolean(state.hostConfig)
+            });
+            postHostMessage('modelviewer:ready', {
+                hostConfigEnabled: Boolean(state.hostConfig),
+                viewerVersion: '1.0',
+                supportsHostCommands: true
+            });
+        });
+
+        /**
+         * Load model source from URL parameters.
+         * Neutral host-facing params:
+         * - ?model=https://example.com/models/cube.scad
+         * - ?collection=models/&item=cube
+         *
+         * Legacy compatibility params retained:
+         * - ?scad=...
+         * - ?file=...
+         */
+        async function loadFileFromURL() {
+            const url = new URL(window.location);
+            const modelParam = url.searchParams.get('model');
+            const scadParam = url.searchParams.get('scad');
+            const collectionParam = url.searchParams.get('collection');
+            const itemParam = url.searchParams.get('item');
+            const fileParam = url.searchParams.get('file');
+
+            let fileUrl = null;
+
+            if (modelParam) {
+                fileUrl = modelParam;
+            } else if (scadParam) {
+                fileUrl = scadParam;
+            } else if (collectionParam && (itemParam || fileParam)) {
+                // Collection + file name
+                const collection = collectionParam.endsWith('/') ? collectionParam : collectionParam + '/';
+                const modelName = itemParam || fileParam;
+                const filename = modelName.endsWith('.scad') ? modelName : modelName + '.scad';
+                fileUrl = collection + filename;
+            }
+
+            if (fileUrl) {
+                await loadModelFromRemoteUrl(fileUrl, 'url');
+            }
+        }
+
+        async function loadModelFromRemoteUrl(fileUrl, source) {
+            try {
+                showStatus(`Loading ${fileUrl}...`, 'info');
+                const response = await fetch(fileUrl);
+
+                if (!response.ok) {
+                    throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+                }
+
+                const content = await response.text();
+                const filename = fileUrl.split('/').pop() || 'model.scad';
+
+                // Set file info
+                fileInfo.style.display = 'block';
+                fileInfo.innerHTML = `
+                    <strong>${filename}</strong><br>
+                    URL: ${fileUrl}<br>
+                    Size: ${(content.length / 1024).toFixed(1)} KB
+                `;
+
+                loadModelFromText(filename, content, source);
+                showStatus(`Loaded ${filename}. Ready to convert!`, 'success');
+            } catch (error) {
+                const message = `Failed to load ${fileUrl}: ${error.message}`;
+                showStatus(message, 'error');
+                postHostMessage('modelviewer:error', { message, fileUrl });
+            }
+        }
+
+        function loadModelFromText(filename, content, source) {
+            state.currentFile = { name: filename };
+            state.currentFileContent = content;
+            handleOpenSCADFile(filename, content);
+
+            const detail = {
+                modelName: filename,
+                source,
+                configuration: { ...state.customizerValues }
+            };
+
+            dispatchHostEvent('modelviewer:modelloaded', detail);
+            postHostMessage('modelviewer:modelloaded', detail);
+
+            if (typeof state.hostConfig?.onModelLoaded === 'function') {
+                state.hostConfig.onModelLoaded(detail);
+            }
+        }
+
+        function dispatchHostEvent(name, detail) {
+            window.dispatchEvent(new CustomEvent(name, { detail }));
+        }
+
+        function postHostMessage(type, detail) {
+            if (window.parent && window.parent !== window) {
+                window.parent.postMessage({ source: HOST_MESSAGE_SOURCE, type, detail }, '*');
+            }
+        }
+
+        async function handleHostMessage(event) {
+            const data = event.data;
+
+            if (!data || typeof data !== 'object' || data.source !== HOST_COMMAND_SOURCE) {
+                return;
+            }
+
+            if (data.command === 'loadModel' && typeof data.url === 'string' && data.url.length > 0) {
+                await loadModelFromRemoteUrl(data.url, 'host-message');
+                return;
+            }
+
+            if (data.command === 'reloadFromQuery') {
+                await loadFileFromURL();
+            }
+        }
+
+        function initializeHostControls() {
+            if (!hostControlsSection || !hostControlsContainer || !state.hostConfig) {
+                return;
+            }
+
+            const hostRender = state.hostConfig.renderControls;
+            if (typeof hostRender !== 'function') {
+                return;
+            }
+
+            hostControlsSection.style.display = 'block';
+            hostControlsContainer.innerHTML = '';
+
+            const context = {
+                getConfiguration: () => ({ ...state.customizerValues }),
+                getModelName: () => state.currentFile?.name || null,
+                onConfigurationChange: (callback) => {
+                    if (typeof callback !== 'function') {
+                        return () => {};
+                    }
+
+                    const handler = (event) => callback(event.detail);
+                    window.addEventListener('modelviewer:configurationchange', handler);
+                    return () => window.removeEventListener('modelviewer:configurationchange', handler);
+                }
+            };
+
+            try {
+                hostRender(hostControlsContainer, context);
+            } catch (error) {
+                console.error('Host controls render failed:', error);
+                showStatus('Host controls failed to render.', 'error');
+            }
+        }
+
+        function setupEventListeners() {
+            window.addEventListener('message', handleHostMessage);
+
+            if (fileInput) {
+                fileInput.addEventListener('change', handleFileUpload);
+            }
+            if (convertButton) {
+                convertButton.addEventListener('click', handleConvert);
+            }
+            if (downloadButton) {
+                downloadButton.addEventListener('click', handleDownload);
+            }
+            if (resetViewButton) {
+                resetViewButton.addEventListener('click', resetView);
+            }
+            if (toggleGridButton) {
+                toggleGridButton.addEventListener('click', toggleGrid);
+            }
+
+            // Tab switching
+            document.querySelectorAll('.tab-button').forEach(button => {
+                button.addEventListener('click', (e) => {
+                    switchTab(e.target.dataset.tab);
+                });
+            });
+
+            // Sidebar toggle
+            const sidebarToggle = document.getElementById('toggleSidebar');
+            if (sidebarToggle && sidebar) {
+                sidebarToggle.addEventListener('click', () => {
+                    sidebar.classList.toggle('hidden');
+                });
+            }
+        }
+
+        function handleFileUpload(event) {
+            const file = event.target.files?.[0];
+            if (!file) return;
+
+            state.currentFile = file;
+            const reader = new FileReader();
+
+            reader.onload = (e) => {
+                state.currentFileContent = e.target.result;
+
+                // Update file info
+                fileInfo.style.display = 'block';
+                fileInfo.innerHTML = `
+                    <strong>${file.name}</strong><br>
+                    Size: ${(file.size / 1024).toFixed(1)} KB<br>
+                    Type: ${file.type || 'unknown'}
+                `;
+
+                const fileExtension = file.name.toLowerCase().split('.').pop();
+
+                if (fileExtension === 'scad') {
+                    loadModelFromText(file.name, state.currentFileContent, 'upload');
+                } else if (['urdf', 'xacro'].includes(fileExtension)) {
+                    handleURDFFile(file.name, state.currentFileContent);
+                } else if (fileExtension === 'stl') {
+                    handleSTLFile(file.name, new Uint8Array(e.target.result));
+                }
+            };
+
+            if (file.type === 'application/octet-stream' || file.name.endsWith('.stl')) {
+                reader.readAsArrayBuffer(file);
+            } else {
+                reader.readAsText(file);
+            }
+        }
+
+        function handleOpenSCADFile(filename, content) {
+            showStatus('Reading model file...', 'info');
+
+            // Parse customizer variables
+            if (typeof babylon_ros.parseOpenSCADCustomizer === 'function') {
+                state.customizerModel = babylon_ros.parseOpenSCADCustomizer(content, filename);
+
+                // Update customizer UI
+                const customizerContainer = document.getElementById('customizerContainer');
+                const noCustomizerMessage = document.getElementById('noCustomizerMessage');
+
+                if (state.customizerModel.variables && state.customizerModel.variables.length > 0) {
+                    customizerContainer.style.display = 'block';
+                    noCustomizerMessage.style.display = 'none';
+                    renderCustomizerUI(customizerContainer, state.customizerModel);
+                } else {
+                    customizerContainer.style.display = 'none';
+                    noCustomizerMessage.style.display = 'block';
+                }
+            }
+
+            convertButton.disabled = false;
+            showStatus('Model file loaded. Click "Convert & Preview" to render.', 'success');
+        }
+
+        function handleURDFFile(filename, content) {
+            showStatus('URDF/Xacro support coming soon', 'info');
+        }
+
+        function handleSTLFile(filename, arrayBuffer) {
+            showStatus('Updating preview...', 'info');
+            state.currentSTLData = new Uint8Array(arrayBuffer);
+            renderSTL(state.currentSTLData);
+            downloadButton.disabled = false;
+            showStatus('STL loaded and displayed', 'success');
+        }
+
+        async function handleConvert() {
+            if (!state.currentFileContent) {
+                showStatus('No file loaded', 'error');
+                return;
+            }
+
+            convertButton.disabled = true;
+            showStatus('Converting model to STL...', 'info');
+
+            try {
+                // Build parameter overrides from customizer values
+                const parameterOverrides = state.customizerValues;
+
+                // Prepare conversion request
+                const request = {
+                    scadContent: state.currentFileContent,
+                    filename: state.currentFile.name,
+                    libraryFiles: {},
+                    exportFormat: 'stl',
+                    parameterOverrides
+                };
+
+                // Internal converter currently uses OpenSCAD.
+                if (typeof babylon_ros.convertOpenSCADToSTL === 'function') {
+                    const response = await babylon_ros.convertOpenSCADToSTL(request);
+
+                    if (response.success && response.outputData) {
+                        state.currentSTLData = response.outputData;
+                        await renderSTL(response.outputData);
+                        downloadButton.disabled = false;
+                        showStatus('Conversion successful!', 'success');
+                    } else {
+                        showStatus(`Conversion failed: ${response.error}`, 'error');
+                    }
+                } else {
+                    showStatus('Conversion engine not available in this viewer', 'error');
+                }
+            } catch (error) {
+                showStatus(`Error: ${error.message}`, 'error');
+            } finally {
+                convertButton.disabled = false;
+            }
+        }
+
+        async function renderSTL(arrayBuffer) {
+            // Implementation would import and use babylon_ros STL loader
+            // For now, a placeholder
+            console.log('Rendering STL data, size:', arrayBuffer.length);
+        }
+
+        function handleDownload() {
+            if (!state.currentSTLData) {
+                showStatus('No STL data available', 'error');
+                return;
+            }
+
+            const filename = state.currentFile?.name.replace(/\.[^/.]+$/, '.stl') || 'model.stl';
+            const blob = new Blob([state.currentSTLData], { type: 'application/octet-stream' });
+            const url = URL.createObjectURL(blob);
+
+            const link = document.createElement('a');
+            link.href = url;
+            link.download = filename;
+            link.click();
+
+            URL.revokeObjectURL(url);
+            showStatus(`Downloaded ${filename}`, 'success');
+        }
+
+        function renderCustomizerUI(container, model) {
+            container.innerHTML = '';
+
+            if (!model.variables || model.variables.length === 0) {
+                return;
+            }
+
+            state.customizerValues = {};
+            for (const variable of model.variables) {
+                state.customizerValues[variable.name] = variable.defaultValue;
+            }
+            notifyConfigurationChanged();
+
+            const grouped = new Map();
+            for (const variable of model.variables) {
+                const tab = variable.tab || 'parameters';
+                if (!grouped.has(tab)) {
+                    grouped.set(tab, []);
+                }
+                grouped.get(tab).push(variable);
+            }
+
+            for (const [tabName, variables] of grouped) {
+                for (const variable of variables) {
+                    if (variable.hidden) continue;
+
+                    const field = document.createElement('div');
+                    field.className = 'customizer-field';
+
+                    const label = document.createElement('label');
+                    label.textContent = variable.description || variable.name;
+                    field.appendChild(label);
+
+                    const control = createVariableControl(variable);
+                    field.appendChild(control);
+
+                    container.appendChild(field);
+                }
+            }
+        }
+
+        function createVariableControl(variable) {
+            const value = state.customizerValues[variable.name] ?? variable.defaultValue;
+
+            switch (variable.widget) {
+                case 'slider':
+                    return createSliderControl(variable, value);
+                case 'spinbox':
+                    return createSpinboxControl(variable, value);
+                case 'checkbox':
+                    return createCheckboxControl(variable, value);
+                case 'dropdown':
+                    return createDropdownControl(variable, value);
+                default:
+                    return createTextControl(variable, value);
+            }
+        }
+
+        function createSliderControl(variable, value) {
+            const wrapper = document.createElement('div');
+            wrapper.className = 'slider-wrapper';
+
+            const slider = document.createElement('input');
+            slider.type = 'range';
+            slider.min = variable.range?.min ?? 0;
+            slider.max = variable.range?.max ?? 100;
+            slider.step = variable.range?.step ?? 1;
+            slider.value = value;
+
+            const display = document.createElement('span');
+            display.className = 'slider-value';
+            display.textContent = value;
+
+            slider.addEventListener('input', (e) => {
+                const newValue = parseFloat(e.target.value);
+                state.customizerValues[variable.name] = newValue;
+                display.textContent = newValue;
+                notifyConfigurationChanged();
+            });
+
+            wrapper.appendChild(slider);
+            wrapper.appendChild(display);
+            return wrapper;
+        }
+
+        function createSpinboxControl(variable, value) {
+            const input = document.createElement('input');
+            input.type = 'number';
+            input.min = variable.range?.min ?? 0;
+            input.max = variable.range?.max ?? 1000;
+            input.step = variable.range?.step ?? 1;
+            input.value = value;
+
+            input.addEventListener('change', (e) => {
+                state.customizerValues[variable.name] = parseFloat(e.target.value);
+                notifyConfigurationChanged();
+            });
+
+            return input;
+        }
+
+        function createCheckboxControl(variable, value) {
+            const input = document.createElement('input');
+            input.type = 'checkbox';
+            input.checked = value;
+
+            input.addEventListener('change', (e) => {
+                state.customizerValues[variable.name] = e.target.checked;
+                notifyConfigurationChanged();
+            });
+
+            return input;
+        }
+
+        function createDropdownControl(variable, value) {
+            const select = document.createElement('select');
+
+            if (variable.options) {
+                for (const option of variable.options) {
+                    const opt = document.createElement('option');
+                    opt.value = option.value;
+                    opt.textContent = option.label || option.value;
+                    select.appendChild(opt);
+                }
+            }
+
+            select.value = value;
+            select.addEventListener('change', (e) => {
+                state.customizerValues[variable.name] = variable.valueType === 'number'
+                    ? parseFloat(e.target.value)
+                    : e.target.value;
+                notifyConfigurationChanged();
+            });
+
+            return select;
+        }
+
+        function createTextControl(variable, value) {
+            const input = document.createElement('input');
+            input.type = 'text';
+            input.value = value;
+
+            input.addEventListener('change', (e) => {
+                state.customizerValues[variable.name] = e.target.value;
+                notifyConfigurationChanged();
+            });
+
+            return input;
+        }
+
+        function switchTab(tabName) {
+            document.querySelectorAll('.tab-button').forEach(btn => {
+                btn.classList.toggle('active', btn.dataset.tab === tabName);
+            });
+            document.querySelectorAll('.tab-content').forEach(content => {
+                content.classList.toggle('active', content.id === `${tabName}-tab`);
+            });
+        }
+
+        function resetView() {
+            // TODO: Reset camera to default position
+            showStatus('View reset', 'success');
+        }
+
+        function toggleGrid() {
+            // TODO: Toggle grid visibility
+            showStatus('Grid toggled', 'success');
+        }
+
+        function showStatus(message, type = 'info') {
+            statusBar.textContent = message;
+            statusBar.style.display = 'block';
+            statusBar.className = `status ${type}`;
+
+            if (type === 'success' || type === 'info') {
+                setTimeout(() => {
+                    statusBar.style.display = 'none';
+                }, 3000);
+            }
+        }
+
+        function notifyConfigurationChanged() {
+            const detail = {
+                modelName: state.currentFile?.name || null,
+                configuration: { ...state.customizerValues }
+            };
+
+            dispatchHostEvent('modelviewer:configurationchange', detail);
+            postHostMessage('modelviewer:configurationchange', detail);
+
+            if (typeof state.hostConfig?.onConfigurationChange === 'function') {
+                state.hostConfig.onConfigurationChange(detail);
+            }
+        }
+
+        function setupResponsiveUI() {
+            const toggleSidebarMobile = document.getElementById('toggleSidebarMobile');
+            const toggleSidebar = document.getElementById('toggleSidebar');
+
+            if (window.innerWidth <= 768) {
+                toggleSidebarMobile.style.display = 'block';
+                toggleSidebarMobile.addEventListener('click', () => {
+                    sidebar.classList.toggle('open');
+                });
+            }
+
+            window.addEventListener('resize', () => {
+                if (window.innerWidth > 768) {
+                    sidebar.classList.remove('hidden', 'open');
+                    toggleSidebarMobile.style.display = 'none';
+                } else {
+                    toggleSidebarMobile.style.display = 'block';
+                }
+            });
+        }
+    </script>
+</body>
+</html>
