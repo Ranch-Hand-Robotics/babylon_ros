@@ -1,46 +1,50 @@
 /**
- * OpenSCAD utilities for babylon_ros
- * Browser-based OpenSCAD to STL conversion using Web Workers
+ * openscad-node.ts
+ * Node.js-compatible OpenSCAD utilities for use in VS Code extensions and Node.js tools.
+ * Provides library scanning, validation, and documentation generation using the
+ * local openscad-wasm build. Does NOT depend on browser APIs.
  */
 
-export interface OpenSCADCustomizerOption {
-  label?: string;
-  value: string | number | boolean;
+import * as fs from 'fs';
+import * as path from 'path';
+import * as os from 'os';
+import { pathToFileURL } from 'url';
+
+import {
+  OpenSCADCustomizerValue,
+} from './openscadCustomizer';
+
+
+// ── Interfaces ────────────────────────────────────────────────────────────────
+
+export interface OpenSCADValidationResult {
+  valid: boolean;
+  errors: string[];
+  warnings: string[];
 }
 
-export interface OpenSCADCustomizerRangeConstraint {
-  min?: number;
-  max?: number;
-  step?: number;
-}
-
-export type OpenSCADCustomizerValue = string | number | boolean | number[];
-
-export interface OpenSCADCustomizerVariable {
+export interface OpenSCADLibraryModule {
   name: string;
-  valueType: 'string' | 'number' | 'boolean' | 'vector';
-  defaultValue: OpenSCADCustomizerValue;
-  tab: string;
-  hidden: boolean;
+  parameters: string[];
   description?: string;
-  widget: 'dropdown' | 'slider' | 'checkbox' | 'spinbox' | 'textbox' | 'vector';
-  options?: OpenSCADCustomizerOption[];
-  range?: OpenSCADCustomizerRangeConstraint;
-  maxLength?: number;
-  rawConstraint?: string;
   line: number;
 }
 
-export interface OpenSCADCustomizerParseWarning {
-  line: number;
-  message: string;
+export interface OpenSCADLibraryFile {
+  path: string;
+  relativePath: string;
+  libraryRoot: string;
+  headerComment?: string;
+  modules: OpenSCADLibraryModule[];
+  functions: OpenSCADLibraryModule[];
 }
 
-export interface OpenSCADCustomizerParseResult {
-  variables: OpenSCADCustomizerVariable[];
-  warnings: OpenSCADCustomizerParseWarning[];
-  firstBraceLine?: number;
+export interface OpenSCADLibrariesDocumentation {
+  libraries: OpenSCADLibraryFile[];
+  generatedAt: string;
+  libraryPaths: string[];
 }
+
 
 /**
  * OpenSCAD conversion request for Web Worker
@@ -50,8 +54,10 @@ export interface OpenSCADConversionRequest {
   filename: string;
   libraryFiles?: { [virtualPath: string]: string }; // Base64 encoded
   timeout?: number;
-  exportFormat?: 'stl' | 'svg';
+  exportFormat?: 'stl' | 'svg' | 'glb';
   parameterOverrides?: Record<string, OpenSCADCustomizerValue>;
+  /** Optional absolute URL to openscad.js runtime entrypoint */
+  openscadScriptUrl?: string;
 }
 
 /**
@@ -59,308 +65,485 @@ export interface OpenSCADConversionRequest {
  */
 export interface OpenSCADConversionResponse {
   success: boolean;
-  outputData?: Uint8Array; // Binary STL/SVG data
-  outputFormat?: string; // 'stl' or 'svg'
+  outputData?: Uint8Array; // Binary STL/SVG/GLB data
+  outputFormat?: string; // 'stl', 'svg', or 'glb'
   filename?: string;
   error?: string;
+  logs?: string[]; // Captured stderr/stdout messages from OpenSCAD
   progress?: string;
 }
 
-/**
- * Parses OpenSCAD customizer variables from file content
- * Supports standard OpenSCAD customizer format:
- * - variable = default; // [constraint] // description
- * Constraints:
- * - [min:step:max] → slider
- * - [val1, val2, val3] → dropdown
- * - [false, true] → checkbox
- */
-export function parseOpenSCADCustomizer(
-  content: string,
-  filename: string = 'model.scad'
-): OpenSCADCustomizerParseResult {
-  const variables: OpenSCADCustomizerVariable[] = [];
-  const warnings: OpenSCADCustomizerParseWarning[] = [];
-  const lines = content.split('\n');
-  let currentTab = 'parameters';
-  let firstBraceLine: number | undefined;
+// ── WASM loader ───────────────────────────────────────────────────────────────
 
-  // First pass: find all variable assignments
+/** Directories to skip when scanning for library files */
+const EXCLUDED_DIRS = new Set([
+  '.git',
+  'node_modules',
+  'venv',
+  '.venv',
+  'env',
+  '.env',
+  '__pycache__',
+  '.pytest_cache',
+  '.tox',
+  'dist',
+  'build',
+  '.cache',
+  '.vscode',
+  '.idea',
+  'target',  // Rust/Java build directories
+  'bin',
+  'obj',
+]);
+
+let _wasmFactoryCache: ((options: any) => Promise<any>) | null = null;
+
+/**
+ * Locate the directory containing the openscad-wasm build files.
+ * Works both in the published package (dist/openscad-wasm/) and in the local
+ * development tree (openscad-wasm-build/build/).
+ */
+function getWasmDir(): string {
+  // When running from the built dist/openscad-node.js bundle
+  const distWasmDir = path.join(__dirname, 'openscad-wasm');
+  if (fs.existsSync(path.join(distWasmDir, 'openscad.wasm'))) {
+    return distWasmDir;
+  }
+  // When running from the development source tree (src/openscad-node.ts)
+  const devWasmDir = path.join(__dirname, '..', 'openscad-wasm-build', 'build');
+  if (fs.existsSync(path.join(devWasmDir, 'openscad.wasm'))) {
+    return devWasmDir;
+  }
+  // Fallback: assume dist layout
+  return distWasmDir;
+}
+
+/**
+ * Load the openscad.wasm.js ES module dynamically without webpack bundling it.
+ * The /* webpackIgnore: true * / comment tells webpack to leave this dynamic
+ * import as-is in the output bundle.
+ */
+async function getOpenSCADFactory(): Promise<(options: any) => Promise<any>> {
+  if (_wasmFactoryCache) {
+    return _wasmFactoryCache;
+  }
+  const wasmDir = getWasmDir();
+  const wasmJsPath = path.join(wasmDir, 'openscad.wasm.js');
+  const wasmJsUrl = pathToFileURL(wasmJsPath).href;
+
+  // webpackIgnore: true — do NOT bundle this import
+  const mod = await import(/* webpackIgnore: true */ wasmJsUrl);
+  _wasmFactoryCache = mod.default ?? mod;
+  return _wasmFactoryCache!;
+}
+
+/**
+ * Create a fresh OpenSCAD WASM instance ready for use.
+ * Provides the wasm binary directly to bypass URL-based loading.
+ */
+async function createOpenSCADInstance(
+  stdout?: (text: string) => void,
+  stderr?: (text: string) => void,
+): Promise<any> {
+  const factory = await getOpenSCADFactory();
+  const wasmDir = getWasmDir();
+  const wasmBinary = fs.readFileSync(path.join(wasmDir, 'openscad.wasm'));
+
+  return factory({
+    noInitialRun: true,
+    wasmBinary,
+    locateFile: (filename: string) => path.join(wasmDir, filename),
+    print: stdout ?? (() => { /* noop */ }),
+    printErr: stderr ?? (() => { /* noop */ }),
+  });
+}
+
+// ── Public helpers ────────────────────────────────────────────────────────────
+
+/** Returns true when filePath has a .scad extension (case-insensitive). */
+export function isOpenSCADFile(filePath: string): boolean {
+  return path.extname(filePath).toLowerCase() === '.scad';
+}
+
+/**
+ * Returns the OS-specific default OpenSCAD library paths.
+ * These are the same directories used by the desktop OpenSCAD application.
+ */
+export function getDefaultOpenSCADLibraryPaths(): string[] {
+  const home = os.homedir();
+  const platform = os.platform();
+
+  if (platform === 'win32') {
+    return [path.join(home, 'Documents', 'OpenSCAD', 'libraries')];
+  }
+  if (platform === 'darwin') {
+    return [path.join(home, 'Documents', 'OpenSCAD', 'libraries')];
+  }
+  return [path.join(home, '.local', 'share', 'OpenSCAD', 'libraries')];
+}
+
+/**
+ * Returns all OpenSCAD library paths: default OS paths plus any
+ * configured extra paths. Non-existent directories are filtered out.
+ *
+ * @param workspaceRoot  Optional workspace root for ${workspaceFolder} substitution.
+ * @param configuredPaths  Extra paths from extension settings.
+ */
+export async function getAllOpenSCADLibraryPaths(
+  workspaceRoot?: string,
+  configuredPaths?: string[],
+): Promise<string[]> {
+  const candidates: string[] = [...getDefaultOpenSCADLibraryPaths()];
+
+  if (configuredPaths) {
+    for (const rawPath of configuredPaths) {
+      const resolved = workspaceRoot
+        ? rawPath.replace(/\$\{workspaceFolder\}/g, workspaceRoot)
+        : rawPath;
+      candidates.push(resolved);
+    }
+  }
+
+  const existing: string[] = [];
+  for (const p of candidates) {
+    try {
+      const stat = await fs.promises.stat(p);
+      if (stat.isDirectory()) {
+        existing.push(p);
+      }
+    } catch {
+      // Directory does not exist — skip silently
+    }
+  }
+  return existing;
+}
+
+// ── Validation ────────────────────────────────────────────────────────────────
+
+/**
+ * Validate an OpenSCAD file by compiling it with the WASM runtime.
+ *
+ * @param filePath  Path to the .scad file (used for reading when content is omitted).
+ * @param content   Optional: SCAD source to validate instead of reading the file.
+ * @param workspaceRoot  Optional: workspace root for library resolution.
+ */
+export async function validateOpenSCAD(
+  filePath: string,
+  content?: string,
+  workspaceRoot?: string,
+): Promise<OpenSCADValidationResult> {
+  const errors: string[] = [];
+  const warnings: string[] = [];
+
+  try {
+    const scadContent = content ?? fs.readFileSync(filePath, 'utf8');
+
+    const instance = await createOpenSCADInstance(
+      (_text: string) => { /* stdout — ignore render output */ },
+      (text: string) => {
+        if (/ERROR|error/.test(text)) {
+          errors.push(text);
+        } else if (/WARNING|warning/.test(text)) {
+          warnings.push(text);
+        }
+      },
+    );
+
+    // Write the SCAD source to the virtual FS
+    instance.FS.writeFile('/input.scad', scadContent);
+
+    // A dry-run echo export is the lightest way to surface parse errors
+    const exitCode: number = instance.callMain(['/input.scad', '-o', '/output.echo']);
+
+    return {
+      valid: exitCode === 0 && errors.length === 0,
+      errors,
+      warnings,
+    };
+  } catch (err) {
+    return {
+      valid: false,
+      errors: [err instanceof Error ? err.message : String(err)],
+      warnings: [],
+    };
+  }
+}
+
+// ── Library documentation ─────────────────────────────────────────────────────
+
+/** Extract the leading block comment (/** ... *\/ or /* ... *\/) from file content. */
+function extractHeaderComment(content: string): string | undefined {
+  const match = content.match(/^\s*(\/\*[\s\S]*?\*\/)/);
+  return match ? match[1].replace(/^\/\*+\s*/, '').replace(/\s*\*+\/$/, '').trim() : undefined;
+}
+
+/** Extract module/function definitions and their parameter lists. */
+function extractDefinitions(content: string): { modules: OpenSCADLibraryModule[]; functions: OpenSCADLibraryModule[] } {
+  const modules: OpenSCADLibraryModule[] = [];
+  const functions: OpenSCADLibraryModule[] = [];
+  const lines = content.split('\n');
+
+  // Regex: optional preceding // comment line is handled by tracking pendingDoc
+  const defRegex = /^\s*(module|function)\s+([A-Za-z_][A-Za-z0-9_]*)\s*\(([^)]*)\)/;
+  const commentRegex = /^\s*\/\/(.*)$/;
+
+  let pendingDoc: string | undefined;
+
   for (let i = 0; i < lines.length; i++) {
     const line = lines[i];
-    const trimmedLine = line.trim();
-    const lineNumber = i + 1;
-
-    // Check for tab section marker: /* [Tab Name] */
-    const tabMatch = trimmedLine.match(/\/\*\s*\[\s*(.+?)\s*\]\s*\*\//);
-    if (tabMatch) {
-      currentTab = tabMatch[1].trim();
+    const commentMatch = line.match(commentRegex);
+    if (commentMatch) {
+      pendingDoc = commentMatch[1].trim();
       continue;
     }
 
-    // Skip empty lines and full-line comments
-    if (!trimmedLine || (trimmedLine.startsWith('//') && !trimmedLine.includes('='))) {
-      continue;
-    }
+    const defMatch = line.match(defRegex);
+    if (defMatch) {
+      const kind = defMatch[1] as 'module' | 'function';
+      const name = defMatch[2];
+      const paramStr = defMatch[3].trim();
+      const parameters = paramStr
+        ? paramStr.split(',').map(p => p.trim()).filter(Boolean)
+        : [];
 
-    // Look for standard OpenSCAD variable assignment: name = value;
-    // Supports: variable = 10; or variable = "text"; or variable = true; or variable = [1,2,3];
-    const assignmentMatch = trimmedLine.match(/^(\w+)\s*=\s*(.+?);/);
-    if (!assignmentMatch) {
-      continue;
-    }
-
-    const varName = assignmentMatch[1];
-    let valueStr = assignmentMatch[2].trim();
-
-    // Extract customizer hint and description from rest of line
-    // Format: variable = value; // [constraint] // description
-    let customConstraint = '';
-    let description = '';
-
-    const commentPart = line.substring(line.indexOf('//'));
-    if (commentPart) {
-      // Look for constraint in brackets
-      const constraintMatch = commentPart.match(/\/\/\s*\[([^\]]+)\]/);
-      if (constraintMatch) {
-        customConstraint = constraintMatch[1].trim();
-        if (!firstBraceLine) {
-          firstBraceLine = lineNumber;
-        }
+      const def: OpenSCADLibraryModule = { name, parameters, line: i + 1 };
+      if (pendingDoc) {
+        def.description = pendingDoc;
       }
-
-      // Extract description (everything after the constraint or first //)
-      const descPart = commentPart.replace(/\/\/\s*\[[^\]]+\]\s*/, '').replace(/^\/\/\s*/, '').trim();
-      if (descPart) {
-        description = descPart;
+      if (kind === 'module') {
+        modules.push(def);
+      } else {
+        functions.push(def);
       }
     }
 
-    // Parse the default value
-    let value: OpenSCADCustomizerValue = '';
-    let valueType: 'string' | 'number' | 'boolean' | 'vector' = 'string';
+    pendingDoc = undefined;
+  }
 
-    // Try to parse as boolean
-    if (valueStr.toLowerCase() === 'true') {
-      value = true;
-      valueType = 'boolean';
-    } else if (valueStr.toLowerCase() === 'false') {
-      value = false;
-      valueType = 'boolean';
+  return { modules, functions };
+}
+
+/** Recursively collect all .scad files from a directory, skipping excluded dirs. */
+async function collectScadFiles(dir: string): Promise<string[]> {
+  const results: string[] = [];
+  let entries: fs.Dirent[];
+  try {
+    entries = await fs.promises.readdir(dir, { withFileTypes: true });
+  } catch {
+    return results;
+  }
+
+  for (const entry of entries) {
+    if (EXCLUDED_DIRS.has(entry.name)) {
+      continue;
     }
-    // Try to parse as number
-    else if (!isNaN(Number(valueStr))) {
-      value = Number(valueStr);
-      valueType = 'number';
+    const fullPath = path.join(dir, entry.name);
+    if (entry.isDirectory()) {
+      const sub = await collectScadFiles(fullPath);
+      results.push(...sub);
+    } else if (entry.isFile() && entry.name.toLowerCase().endsWith('.scad')) {
+      results.push(fullPath);
     }
-    // Try to parse as vector
-    else if (valueStr.startsWith('[') && valueStr.endsWith(']')) {
+  }
+  return results;
+}
+
+/**
+ * Scan library paths and generate structured documentation.
+ *
+ * @param workspaceRoot  Optional workspace root for ${workspaceFolder} substitution.
+ * @param configuredPaths  Extra paths from extension settings (e.g. urdf-editor.OpenSCADLibraryPaths).
+ */
+export async function generateOpenSCADLibrariesDocumentation(
+  workspaceRoot?: string,
+  configuredPaths?: string[],
+): Promise<OpenSCADLibrariesDocumentation> {
+  const libraryPaths = await getAllOpenSCADLibraryPaths(workspaceRoot, configuredPaths);
+  const libraries: OpenSCADLibraryFile[] = [];
+
+  for (const libRoot of libraryPaths) {
+    const files = await collectScadFiles(libRoot);
+    for (const filePath of files) {
+      let content: string;
       try {
-        const arrayStr = valueStr.slice(1, -1); // Remove brackets
-        const numbers = arrayStr.split(',').map(n => parseFloat(n.trim()));
-        if (numbers.every(n => !isNaN(n))) {
-          value = numbers;
-          valueType = 'vector';
-        } else {
-          value = valueStr.slice(1, -1); // Keep as string without brackets
-        }
+        content = await fs.promises.readFile(filePath, 'utf8');
       } catch {
-        value = valueStr.slice(1, -1);
+        continue;
       }
+
+      const headerComment = extractHeaderComment(content);
+      const { modules, functions } = extractDefinitions(content);
+
+      if (modules.length === 0 && functions.length === 0 && !headerComment) {
+        continue; // Nothing useful to document
+      }
+
+      libraries.push({
+        path: filePath,
+        relativePath: path.relative(libRoot, filePath),
+        libraryRoot: libRoot,
+        headerComment,
+        modules,
+        functions,
+      });
     }
-    // Parse as string (remove quotes if present)
-    else if ((valueStr.startsWith('"') && valueStr.endsWith('"')) ||
-             (valueStr.startsWith("'") && valueStr.endsWith("'"))) {
-      value = valueStr.slice(1, -1);
-      valueType = 'string';
-    } else {
-      value = valueStr;
-      valueType = 'string';
-    }
-
-    // Determine widget and parse constraints
-    let widget = inferWidgetType(valueType);
-    let options: OpenSCADCustomizerOption[] | undefined;
-    let range: OpenSCADCustomizerRangeConstraint | undefined;
-
-    if (customConstraint) {
-      // Parse constraint to determine widget type
-      const constraintResult = parseCustomizerConstraint(customConstraint, valueType);
-      widget = constraintResult.widget;
-      options = constraintResult.options;
-      range = constraintResult.range;
-    }
-
-    // Create variable entry
-    const variable: OpenSCADCustomizerVariable = {
-      name: varName,
-      valueType,
-      defaultValue: value,
-      tab: currentTab,
-      hidden: false,
-      description: description || undefined,
-      widget,
-      options,
-      range,
-      rawConstraint: customConstraint || undefined,
-      line: lineNumber
-    };
-
-    variables.push(variable);
   }
 
   return {
-    variables,
-    warnings,
-    firstBraceLine
+    libraries,
+    generatedAt: new Date().toISOString(),
+    libraryPaths,
   };
 }
 
 /**
- * Parse OpenSCAD customizer constraint and determine widget type
- * Formats:
- * - min:step:max → slider
- * - val1, val2, val3 → dropdown
- * - false, true → checkbox (boolean choice)
+ * Convert an OpenSCADLibrariesDocumentation object into a Markdown string
+ * suitable for consumption by AI assistants or documentation sites.
  */
-function parseCustomizerConstraint(
-  constraint: string,
-  valueType: 'string' | 'number' | 'boolean' | 'vector'
-): { widget: OpenSCADCustomizerVariable['widget']; options?: OpenSCADCustomizerOption[]; range?: OpenSCADCustomizerRangeConstraint } {
-  
-  constraint = constraint.trim();
-
-  // Handle range constraint: min:step:max
-  if (constraint.includes(':')) {
-    const parts = constraint.split(':').map(p => p.trim());
-    if (parts.length >= 2) {
-      const min = parseFloat(parts[0]);
-      let step = 1;
-      let max = 100;
-
-      if (parts.length === 2) {
-        // Format: min:max
-        max = parseFloat(parts[1]);
-      } else if (parts.length >= 3) {
-        // Format: min:step:max
-        step = parseFloat(parts[1]);
-        max = parseFloat(parts[2]);
-      }
-
-      if (!isNaN(min) && !isNaN(max)) {
-        return {
-          widget: 'slider',
-          range: { min, max, step: isNaN(step) ? 1 : step }
-        };
-      }
-    }
-  }
-
-  // Handle dropdown/choice constraint: val1, val2, val3
-  if (constraint.includes(',')) {
-    const parts = constraint.split(',').map(p => p.trim());
-    const options: OpenSCADCustomizerOption[] = [];
-    let allNumeric = true;
-    let allBool = true;
-
-    for (const part of parts) {
-      if (part.toLowerCase() === 'true' || part.toLowerCase() === 'false') {
-        options.push({
-          value: part.toLowerCase() === 'true',
-          label: part
-        });
-      } else if (!isNaN(Number(part))) {
-        options.push({
-          value: Number(part),
-          label: part
-        });
-        allBool = false;
-      } else {
-        options.push({
-          value: part.replace(/^["']|["']$/g, ''),
-          label: part.replace(/^["']|["']$/g, '')
-        });
-        allNumeric = false;
-        allBool = false;
-      }
-    }
-
-    // If all options are booleans, use checkbox
-    if (allBool && options.length === 2) {
-      return { widget: 'checkbox' };
-    }
-
-    return {
-      widget: 'dropdown',
-      options
-    };
-  }
-
-  // No constraint - use default for value type
-  return { widget: inferWidgetType(valueType) };
-}
-
-/**
- * Infer the widget type based on the value type
- */
-function inferWidgetType(
-  valueType: 'string' | 'number' | 'boolean' | 'vector'
-): OpenSCADCustomizerVariable['widget'] {
-  switch (valueType) {
-    case 'boolean':
-      return 'checkbox';
-    case 'number':
-      return 'spinbox';
-    case 'vector':
-      return 'vector';
-    case 'string':
-    default:
-      return 'textbox';
-  }
-}
-
-/**
- * Convert customizer values to OpenSCAD script overrides
- * Generates OpenSCAD variable assignments from customizer values
- */
-export function buildOpenSCADOverrides(
-  overrides: Record<string, OpenSCADCustomizerValue>
+export function convertLibrariesDocumentationToMarkdown(
+  doc: OpenSCADLibrariesDocumentation,
 ): string {
-  const lines: string[] = [];
+  const lines: string[] = [
+    '# OpenSCAD Libraries Documentation',
+    '',
+    `Generated: ${doc.generatedAt}`,
+    '',
+    `Library paths scanned:`,
+    ...doc.libraryPaths.map(p => `- \`${p}\``),
+    '',
+    `Found **${doc.libraries.length}** library file(s).`,
+    '',
+  ];
 
-  for (const [name, value] of Object.entries(overrides)) {
-    if (value === null || value === undefined) {
-      continue;
+  for (const lib of doc.libraries) {
+    lines.push(`## ${lib.relativePath}`, '');
+    lines.push(`**Path:** \`${lib.path}\``, '');
+
+    if (lib.headerComment) {
+      lines.push(lib.headerComment, '');
     }
 
-    let scadValue: string;
-
-    if (typeof value === 'boolean') {
-      scadValue = value ? 'true' : 'false';
-    } else if (typeof value === 'number') {
-      scadValue = String(value);
-    } else if (Array.isArray(value)) {
-      scadValue = `[${value.join(', ')}]`;
-    } else {
-      // String - escape quotes
-      scadValue = `"${String(value).replace(/"/g, '\\"')}"`;
+    if (lib.modules.length > 0) {
+      lines.push('### Modules', '');
+      for (const mod of lib.modules) {
+        const sig = `${mod.name}(${mod.parameters.join(', ')})`;
+        lines.push(`#### \`${sig}\``);
+        if (mod.description) {
+          lines.push('', mod.description);
+        }
+        lines.push('');
+      }
     }
 
-    lines.push(`${name} = ${scadValue};`);
+    if (lib.functions.length > 0) {
+      lines.push('### Functions', '');
+      for (const fn of lib.functions) {
+        const sig = `${fn.name}(${fn.parameters.join(', ')})`;
+        lines.push(`#### \`${sig}\``);
+        if (fn.description) {
+          lines.push('', fn.description);
+        }
+        lines.push('');
+      }
+    }
   }
 
   return lines.join('\n');
 }
 
 /**
+ * Convenience wrapper: generate documentation and write it to a Markdown file.
+ */
+export async function generateAndSaveLibrariesDocumentation(
+  outputPath: string,
+  workspaceRoot?: string,
+  configuredPaths?: string[],
+): Promise<void> {
+  const doc = await generateOpenSCADLibrariesDocumentation(workspaceRoot, configuredPaths);
+  const markdown = convertLibrariesDocumentationToMarkdown(doc);
+  await fs.promises.writeFile(outputPath, markdown, 'utf8');
+}
+
+// ── Node.js Worker Export Types ───────────────────────────────────────────────
+
+/**
+ * Configuration for OpenSCAD parameter overrides (Node.js worker)
+ */
+export interface OpenSCADParameterConfiguration {
+  jsonContent: string;
+  parameterSetName: string;
+}
+
+/**
+ * Request interface for Node.js OpenSCAD worker
+ */
+export interface OpenSCADNodeConversionRequest {
+  scadFilePath: string;
+  libraryFiles: { [virtualPath: string]: string }; // Base64 encoded content
+  workspaceRoot?: string;
+  timeout?: number; // Custom timeout in milliseconds
+  exportFormat?: 'stl' | 'svg' | 'glb'; // Export format
+  parameterOverrides?: Record<string, OpenSCADCustomizerValue>;
+  parameterConfiguration?: OpenSCADParameterConfiguration;
+}
+
+/**
+ * Response interface for Node.js OpenSCAD worker
+ */
+export interface OpenSCADNodeConversionResponse {
+  success: boolean;
+  outputPath?: string;
+  error?: string;
+  progress?: string;
+}
+
+/**
+ * Get the path to the OpenSCAD Node.js worker module.
+ * Can be used by Node.js applications (like RDE MCP Server) to spawn worker processes.
+ * 
+ * @returns Path to the compiled openscadWorker.js file
+ */
+export function getOpenSCADNodeWorkerPath(): string {
+  // Node-target worker is emitted under dist/workers.
+  return path.join(__dirname, 'workers', 'openscadWorker.node.js');
+}
+
+/**
+ * Check if the OpenSCAD Node.js worker is available at the expected location.
+ */
+export function isOpenSCADNodeWorkerAvailable(): boolean {
+  const workerPath = getOpenSCADNodeWorkerPath();
+  return fs.existsSync(workerPath);
+}
+
+
+
+/**
+ * Create a Web Worker for OpenSCAD conversion
+ */
+function createOpenSCADWorker(workerScript?: string): Worker {
+  if (workerScript) {
+    // Use provided worker script
+    const blob = new Blob([workerScript], { type: 'application/javascript' });
+    const workerUrl = URL.createObjectURL(blob);
+    return new Worker(workerUrl);
+  }
+
+  // Load the compiled browser worker
+  const workerUrl = resolveOpenSCADWorkerUrl();
+  return new Worker(workerUrl, { type: 'module' });
+}
+
+
+/**
  * Create a Web Worker for OpenSCAD conversion
  * Returns a promise that resolves with the conversion result
  */
-export function convertOpenSCADToSTL(
+export function convertOpenSCAD(
   request: OpenSCADConversionRequest,
   workerScript?: string
 ): Promise<OpenSCADConversionResponse> {
-  return new Promise((resolve, reject) => {
+  return new Promise<OpenSCADConversionResponse>((resolve, reject) => {
     try {
       // Create an inline worker if no script provided
       const worker = createOpenSCADWorker(workerScript);
@@ -374,6 +557,9 @@ export function convertOpenSCADToSTL(
 
       // Handle worker messages
       worker.onmessage = (event: MessageEvent<OpenSCADConversionResponse>) => {
+        if (event.data.progress) {
+          return;
+        }
         clearTimeout(timeoutHandle);
         if (event.data.success) {
           worker.terminate();
@@ -391,490 +577,606 @@ export function convertOpenSCADToSTL(
         reject(new Error(`Worker error: ${error.message}`));
       };
 
-      // Send conversion request to worker
-      worker.postMessage(request);
+      const openscadScriptUrl = resolveOpenSCADScriptUrl(request.openscadScriptUrl);
+
+      // Send conversion request to worker with the OpenSCAD script URL
+      worker.postMessage({
+        ...request,
+        openscadScriptUrl
+      });
     } catch (error) {
       reject(error);
     }
+  }).catch(async (error: unknown): Promise<OpenSCADConversionResponse> => {
+    // If worker initialization/importScripts fails (CSP, offline, blocked local assets),
+    // surface a clear actionable error.
+    const message = error instanceof Error ? error.message : String(error);
+    const workerLoadFailure = /importScripts|Worker error|NetworkError|Failed to execute 'importScripts'|Unable to load OpenSCAD runtime/i.test(message);
+    if (!workerLoadFailure) {
+      throw error;
+    }
+
+    throw new Error(
+      'OpenSCAD runtime is unavailable. ' +
+      'Run "npm run download-openscad" and then "npm run build" to refresh runtime assets, ' +
+      'or provide request.openscadScriptUrl to point to openscad.js.'
+    );
   });
 }
 
-/**
- * Create a Web Worker for OpenSCAD conversion
- */
-function createOpenSCADWorker(workerScript?: string): Worker {
-  if (workerScript) {
-    // Use provided worker script
-    const blob = new Blob([workerScript], { type: 'application/javascript' });
-    const workerUrl = URL.createObjectURL(blob);
-    return new Worker(workerUrl);
+function resolveOpenSCADScriptUrl(explicitUrl?: string): string {
+  if (explicitUrl && explicitUrl.trim().length > 0) {
+    return explicitUrl;
   }
 
-  // Create inline worker with default OpenSCAD conversion logic
-  const inlineWorkerScript = getDefaultOpenSCADWorkerScript();
-  const blob = new Blob([inlineWorkerScript], { type: 'application/javascript' });
-  const workerUrl = URL.createObjectURL(blob);
-  return new Worker(workerUrl);
-}
+  // Allow host applications to set a global override without changing call sites
+  const globalOverride = (globalThis as unknown as { __BABYLON_ROS_OPENSCAD_URL?: string }).__BABYLON_ROS_OPENSCAD_URL;
+  if (typeof globalOverride === 'string' && globalOverride.trim().length > 0) {
+    return globalOverride;
+  }
 
-/**
- * Get the default OpenSCAD worker script for browser-based conversion
- */
-function getDefaultOpenSCADWorkerScript(): string {
-  return `
-    // Default OpenSCAD conversion worker
-    // This worker handles OpenSCAD to STL conversion using openscad-wasm-prebuilt
-
-    importScripts('https://cdn.jsdelivr.net/npm/openscad-wasm-prebuilt@1.2.0/dist/index.js');
-
-    self.onmessage = async (event) => {
+  if (typeof document !== 'undefined') {
+    const currentScript = document.currentScript as HTMLScriptElement | null;
+    const src = currentScript?.src;
+    if (src) {
       try {
-        const {
-          scadContent,
-          filename,
-          libraryFiles = {},
-          exportFormat = 'stl',
-          parameterOverrides = {}
-        } = event.data;
+        const base = new URL('.', src).href;
+        return new URL('openscad-wasm-build/dist/openscad.js', base).href;
+      } catch {
+        // fall through to other strategies
+      }
+    }
+  }
 
-        // Initialize OpenSCAD
-        const openscad = await createOpenSCAD({
-          print: (text) => console.log(text),
-          printErr: (text) => console.warn(text)
-        });
+  if (typeof window !== 'undefined' && window.location) {
+    try {
+      return new URL('openscad-wasm-build/dist/openscad.js', window.location.href).href;
+    } catch {
+      // fall through to final relative fallback
+    }
+  }
 
-        const instance = openscad.getInstance();
+  return './openscad-wasm-build/dist/openscad.js';
+}
 
-        // Load library files into virtual filesystem
-        for (const [virtualPath, base64Content] of Object.entries(libraryFiles)) {
+
+/**
+ * Resolve the URL to the compiled OpenSCAD browser worker.
+ * Works in both development and production environments.
+ */
+function resolveOpenSCADWorkerUrl(): string {
+  // Allow explicit override via global variable
+  const globalOverride = (globalThis as unknown as { __BABYLON_ROS_WORKER_URL?: string }).__BABYLON_ROS_WORKER_URL;
+  if (typeof globalOverride === 'string' && globalOverride.trim().length > 0) {
+    return globalOverride;
+  }
+
+  if (typeof document !== 'undefined') {
+    const currentScript = document.currentScript as HTMLScriptElement | null;
+    const src = currentScript?.src;
+    if (src) {
+      try {
+        const locationProtocol = typeof window !== 'undefined' ? window.location?.protocol : undefined;
+        if (locationProtocol === 'file:') {
+          return new URL('../dist/workers/openscadWorker.js', src).href;
+        }
+        const base = new URL('.', src).href;
+        return new URL('workers/openscadWorker.js', base).href;
+      } catch {
+        // fall through to other strategies
+      }
+    }
+  }
+
+  if (typeof window !== 'undefined' && window.location) {
+    try {
+      if (window.location.protocol === 'file:') {
+        // Local dev viewer (`web/viewer-openscad.html`) runs from /web,
+        // while the compiled browser worker is emitted under /dist.
+        return new URL('../dist/workers/openscadWorker.js', window.location.href).href;
+      }
+      return new URL('openscadWorker.js', window.location.href).href;
+    } catch {
+      // fall through to final relative fallback
+    }
+  }
+
+  return './workers/openscadWorker.js';
+}
+
+// ── Library file loading ───────────────────────────────────────────────────────
+
+/**
+ * Recursively load library files from disk into OpenSCAD WASM virtual filesystem.
+ * 
+ * @param instance  OpenSCAD WASM instance with FS property
+ * @param libraryPaths  Array of library directory paths to load
+ * @param trace  Optional debug trace output
+ */
+async function loadLibraryFiles(
+  instance: any,
+  libraryPaths: string[],
+  trace?: any,
+): Promise<void> {
+  // Create /libraries directory in WASM FS
+  try {
+    instance.FS.mkdir('/libraries');
+  } catch {
+    // Directory may already exist
+  }
+
+  for (const libPath of libraryPaths) {
+    if (!fs.existsSync(libPath)) {
+      continue;
+    }
+
+    trace?.appendLine(`Loading libraries from: ${libPath}`);
+
+    // Recursively scan and load all .scad files
+    const files = await collectScadFiles(libPath);
+    let loadedCount = 0;
+
+    for (const filePath of files) {
+      try {
+        const relativePath = path.relative(libPath, filePath).replace(/\\/g, '/');
+        const vfsPath = `/libraries/${relativePath}`;
+
+        // Ensure parent directory exists in WASM FS
+        const vfsDir = path.dirname(vfsPath).replace(/\\/g, '/');
+        const parts = vfsDir.split('/').filter(p => p);
+        let currentPath = '';
+        for (const part of parts) {
+          currentPath += '/' + part;
           try {
-            // Create directory structure
-            const dirPath = virtualPath.substring(0, virtualPath.lastIndexOf('/'));
-            if (dirPath) {
-              const segments = dirPath.split('/').filter(s => s.length > 0);
-              let current = '';
-              for (const segment of segments) {
-                current += '/' + segment;
-                try { instance.FS.mkdir(current); } catch { /* already exists */ }
-              }
-            }
-
-            // Decode base64 and write file
-            const binaryString = atob(base64Content);
-            const bytes = new Uint8Array(binaryString.length);
-            for (let i = 0; i < binaryString.length; i++) {
-              bytes[i] = binaryString.charCodeAt(i);
-            }
-            instance.FS.writeFile(virtualPath, bytes);
-          } catch (error) {
-            console.warn(\`Failed to load library: \${virtualPath}\`, error);
+            instance.FS.mkdir(currentPath);
+          } catch {
+            // Directory already exists
           }
         }
 
-        // Apply parameter overrides
-        let scadWithParams = scadContent;
-        for (const [name, value] of Object.entries(parameterOverrides)) {
-          if (value === null || value === undefined) continue;
+        // Read file and write to WASM FS
+        const content = fs.readFileSync(filePath, 'utf8');
+        instance.FS.writeFile(vfsPath, content);
+        loadedCount++;
+      } catch (err) {
+        trace?.appendLine(`Warning: Failed to load library file: ${filePath}`);
+      }
+    }
 
-          let scadValue;
-          if (typeof value === 'boolean') {
-            scadValue = value ? 'true' : 'false';
-          } else if (typeof value === 'number') {
-            scadValue = String(value);
-          } else if (Array.isArray(value)) {
-            scadValue = \`[\${value.join(', ')}]\`;
-          } else {
-            scadValue = \`"\${String(value).replace(/"/g, '\\\\\\\\"')}"\`;
-          }
-          scadWithParams = \`\${name} = \${scadValue};\\n\${scadWithParams}\`;
+    if (loadedCount > 0) {
+      trace?.appendLine(`Loaded ${loadedCount} library files from ${libPath}`);
+    }
+  }
+}
+
+/**
+ * Load OpenSCAD fonts helper into the WASM FS.
+ * Required for proper font rendering in OpenSCAD.
+ * Calls addFonts(instance) from openscad.fonts.js which writes fonts.conf
+ * and Liberation font binaries into the WASM virtual filesystem.
+ */
+async function loadOpenSCADFonts(instance: any): Promise<void> {
+  try {
+    const wasmDir = getWasmDir();
+    const fontsPath = path.join(wasmDir, 'openscad.fonts.js');
+
+    if (fs.existsSync(fontsPath)) {
+      try {
+        // openscad.fonts.js is an ES module — use dynamic import with webpackIgnore
+        // so webpack does not attempt to bundle this runtime-located file.
+        // pathToFileURL converts the Windows/Unix path to a valid file:// URL.
+        const { pathToFileURL } = require('url') as typeof import('url');
+        const fontsModule = await import(/* webpackIgnore: true */ pathToFileURL(fontsPath).href as string);
+        if (typeof fontsModule.addFonts === 'function') {
+          fontsModule.addFonts(instance);
         }
-
-        // Write SCAD file to virtual filesystem
-        instance.FS.writeFile('/input.scad', scadWithParams);
-
-        // Determine output format and run conversion
-        const outputPath = exportFormat === 'svg' ? '/output.svg' : '/output.stl';
-        const args = ['-o', outputPath, '/input.scad'];
-
-        instance.callMain(args);
-
-        // Read output file
-        const outputData = instance.FS.readFile(outputPath);
-
-        // Send result back
-        self.postMessage({
-          success: true,
-          outputData: outputData,
-          outputFormat: exportFormat,
-          filename: filename
-        });
-      } catch (error) {
-        self.postMessage({
-          success: false,
-          error: error.message || String(error)
-        });
+      } catch {
+        // Font loading is best-effort; don't fail conversion if it doesn't work
       }
-    };
-  `;
+    }
+  } catch {
+    // Font loading is best-effort; don't fail conversion if it doesn't work
+  }
 }
 
-/**
- * Interface for an OpenSCAD customizer UI component
- */
-export interface OpenSCADCustomizerUI {
-  render(container: HTMLElement, model: OpenSCADCustomizerParseResult, onValuesChange: (values: Record<string, OpenSCADCustomizerValue>) => void): void;
-  getValues(): Record<string, OpenSCADCustomizerValue>;
-  setValues(values: Record<string, OpenSCADCustomizerValue>): void;
-  enable(enabled: boolean): void;
-}
+// ── Node.js-compatible conversion functions ───────────────────────────────────
 
 /**
- * Create an HTML-based OpenSCAD customizer UI component
+ * Convert an OpenSCAD file to STL or GLB format with cancellation token support.
+ * Designed for use in VS Code extensions and Node.js tools.
+ * 
+ * @param scadFilePath  Path to the .scad file
+ * @param trace  Debug output trace (function that logs strings)
+ * @param token  Optional VS Code CancellationToken for cancellation support
+ * @param options  Conversion options (timeout, parameter overrides, outputFormat, etc.)
+ * @returns  Path to generated file, or null if conversion failed/was cancelled
  */
-export function createOpenSCADCustomizerUI(): OpenSCADCustomizerUI {
-  let currentModel: OpenSCADCustomizerParseResult | null = null;
-  let currentValues: Record<string, OpenSCADCustomizerValue> = {};
-  let container: HTMLElement | null = null;
-  let onValuesChange: ((values: Record<string, OpenSCADCustomizerValue>) => void) | null = null;
-  let enabled = true;
-
-  function render(
-    el: HTMLElement,
-    model: OpenSCADCustomizerParseResult,
-    onChange: (values: Record<string, OpenSCADCustomizerValue>) => void
-  ) {
-    container = el;
-    currentModel = model;
-    onValuesChange = onChange;
-
-    // Initialize values from model defaults
-    currentValues = {};
-    for (const variable of model.variables) {
-      currentValues[variable.name] = variable.defaultValue;
-    }
-
-    buildUI();
+export async function convertOpenSCADCancellable(
+  scadFilePath: string,
+  trace: any,
+  token?: any,
+  options?: {
+    timeout?: number;
+    parameterOverrides?: Record<string, OpenSCADCustomizerValue>;
+    parameterConfiguration?: OpenSCADParameterConfiguration;
+    outputFormat?: 'stl' | 'glb';
+  },
+): Promise<string | null> {
+  if (!fs.existsSync(scadFilePath)) {
+    trace?.appendLine(`Error: SCAD file not found: ${scadFilePath}`);
+    return null;
   }
 
-  function buildUI() {
-    if (!container || !currentModel) return;
+  const outputExt = options?.outputFormat === 'glb' ? '.glb' : '.stl';
+  const outputPath = scadFilePath.replace(/\.scad$/i, outputExt);
+  const timeout = options?.timeout ?? 300000; // 5 minutes default
+  const startTime = Date.now();
 
-    container.innerHTML = '';
-
-    if (currentModel.variables.length === 0) {
-      container.style.display = 'none';
-      return;
+  try {
+    // Check for cancellation before starting
+    if (token?.isCancellationRequested) {
+      trace?.appendLine('Conversion cancelled before start');
+      return null;
     }
 
-    container.style.display = 'block';
+    trace?.appendLine(`Converting OpenSCAD: ${scadFilePath}`);
 
-    // Group variables by tab
-    const grouped = new Map<string, OpenSCADCustomizerVariable[]>();
-    for (const variable of currentModel.variables) {
-      const tab = variable.tab || 'parameters';
-      if (!grouped.has(tab)) {
-        grouped.set(tab, []);
+    const scadContent = fs.readFileSync(scadFilePath, 'utf8');
+    
+    // Apply parameter overrides if provided
+    let finalScadContent = scadContent;
+    if (options?.parameterOverrides) {
+      trace?.appendLine('Applying parameter overrides');
+      finalScadContent = applyParameterOverrides(scadContent, options.parameterOverrides);
+    }
+
+    // Get library paths for this SCAD file's directory
+    const scadDir = path.dirname(scadFilePath);
+    const workspaceRoot = path.resolve(scadDir, '../..');
+    const libraryPaths = await getAllOpenSCADLibraryPaths(workspaceRoot);
+
+    // Create OpenSCAD WASM instance with stderr capture
+    const errors: string[] = [];
+    const warnings: string[] = [];
+
+    const instance = await createOpenSCADInstance(
+      (_text: string) => { /* stdout — ignore render output */ },
+      (text: string) => {
+        if (/ERROR|error/.test(text)) {
+          errors.push(text);
+          trace?.appendLine(`Error: ${text}`);
+        } else if (/WARNING|warning/.test(text)) {
+          warnings.push(text);
+          trace?.appendLine(`Warning: ${text}`);
+        }
+      },
+    );
+
+    // Check for cancellation before writing files
+    if (token?.isCancellationRequested) {
+      trace?.appendLine('Conversion cancelled before WASM initialization');
+      return null;
+    }
+
+    // Load fonts to avoid fontconfig errors
+    await loadOpenSCADFonts(instance);
+
+    // Load libraries into WASM FS
+    trace?.appendLine(`Loading libraries from ${libraryPaths.length} paths`);
+    await loadLibraryFiles(instance, libraryPaths, trace);
+
+    // Write SCAD content to WASM FS
+    instance.FS.writeFile('/input.scad', finalScadContent);
+
+    // Check for cancellation before conversion
+    if (token?.isCancellationRequested) {
+      trace?.appendLine('Conversion cancelled before OpenSCAD execution');
+      return null;
+    }
+
+    // Run OpenSCAD conversion with timeout
+    // Note: Use /input.scad first, then -o flag, matching openscad CLI convention
+    const outputFileName = options?.outputFormat === 'glb' ? '/output.glb' : '/output.stl';
+    trace?.appendLine(`Running OpenSCAD conversion to ${outputFileName}...`);
+    
+    const conversionPromise = new Promise<number>((resolve, reject) => {
+      try {
+        const exitCode: number = instance.callMain(['/input.scad', '-o', outputFileName]);
+        resolve(exitCode);
+      } catch (err) {
+        reject(err);
       }
-      grouped.get(tab)?.push(variable);
-    }
-
-    // Create tabs if needed
-    if (grouped.size > 1) {
-      const tabsContainer = document.createElement('div');
-      tabsContainer.className = 'openscad-customizer-tabs';
-      tabsContainer.style.cssText = `
-        display: flex;
-        gap: 8px;
-        margin-bottom: 12px;
-        border-bottom: 1px solid #ccc;
-      `;
-
-      const contentsContainer = document.createElement('div');
-      contentsContainer.className = 'openscad-customizer-contents';
-
-      let firstTab = true;
-      for (const [tabName, variables] of grouped) {
-        const tabButton = document.createElement('button');
-        tabButton.textContent = tabName;
-        tabButton.className = firstTab ? 'active' : '';
-        tabButton.style.cssText = `
-          padding: 8px 16px;
-          border: none;
-          background: none;
-          cursor: pointer;
-          border-bottom: 2px solid ${firstTab ? '#007bff' : 'transparent'};
-          transition: border-color 0.2s;
-        `;
-
-        const tabContent = document.createElement('div');
-        tabContent.className = `openscad-customizer-tab-${tabName}`;
-        tabContent.style.display = firstTab ? 'block' : 'none';
-
-        buildVariablesUI(tabContent, variables);
-        contentsContainer.appendChild(tabContent);
-
-        tabButton.addEventListener('click', () => {
-          // Hide other tabs
-          for (const tab of contentsContainer.querySelectorAll('[class^="openscad-customizer-tab-"]')) {
-            (tab as HTMLElement).style.display = 'none';
-          }
-          // Show this tab
-          tabContent.style.display = 'block';
-
-          // Update button styles
-          for (const btn of tabsContainer.querySelectorAll('button')) {
-            btn.style.borderBottomColor = 'transparent';
-            btn.classList.remove('active');
-          }
-          tabButton.style.borderBottomColor = '#007bff';
-          tabButton.classList.add('active');
-        });
-
-        tabsContainer.appendChild(tabButton);
-        firstTab = false;
-      }
-
-      container.appendChild(tabsContainer);
-      container.appendChild(contentsContainer);
-    } else {
-      // Single tab or no tabs
-      for (const [, variables] of grouped) {
-        buildVariablesUI(container, variables);
-      }
-    }
-  }
-
-  function buildVariablesUI(container: HTMLElement, variables: OpenSCADCustomizerVariable[]) {
-    for (const variable of variables) {
-      if (variable.hidden) continue;
-
-      const field = document.createElement('div');
-      field.className = 'openscad-customizer-field';
-      field.style.cssText = `
-        margin-bottom: 12px;
-        display: flex;
-        flex-direction: column;
-        gap: 4px;
-      `;
-
-      const label = document.createElement('label');
-      label.textContent = variable.description
-        ? `${variable.name} — ${variable.description}`
-        : variable.name;
-      label.style.cssText = `
-        font-weight: 500;
-        font-size: 13px;
-      `;
-      field.appendChild(label);
-
-      const control = createVariableControl(variable);
-      field.appendChild(control);
-
-      container.appendChild(field);
-    }
-  }
-
-  function createVariableControl(variable: OpenSCADCustomizerVariable): HTMLElement {
-    const value = currentValues[variable.name] ?? variable.defaultValue;
-
-    switch (variable.widget) {
-      case 'slider':
-        return createSlider(variable, value as number);
-      case 'spinbox':
-        return createSpinbox(variable, value as number);
-      case 'checkbox':
-        return createCheckbox(variable, value as boolean);
-      case 'dropdown':
-        return createDropdown(variable, value);
-      case 'vector':
-        return createVector(variable, value as number[]);
-      case 'textbox':
-      default:
-        return createTextbox(variable, value as string);
-    }
-  }
-
-  function createSlider(variable: OpenSCADCustomizerVariable, value: number): HTMLElement {
-    const wrapper = document.createElement('div');
-    wrapper.style.cssText = `
-      display: grid;
-      grid-template-columns: 1fr auto;
-      gap: 8px;
-      align-items: center;
-    `;
-
-    const slider = document.createElement('input');
-    slider.type = 'range';
-    slider.min = String(variable.range?.min ?? 0);
-    slider.max = String(variable.range?.max ?? 100);
-    slider.step = String(variable.range?.step ?? 1);
-    slider.value = String(value);
-    slider.style.cssText = `
-      width: 100%;
-    `;
-
-    const display = document.createElement('span');
-    display.textContent = String(value);
-    display.style.cssText = `
-      min-width: 3ch;
-      text-align: right;
-      font-size: 12px;
-      font-family: monospace;
-    `;
-
-    slider.addEventListener('input', (e) => {
-      const newValue = parseFloat((e.target as HTMLInputElement).value);
-      currentValues[variable.name] = newValue;
-      display.textContent = String(newValue);
-      notifyChange();
     });
 
-    wrapper.appendChild(slider);
-    wrapper.appendChild(display);
-    return wrapper;
-  }
-
-  function createSpinbox(variable: OpenSCADCustomizerVariable, value: number): HTMLElement {
-    const input = document.createElement('input');
-    input.type = 'number';
-    input.min = String(variable.range?.min ?? 0);
-    input.max = String(variable.range?.max ?? 1000);
-    input.step = String(variable.range?.step ?? 1);
-    input.value = String(value);
-    input.style.cssText = `
-      padding: 4px;
-      border: 1px solid #ccc;
-      border-radius: 3px;
-    `;
-
-    input.addEventListener('change', (e) => {
-      currentValues[variable.name] = parseFloat((e.target as HTMLInputElement).value);
-      notifyChange();
-    });
-
-    return input;
-  }
-
-  function createCheckbox(variable: OpenSCADCustomizerVariable, value: boolean): HTMLElement {
-    const input = document.createElement('input');
-    input.type = 'checkbox';
-    input.checked = value;
-    input.style.cssText = `
-      width: auto;
-      cursor: pointer;
-    `;
-
-    input.addEventListener('change', (e) => {
-      currentValues[variable.name] = (e.target as HTMLInputElement).checked;
-      notifyChange();
-    });
-
-    return input;
-  }
-
-  function createDropdown(variable: OpenSCADCustomizerVariable, value: OpenSCADCustomizerValue): HTMLElement {
-    const select = document.createElement('select');
-    select.style.cssText = `
-      padding: 4px;
-      border: 1px solid #ccc;
-      border-radius: 3px;
-    `;
-
-    if (variable.options) {
-      for (const option of variable.options) {
-        const opt = document.createElement('option');
-        opt.value = String(option.value);
-        opt.textContent = option.label || String(option.value);
-        select.appendChild(opt);
-      }
-    }
-
-    select.value = String(value);
-    select.addEventListener('change', (e) => {
-      const val = (e.target as HTMLSelectElement).value;
-      currentValues[variable.name] = variable.valueType === 'number' ? parseFloat(val) : val;
-      notifyChange();
-    });
-
-    return select;
-  }
-
-  function createTextbox(variable: OpenSCADCustomizerVariable, value: string): HTMLElement {
-    const input = document.createElement('input');
-    input.type = 'text';
-    input.value = value;
-    if (variable.maxLength) {
-      input.maxLength = variable.maxLength;
-    }
-    input.style.cssText = `
-      padding: 4px;
-      border: 1px solid #ccc;
-      border-radius: 3px;
-    `;
-
-    input.addEventListener('change', (e) => {
-      currentValues[variable.name] = (e.target as HTMLInputElement).value;
-      notifyChange();
-    });
-
-    return input;
-  }
-
-  function createVector(variable: OpenSCADCustomizerVariable, value: number[]): HTMLElement {
-    const wrapper = document.createElement('div');
-    wrapper.style.cssText = `
-      display: grid;
-      grid-template-columns: repeat(4, minmax(40px, 1fr));
-      gap: 4px;
-    `;
-
-    const vector = Array.isArray(value) ? value.slice(0, 4) : (Array.isArray(variable.defaultValue) ? (variable.defaultValue as number[]).slice(0, 4) : [0]);
-
-    for (let i = 0; i < vector.length; i++) {
-      const input = document.createElement('input');
-      input.type = 'number';
-      input.min = String(variable.range?.min ?? -1000);
-      input.max = String(variable.range?.max ?? 1000);
-      input.step = String(variable.range?.step ?? 0.1);
-      input.value = String(vector[i]);
-      input.style.cssText = `
-        padding: 4px;
-        border: 1px solid #ccc;
-        border-radius: 3px;
-        font-family: monospace;
-        font-size: 12px;
-      `;
-
-      input.addEventListener('change', (e) => {
-        const current = Array.isArray(currentValues[variable.name])
-          ? [...(currentValues[variable.name] as number[])]
-          : [...vector];
-        current[i] = parseFloat((e.target as HTMLInputElement).value);
-        currentValues[variable.name] = current;
-        notifyChange();
+    // Handle timeout and cancellation
+    let exitCode = -1;
+    try {
+      const timeoutPromise = new Promise<number>((_resolve, reject) => {
+        setTimeout(() => {
+          reject(new Error(`OpenSCAD conversion timeout after ${timeout}ms`));
+        }, timeout);
       });
 
-      wrapper.appendChild(input);
+      const cancellationPromise = token
+        ? new Promise<number>((_resolve, reject) => {
+            token.onCancellationRequested(() => {
+              reject(new Error('OpenSCAD conversion cancelled by user'));
+            });
+          })
+        : null;
+
+      const promises = [conversionPromise];
+      if (cancellationPromise) {
+        promises.push(cancellationPromise);
+      }
+      if (timeout > 0) {
+        promises.push(timeoutPromise);
+      }
+
+      exitCode = await Promise.race(promises);
+    } catch (err) {
+      const message = err instanceof Error ? err.message : String(err);
+      trace?.appendLine(`Conversion error: ${message}`);
+      errors.push(message);
     }
 
-    return wrapper;
+    if (errors.length > 0) {
+      trace?.appendLine(`Conversion failed with ${errors.length} error(s)`);
+      return null;
+    }
+
+    if (exitCode !== 0) {
+      trace?.appendLine(`OpenSCAD exited with code ${exitCode}`);
+      return null;
+    }
+
+    // Check for cancellation before reading output
+    if (token?.isCancellationRequested) {
+      trace?.appendLine('Conversion cancelled before reading output');
+      return null;
+    }
+
+    // Read output from WASM FS and write to filesystem
+    try {
+      const outputData = instance.FS.readFile(outputFileName);
+      fs.writeFileSync(outputPath, Buffer.from(outputData));
+      
+      const elapsed = Date.now() - startTime;
+      trace?.appendLine(`Conversion succeeded in ${elapsed}ms: ${outputPath}`);
+      return outputPath;
+    } catch (err) {
+      const message = err instanceof Error ? err.message : String(err);
+      trace?.appendLine(`Failed to read/write output: ${message}`);
+      return null;
+    }
+  } catch (err) {
+    const message = err instanceof Error ? err.message : String(err);
+    trace?.appendLine(`Conversion exception: ${message}`);
+    return null;
+  }
+}
+
+/**
+ * Export an OpenSCAD file to STL or SVG format with cancellation token support.
+ * Designed for use in VS Code extensions and Node.js tools.
+ * 
+ * @param scadFilePath  Path to the .scad file
+ * @param exportFormat  Output format: 'stl' or 'svg'
+ * @param trace  Debug output trace (function that logs strings)
+ * @param token  Optional VS Code CancellationToken for cancellation support
+ * @param options  Export options (timeout, parameter overrides, etc.)
+ * @returns  Path to generated file, or null if export failed/was cancelled
+ */
+export async function exportOpenSCAD(
+  scadFilePath: string,
+  exportFormat: 'stl' | 'svg',
+  trace: any,
+  token?: any,
+  options?: {
+    timeout?: number;
+    parameterOverrides?: Record<string, OpenSCADCustomizerValue>;
+    suppressErrorMessage?: boolean;
+  },
+): Promise<string | null> {
+  if (!fs.existsSync(scadFilePath)) {
+    if (!options?.suppressErrorMessage) {
+      trace?.appendLine(`Error: SCAD file not found: ${scadFilePath}`);
+    }
+    return null;
   }
 
-  function notifyChange() {
-    if (enabled && onValuesChange) {
-      onValuesChange(currentValues);
-    }
-  }
+  const extension = exportFormat === 'svg' ? '.svg' : '.stl';
+  const outputPath = scadFilePath.replace(/\.scad$/i, extension);
+  const timeout = options?.timeout ?? 300000; // 5 minutes default
+  const startTime = Date.now();
 
-  return {
-    render,
-    getValues: () => ({ ...currentValues }),
-    setValues: (values) => {
-      currentValues = { ...values };
-      buildUI();
-    },
-    enable: (e) => {
-      enabled = e;
+  try {
+    // Check for cancellation before starting
+    if (token?.isCancellationRequested) {
+      if (!options?.suppressErrorMessage) {
+        trace?.appendLine('Export cancelled before start');
+      }
+      return null;
     }
-  };
+
+    if (!options?.suppressErrorMessage) {
+      trace?.appendLine(`Exporting OpenSCAD to ${exportFormat.toUpperCase()}: ${scadFilePath}`);
+    }
+
+    const scadContent = fs.readFileSync(scadFilePath, 'utf8');
+    
+    // Apply parameter overrides if provided
+    let finalScadContent = scadContent;
+    if (options?.parameterOverrides) {
+      if (!options?.suppressErrorMessage) {
+        trace?.appendLine('Applying parameter overrides');
+      }
+      finalScadContent = applyParameterOverrides(scadContent, options.parameterOverrides);
+    }
+
+    // Get library paths for this SCAD file's directory
+    const scadDir = path.dirname(scadFilePath);
+    const workspaceRoot = path.resolve(scadDir, '../..');
+    const libraryPaths = await getAllOpenSCADLibraryPaths(workspaceRoot);
+
+    // Create OpenSCAD WASM instance with stderr capture
+    const errors: string[] = [];
+
+    const instance = await createOpenSCADInstance(
+      (_text: string) => { /* stdout — ignore render output */ },
+      (text: string) => {
+        if (/ERROR|error/.test(text)) {
+          errors.push(text);
+          if (!options?.suppressErrorMessage) {
+            trace?.appendLine(`Error: ${text}`);
+          }
+        }
+      },
+    );
+
+    // Check for cancellation before writing files
+    if (token?.isCancellationRequested) {
+      if (!options?.suppressErrorMessage) {
+        trace?.appendLine('Export cancelled before WASM initialization');
+      }
+      return null;
+    }
+
+    // Load fonts to avoid fontconfig errors
+    await loadOpenSCADFonts(instance);
+
+    // Load libraries into WASM FS
+    if (!options?.suppressErrorMessage) {
+      trace?.appendLine(`Loading libraries from ${libraryPaths.length} paths`);
+    }
+    await loadLibraryFiles(instance, libraryPaths, trace);
+
+    // Write SCAD content to WASM FS
+    instance.FS.writeFile('/input.scad', finalScadContent);
+
+    // Check for cancellation before conversion
+    if (token?.isCancellationRequested) {
+      if (!options?.suppressErrorMessage) {
+        trace?.appendLine('Export cancelled before OpenSCAD execution');
+      }
+      return null;
+    }
+
+    // Run OpenSCAD export with timeout
+    // Note: Use /input.scad first, then -o flag, matching openscad CLI convention
+    if (!options?.suppressErrorMessage) {
+      trace?.appendLine(`Running OpenSCAD export to ${exportFormat.toUpperCase()}...`);
+    }
+    
+    const outputFileName = exportFormat === 'svg' ? '/output.svg' : '/output.stl';
+    const exportPromise = new Promise<number>((_resolve, reject) => {
+      try {
+        const exitCode: number = instance.callMain(['/input.scad', '-o', outputFileName]);
+        _resolve(exitCode);
+      } catch (err) {
+        reject(err);
+      }
+    });
+
+    // Handle timeout and cancellation
+    let exitCode = -1;
+    try {
+      const timeoutPromise = new Promise<number>((_resolve, reject) => {
+        setTimeout(() => {
+          reject(new Error(`OpenSCAD export timeout after ${timeout}ms`));
+        }, timeout);
+      });
+
+      const cancellationPromise = token
+        ? new Promise<number>((_resolve, reject) => {
+            token.onCancellationRequested(() => {
+              reject(new Error('OpenSCAD export cancelled by user'));
+            });
+          })
+        : null;
+
+      const promises = [exportPromise];
+      if (cancellationPromise) {
+        promises.push(cancellationPromise);
+      }
+      if (timeout > 0) {
+        promises.push(timeoutPromise);
+      }
+
+      exitCode = await Promise.race(promises);
+    } catch (err) {
+      const message = err instanceof Error ? err.message : String(err);
+      if (!options?.suppressErrorMessage) {
+        trace?.appendLine(`Export error: ${message}`);
+      }
+      errors.push(message);
+    }
+
+    if (errors.length > 0) {
+      if (!options?.suppressErrorMessage) {
+        trace?.appendLine(`Export failed with ${errors.length} error(s)`);
+      }
+      return null;
+    }
+
+    if (exitCode !== 0) {
+      if (!options?.suppressErrorMessage) {
+        trace?.appendLine(`OpenSCAD exited with code ${exitCode}`);
+      }
+      return null;
+    }
+
+    // Check for cancellation before reading output
+    if (token?.isCancellationRequested) {
+      if (!options?.suppressErrorMessage) {
+        trace?.appendLine('Export cancelled before reading output');
+      }
+      return null;
+    }
+
+    // Read output from WASM FS and write to filesystem
+    try {
+      const outputData = instance.FS.readFile(outputFileName);
+      fs.writeFileSync(outputPath, Buffer.from(outputData));
+      
+      const elapsed = Date.now() - startTime;
+      if (!options?.suppressErrorMessage) {
+        trace?.appendLine(`Export succeeded in ${elapsed}ms: ${outputPath}`);
+      }
+      return outputPath;
+    } catch (err) {
+      const message = err instanceof Error ? err.message : String(err);
+      if (!options?.suppressErrorMessage) {
+        trace?.appendLine(`Failed to read/write output: ${message}`);
+      }
+      return null;
+    }
+  } catch (err) {
+    const message = err instanceof Error ? err.message : String(err);
+    if (!options?.suppressErrorMessage) {
+      trace?.appendLine(`Export exception: ${message}`);
+    }
+    return null;
+  }
+}
+
+/**
+ * Apply parameter overrides to OpenSCAD content by injecting variable assignments.
+ * @param scadContent  Original SCAD source code
+ * @param overrides  Key-value pairs of parameter names and values
+ * @returns  SCAD content with overrides prepended
+ */
+function applyParameterOverrides(
+  scadContent: string,
+  overrides: Record<string, OpenSCADCustomizerValue>,
+): string {
+  const assignments = Object.entries(overrides)
+    .map(([name, value]) => {
+      // Quote string values, leave numbers/booleans as-is
+      const formattedValue = typeof value === 'string' ? `"${value.replace(/"/g, '\\"')}"` : value;
+      return `${name} = ${formattedValue};`;
+    })
+    .join('\n');
+
+  return assignments + '\n' + scadContent;
 }

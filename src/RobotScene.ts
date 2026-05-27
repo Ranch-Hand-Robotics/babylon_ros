@@ -1403,7 +1403,7 @@ export class RobotScene {
   /**
    * Automatically frame the camera to show the entire robot model
    */
-  private frameModel(): void {
+  public frameModel(): void {
     if (!this.scene || !this.camera || !this.currentRobot) {
       return;
     }
@@ -1448,7 +1448,11 @@ export class RobotScene {
     // Calculate appropriate camera distance
     // Use a factor to ensure the entire model is visible with some padding
     const distance = maxDimension * 1.5;
-    this.camera.radius = Math.max(distance, 1); // Minimum radius of 1
+    this.camera.radius = Math.max(distance, maxDimension * 0.5);
+    
+    // Adjust near/far clip planes proportionally so small models aren't clipped
+    this.camera.minZ = maxDimension * 0.001;
+    this.camera.maxZ = maxDimension * 1000;
 
     // Keep the same viewing angles but ensure good framing
     // You can adjust these angles if needed

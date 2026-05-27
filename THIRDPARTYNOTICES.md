@@ -1,3 +1,22 @@
+## Third-Party Notices
+
+This project includes software under multiple open source licenses.
+
+### OpenSCAD WASM Runtime Artifacts
+
+- Component: `openscad-wasm` collateral (`openscad.js`, `openscad.wasm.js`, `openscad.wasm`, `openscad.fonts.js`)
+- Source: https://github.com/Ranch-Hand-Robotics/openscad-wasm
+- License: GPL-2.0-or-later
+- Usage: Browser-side OpenSCAD conversion pipeline used by `babylon_ros`
+
+When distributing artifacts that include these OpenSCAD runtime files, GPL-2.0-or-later obligations apply to that distribution.
+
+Corresponding source repositories:
+- https://github.com/Ranch-Hand-Robotics/babylon_ros
+- https://github.com/Ranch-Hand-Robotics/openscad-wasm
+
+---
+
 JointRotationGizmo.ts is Babylon.js Copyright 2023 The Babylon.js team
 
 # Apache License 2.0 (Apache)

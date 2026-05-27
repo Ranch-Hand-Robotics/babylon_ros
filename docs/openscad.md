@@ -4,11 +4,38 @@ This guide explains how to use the new OpenSCAD functionality in babylon_ros for
 
 ## Overview
 
-babylon_ros now includes browser-based OpenSCAD support through:
+babylon_ros includes browser-based OpenSCAD support through:
 - **OpenSCAD Module** (`src/openscad.ts`) - Core conversion and customizer logic
 - **Web Worker** - Background processing for STL conversion
 - **Customizer UI** - Automatic UI generation from OpenSCAD customizer variables
 - **Enhanced Viewer** (`web/viewer-openscad.html`) - Full-featured OpenSCAD editor/viewer
+
+The latest OpenSCAD WASM build is automatically downloaded from the [openscad-wasm GitHub releases](https://github.com/Ranch-Hand-Robotics/openscad-wasm/releases) during project build.
+
+## Installation
+
+The OpenSCAD WASM artifacts are downloaded automatically when building babylon_ros:
+
+```bash
+npm install
+npm run build     # Automatically downloads latest openscad-wasm
+```
+
+Or manually download the latest release:
+
+```bash
+npm run download-openscad
+```
+
+The artifacts are stored in the `openscad-wasm-build/` directory:
+```
+openscad-wasm-build/
+├── build/
+│   ├── openscad.js
+│   ├── openscad.wasm
+│   └── openscad.fonts.js
+└── version.json
+```
 
 ## Features
 
@@ -26,7 +53,7 @@ const request = {
   parameterOverrides: {} // Optional: parameter overrides
 };
 
-const response = await babylon_ros.convertOpenSCADToSTL(request);
+const response = await babylon_ros.convertOpenSCAD(request);
 if (response.success) {
   const stlData = response.outputData; // Uint8Array
   // Use STL data...
@@ -72,13 +99,13 @@ customizer.setValues({ width: 15, height: 25 });
 ## Web Workers
 
 OpenSCAD conversion runs in a Web Worker to avoid blocking the UI. The worker:
-- Loads openscad-wasm-prebuilt
+- Loads openscad-wasm from the downloaded GitHub release
 - Initializes virtual filesystem with library files
 - Applies parameter overrides
 - Runs OpenSCAD conversion
 - Returns binary STL data
 
-Worker initialization and management is handled automatically by `convertOpenSCADToSTL()`.
+Worker initialization and management is handled automatically by `convertOpenSCAD()`.
 
 ## OpenSCAD Viewer
 
@@ -141,7 +168,7 @@ cylinder(r=radius, h=height);
 
 const overrides = { radius: 8, height: 15 };
 
-const response = await babylon_ros.convertOpenSCADToSTL({
+const response = await babylon_ros.convertOpenSCAD({
   scadContent,
   filename: 'cylinder.scad',
   parameterOverrides: overrides
@@ -158,7 +185,7 @@ const libraryFiles = {
   'MCAD/shapes.scad': base64EncodedContent
 };
 
-const response = await babylon_ros.convertOpenSCADToSTL({
+const response = await babylon_ros.convertOpenSCAD({
   scadContent: 'use <MCAD/shapes.scad>; ... ',
   libraryFiles,
   filename: 'model.scad'
@@ -177,7 +204,7 @@ Parse customizer variables from OpenSCAD content.
 - `warnings` - Array of parse warnings
 - `firstBraceLine` - Optional line number of first code
 
-#### `convertOpenSCADToSTL(request: OpenSCADConversionRequest, workerScript?: string): Promise<OpenSCADConversionResponse>`
+#### `convertOpenSCAD(request: OpenSCADConversionRequest, workerScript?: string): Promise<OpenSCADConversionResponse>`
 Convert OpenSCAD to STL using Web Worker.
 
 **Parameters:**
@@ -245,7 +272,9 @@ interface OpenSCADConversionResponse {
 
 ## Dependencies
 
-- **openscad-wasm-prebuilt** - WebAssembly OpenSCAD implementation (~1.2.0)
+- **openscad-wasm** - WebAssembly OpenSCAD implementation (downloaded from [GitHub Releases](https://github.com/Ranch-Hand-Robotics/openscad-wasm/releases))
+  - Automatically downloaded during build via `npm run download-openscad`
+  - No npm dependency required
 - **babylonjs** - 3D rendering engine (~7.16.0)
 - **TypeScript** - For type definitions
 
@@ -282,6 +311,12 @@ If conversion times out:
 2. Simplify model geometry
 3. Check browser console for errors
 
+### Missing openscad-wasm Artifacts
+If you get an error about loading OpenSCAD runtime:
+1. Run `npm run download-openscad` to fetch the latest release
+2. Ensure the build folder exists at `openscad-wasm-build/build/`
+3. Check that webpack was configured correctly
+
 ### Missing Libraries
 Library files must be:
 1. Explicitly provided as base64-encoded in `libraryFiles`
@@ -314,7 +349,7 @@ Check that:
     const ui = babylon_ros.createOpenSCADCustomizerUI();
     ui.render(document.getElementById('customizer'), model, async (values) => {
       // Convert on parameter change
-      const response = await babylon_ros.convertOpenSCADToSTL({
+      const response = await babylon_ros.convertOpenSCAD({
         scadContent: content,
         filename: file.name,
         parameterOverrides: values
@@ -330,10 +365,19 @@ Check that:
 
 ## License
 
-Mozilla Public License 2.0 (MPL-2.0) - Same as openscad-wasm-prebuilt
+This integration uses a mixed-license distribution model:
+
+- `babylon_ros` source: MIT
+- OpenSCAD runtime artifacts (`openscad-wasm`): GPL-2.0-or-later
+
+If you redistribute bundles that include OpenSCAD runtime artifacts, review:
+
+- [`../LICENSE-COMPATIBILITY.md`](../LICENSE-COMPATIBILITY.md)
+- [`../THIRDPARTYNOTICES.md`](../THIRDPARTYNOTICES.md)
 
 ## See Also
 
 - [OpenSCAD Documentation](https://openscad.org/documentation.html)
 - [babylon.js Documentation](https://www.babylonjs-playground.com/)
-- [openscad-wasm Documentation](https://github.com/ghostsquadgames/openscad-wasm)
+- [openscad-wasm Repository](https://github.com/Ranch-Hand-Robotics/openscad-wasm)
+- [openscad-wasm Releases](https://github.com/Ranch-Hand-Robotics/openscad-wasm/releases)

@@ -3,9 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>DECK CONFIGURATOR — Cyberdeck.city 3D Builder</title>
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <title>Model Host Demo - Cyberdeck Theme</title>
     <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=Share+Tech+Mono&display=swap" rel="stylesheet">
     <style>
         * {
@@ -15,344 +13,166 @@
         }
 
         :root {
-            /* Cyberdeck.city color palette */
+            /* Cyberpunk Color Palette */
             --cyan: #00ffff;
+            --cyan-dim: #00bcd4;
             --magenta: #ff0080;
             --green: #00ff41;
             --orange: #ff6600;
+            --yellow: #ffe100;
+            --red: #ff0055;
             
             /* Backgrounds */
             --bg-primary: #0a0a12;
-            --bg-secondary: #0f0f1a;
-            --bg-card: #16161d;
-            --bg-tertiary: #1a1a24;
+            --bg-secondary: #0d1117;
+            --bg-panel: #111827;
+            --bg-card: #0f1923;
             
-            /* Text */
-            --text-primary: #f0f0f0;
-            --text-secondary: #b0b0b0;
-            --text-muted: #606070;
+            /* Text Colors */
+            --text-primary: #e0e0e0;
+            --text-secondary: #8899aa;
+            --text-muted: #445566;
             
-            /* Borders */
-            --border: #303040;
-            --border-cyan: #00ffff40;
+            /* Border & Accents */
+            --border: #1a2a3a;
+            --border-cyan: rgba(0,255,255,0.3);
             
             /* Glows */
-            --glow-cyan: 0 0 10px rgba(0, 255, 255, 0.6);
-            --glow-magenta: 0 0 10px rgba(255, 0, 128, 0.6);
-            --glow-green: 0 0 10px rgba(0, 255, 65, 0.6);
+            --glow-cyan: 0 0 8px #00ffff, 0 0 16px rgba(0,255,255,0.5);
+            --glow-magenta: 0 0 8px #ff0080, 0 0 16px rgba(255,0,128,0.5);
+            --glow-green: 0 0 8px #00ff41, 0 0 16px rgba(0,255,65,0.5);
+            --glow-orange: 0 0 8px #ff6600, 0 0 16px rgba(255,102,0,0.5);
             
             /* Fonts */
-            --font-display: 'Orbitron', monospace;
-            --font-mono: 'Share Tech Mono', monospace;
-            
-            /* Spacing */
-            --spacing-xs: 0.5rem;
-            --spacing-sm: 1rem;
-            --spacing-md: 1.5rem;
-            --spacing-lg: 2rem;
-        }
-
-        html {
-            background: var(--bg-primary);
-            color: var(--text-primary);
+            --font-display: 'Orbitron', 'Courier New', monospace;
+            --font-mono: 'Share Tech Mono', 'Courier New', monospace;
+            --transition: 0.2s ease;
         }
 
         body {
-            font-family: 'Helvetica Neue', Arial, sans-serif;
-            background: var(--bg-primary);
+            font-family: var(--font-mono);
+            background-color: var(--bg-primary);
             color: var(--text-primary);
             line-height: 1.6;
             overflow-x: hidden;
         }
 
-        /* ──────────────────────────────────────────────────── */
-        /* NAVIGATION                                           */
-        /* ──────────────────────────────────────────────────── */
-        .nav {
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            padding: 20px 40px;
-            background: var(--bg-secondary);
-            border-bottom: 1px solid var(--border-cyan);
-            position: relative;
-            z-index: 100;
-        }
-
-        .nav-logo {
-            font-family: var(--font-display);
-            font-size: 1.2rem;
-            font-weight: 700;
-            letter-spacing: 0.2em;
-            color: var(--cyan);
-            text-shadow: var(--glow-cyan);
-            text-decoration: none;
-        }
-
-        .nav-logo span {
-            color: var(--magenta);
-        }
-
-        .nav-links {
-            display: flex;
-            list-style: none;
-            gap: 40px;
-            align-items: center;
-        }
-
-        .nav-links a {
-            color: var(--text-secondary);
-            text-decoration: none;
-            font-size: 0.9rem;
-            letter-spacing: 0.05em;
-            transition: color 0.2s;
-        }
-
-        .nav-links a:hover {
-            color: var(--cyan);
-            text-shadow: var(--glow-cyan);
-        }
-
-        /* ──────────────────────────────────────────────────── */
-        /* HEADER / HERO                                        */
-        /* ──────────────────────────────────────────────────── */
-        .header {
-            padding: 60px 40px;
-            position: relative;
-            overflow: hidden;
-        }
-
-        .header::before {
+        /* Scanline overlay effect */
+        body::before {
             content: '';
-            position: absolute;
+            position: fixed;
             inset: 0;
-            background-image:
-                linear-gradient(rgba(0,255,255,0.03) 1px, transparent 1px),
-                linear-gradient(90deg, rgba(0,255,255,0.03) 1px, transparent 1px);
-            background-size: 40px 40px;
+            background: repeating-linear-gradient(
+                0deg,
+                rgba(0,0,0,0.15),
+                rgba(0,0,0,0.15) 1px,
+                transparent 1px,
+                transparent 2px
+            );
             pointer-events: none;
+            z-index: 1000;
         }
 
-        .header::after {
-            content: '';
-            position: absolute;
-            left: 0; right: 0; top: 0;
-            height: 300px;
-            background: radial-gradient(ellipse 80% 40% at 50% 0%, rgba(0,255,255,0.1) 0%, transparent 70%);
-            pointer-events: none;
-        }
-
-        .header-content {
-            position: relative;
-            z-index: 1;
-            max-width: 800px;
-        }
-
-        .header-label {
-            font-size: 0.75rem;
-            letter-spacing: 0.3em;
-            color: var(--cyan);
-            text-transform: uppercase;
-            margin-bottom: 20px;
-            display: flex;
-            align-items: center;
-            gap: 10px;
-        }
-
-        .header-label::before {
-            content: '▹';
-            color: var(--magenta);
-        }
-
-        .header-title {
-            font-family: var(--font-display);
-            font-size: clamp(2rem, 5vw, 3.5rem);
-            font-weight: 900;
-            line-height: 1.1;
-            margin-bottom: 20px;
-            letter-spacing: 0.05em;
-        }
-
-        .header-title .accent {
-            color: var(--cyan);
-            text-shadow: var(--glow-cyan);
-            display: block;
-        }
-
-        .header-subtitle {
-            font-size: 1rem;
-            color: var(--text-secondary);
-            margin-bottom: 30px;
-            line-height: 1.7;
-            max-width: 600px;
-        }
-
-        .terminal-banner {
-            background: #050810;
-            border: 1px solid var(--cyan);
-            border-radius: 4px;
-            padding: 16px 20px;
-            font-family: var(--font-mono);
-            font-size: 0.85rem;
-            color: var(--green);
-            margin-bottom: 30px;
-            position: relative;
-            line-height: 1.8;
-        }
-
-        .terminal-banner::before {
-            content: '● ● ●';
-            position: absolute;
-            top: 6px; left: 10px;
-            font-size: 0.5rem;
-            letter-spacing: 3px;
-            color: var(--text-muted);
-        }
-
-        .terminal-banner-line {
-            margin-top: 12px;
-        }
-
-        .terminal-banner-line:first-child {
-            margin-top: 0;
-        }
-
-        .prompt {
-            color: var(--cyan);
-            font-weight: bold;
-        }
-
-        .dim {
-            color: var(--text-muted);
-        }
-
-        /* ──────────────────────────────────────────────────── */
-        /* MAIN LAYOUT                                          */
-        /* ──────────────────────────────────────────────────── */
         .container {
             display: grid;
-            grid-template-columns: 1.2fr 1fr;
-            gap: 30px;
-            padding: 40px;
-            max-width: 1600px;
-            margin: 0 auto;
+            grid-template-columns: 1fr 1fr;
+            gap: 1.5rem;
+            min-height: 100vh;
+            padding: 1.5rem;
         }
 
         @media (max-width: 1200px) {
             .container {
                 grid-template-columns: 1fr;
+                height: auto;
             }
         }
 
-        /* ──────────────────────────────────────────────────── */
-        /* VIEWER SECTION                                       */
-        /* ──────────────────────────────────────────────────── */
-        .viewer-panel {
-            background: var(--bg-card);
-            border: 1px solid var(--border-cyan);
-            border-radius: 4px;
-            overflow: hidden;
+        /* Viewer Section */
+        .viewer-section {
             display: flex;
             flex-direction: column;
-            min-height: 600px;
+            gap: 1rem;
+            background-color: var(--bg-panel);
+            border: 2px solid var(--cyan);
+            border-radius: 0;
+            padding: 1.5rem;
+            box-shadow: var(--glow-cyan);
+            min-height: 0;
+            position: relative;
         }
 
-        .viewer-header {
-            background: var(--bg-tertiary);
-            padding: 16px 20px;
-            border-bottom: 1px solid var(--border);
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
+        .viewer-section::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 2px;
+            background: linear-gradient(90deg, transparent, var(--cyan), transparent);
+            animation: scan 2s ease-in-out infinite;
         }
 
-        .viewer-title {
-            font-family: var(--font-display);
-            font-size: 0.9rem;
+        @keyframes scan {
+            0%, 100% { opacity: 0.5; }
+            50% { opacity: 1; }
+        }
+
+        .viewer-section h2 {
+            font-size: 1.25rem;
             font-weight: 700;
-            letter-spacing: 0.1em;
-            text-transform: uppercase;
             color: var(--cyan);
             text-shadow: var(--glow-cyan);
-        }
-
-        .viewer-status {
-            font-family: var(--font-mono);
-            font-size: 0.75rem;
-            color: var(--text-muted);
-            display: flex;
-            align-items: center;
-            gap: 8px;
-        }
-
-        .status-dot {
-            width: 6px;
-            height: 6px;
-            border-radius: 50%;
-            background: var(--green);
-            box-shadow: var(--glow-green);
-            animation: pulse 2s infinite;
-        }
-
-        @keyframes pulse {
-            0%, 100% { opacity: 1; }
-            50% { opacity: 0.5; }
-        }
-
-        #viewerContainer {
-            flex: 1;
+            font-family: var(--font-display);
+            letter-spacing: 0.1em;
+            margin-bottom: 0.5rem;
             position: relative;
-            background: linear-gradient(135deg, #050810 0%, #0a1020 100%);
+            z-index: 1;
         }
 
-        #viewerContainer iframe {
-            width: 100%;
-            height: 100%;
-            border: none;
+        #renderCanvas {
+            flex: 1;
+            border: 1px solid var(--border-cyan);
+            display: block;
+            box-shadow: inset 0 0 10px rgba(0,255,255,0.1);
         }
 
-        /* ──────────────────────────────────────────────────── */
-        /* CONTROL PANEL                                        */
-        /* ──────────────────────────────────────────────────── */
-        .control-panel {
+        /* Host Controls Section */
+        .host-section {
             display: flex;
             flex-direction: column;
-            gap: 20px;
+            gap: 1.5rem;
+            overflow-y: auto;
         }
 
-        .config-card {
-            background: var(--bg-card);
-            border: 1px solid var(--border);
-            border-radius: 4px;
-            padding: 20px;
-            transition: border-color 0.2s, box-shadow 0.2s;
+        .panel {
+            background-color: var(--bg-panel);
+            border: 1px solid var(--magenta);
+            padding: 1.5rem;
+            box-shadow: var(--glow-magenta);
+            position: relative;
         }
 
-        .config-card:hover {
-            border-color: var(--cyan);
-            box-shadow: 0 0 20px rgba(0,255,255,0.1);
-        }
-
-        .config-card-title {
-            font-family: var(--font-display);
-            font-size: 0.85rem;
+        .panel h3 {
+            font-size: 1.125rem;
             font-weight: 700;
-            letter-spacing: 0.1em;
-            text-transform: uppercase;
-            color: var(--cyan);
-            margin-bottom: 15px;
-            display: flex;
-            align-items: center;
-            gap: 8px;
-        }
-
-        .config-card-title::before {
-            content: '▹';
             color: var(--magenta);
+            text-shadow: var(--glow-magenta);
+            font-family: var(--font-display);
+            margin-bottom: 1rem;
+            letter-spacing: 0.08em;
+            text-transform: uppercase;
         }
 
+        .panel h3::before {
+            content: '◆ ';
+            margin-right: 0.5rem;
+            color: var(--cyan);
+        }
+
+        /* Configuration Controls */
         .config-group {
-            margin-bottom: 15px;
+            margin-bottom: 1rem;
         }
 
         .config-group:last-child {
@@ -361,583 +181,654 @@
 
         .config-label {
             display: block;
-            font-size: 0.8rem;
-            color: var(--text-secondary);
+            font-size: 0.75rem;
+            font-weight: 600;
+            color: var(--green);
+            margin-bottom: 0.5rem;
             text-transform: uppercase;
-            letter-spacing: 0.05em;
-            margin-bottom: 8px;
+            letter-spacing: 0.1em;
             font-family: var(--font-mono);
         }
 
         .config-input {
             width: 100%;
-            padding: 10px 12px;
-            background: var(--bg-secondary);
-            border: 1px solid var(--border);
-            color: var(--text-primary);
+            padding: 0.5rem 0.75rem;
+            border: 1px solid var(--cyan);
+            background-color: var(--bg-secondary);
+            color: var(--cyan);
+            font-size: 0.875rem;
             font-family: var(--font-mono);
-            font-size: 0.85rem;
-            border-radius: 3px;
-            transition: border-color 0.2s;
+            transition: var(--transition);
         }
 
         .config-input:focus {
             outline: none;
-            border-color: var(--cyan);
-            box-shadow: 0 0 10px rgba(0,255,255,0.3);
-        }
-
-        .config-input[readonly] {
-            background: var(--bg-tertiary);
-            color: var(--text-muted);
-        }
-
-        /* ──────────────────────────────────────────────────── */
-        /* BUTTONS                                              */
-        /* ──────────────────────────────────────────────────── */
-        .button-group {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 10px;
-        }
-
-        .button-group.full {
-            grid-template-columns: 1fr;
-        }
-
-        button, .btn {
-            padding: 12px 16px;
-            border: 1px solid transparent;
-            border-radius: 3px;
-            font-family: var(--font-display);
-            font-size: 0.85rem;
-            font-weight: 700;
-            letter-spacing: 0.05em;
-            text-transform: uppercase;
-            cursor: pointer;
-            transition: all 0.2s;
-            text-decoration: none;
-            display: inline-block;
-            text-align: center;
-        }
-
-        .btn-primary {
-            background: var(--cyan);
-            color: var(--bg-primary);
-            border-color: var(--cyan);
-            box-shadow: 0 0 15px rgba(0,255,255,0.3);
-        }
-
-        .btn-primary:hover {
-            background: var(--magenta);
             border-color: var(--magenta);
-            box-shadow: 0 0 20px rgba(255,0,128,0.5);
-            transform: translateY(-2px);
-        }
-
-        .btn-secondary {
-            background: transparent;
-            color: var(--cyan);
-            border-color: var(--cyan);
-        }
-
-        .btn-secondary:hover {
-            background: var(--cyan);
-            color: var(--bg-primary);
-            box-shadow: 0 0 20px rgba(0,255,255,0.5);
-        }
-
-        .btn-success {
-            background: var(--green);
-            color: var(--bg-primary);
-            border-color: var(--green);
-            box-shadow: 0 0 15px rgba(0,255,65,0.3);
-        }
-
-        .btn-success:hover {
-            background: var(--cyan);
-            border-color: var(--cyan);
-            box-shadow: 0 0 20px rgba(0,255,255,0.5);
-            transform: translateY(-2px);
-        }
-
-        button:active, .btn:active {
-            transform: scale(0.98);
-        }
-
-        /* ──────────────────────────────────────────────────── */
-        /* MODEL CONFIG DISPLAY                                 */
-        /* ──────────────────────────────────────────────────── */
-        .config-display {
-            background: #050810;
-            border: 1px dashed var(--border-cyan);
-            padding: 12px;
-            border-radius: 3px;
-            font-family: var(--font-mono);
-            font-size: 0.75rem;
-            color: var(--green);
-            max-height: 150px;
-            overflow-y: auto;
-            line-height: 1.5;
-        }
-
-        .config-display-item {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 6px;
-        }
-
-        .config-display-item:last-child {
-            margin-bottom: 0;
-        }
-
-        .config-key {
-            color: var(--cyan);
-        }
-
-        .config-value {
-            color: var(--green);
-        }
-
-        /* ──────────────────────────────────────────────────── */
-        /* ACTION PAYLOAD                                       */
-        /* ──────────────────────────────────────────────────── */
-        .action-output {
-            background: #050810;
-            border: 1px solid var(--green);
-            border-radius: 3px;
-            padding: 12px;
-            font-family: var(--font-mono);
-            font-size: 0.7rem;
-            color: var(--green);
-            max-height: 120px;
-            overflow-y: auto;
-            line-height: 1.4;
-            word-break: break-all;
-            white-space: pre-wrap;
-        }
-
-        /* ──────────────────────────────────────────────────── */
-        /* FOOTER                                               */
-        /* ──────────────────────────────────────────────────── */
-        .footer {
-            margin-top: 60px;
-            padding: 40px;
-            border-top: 1px solid var(--border-cyan);
-            text-align: center;
-            color: var(--text-muted);
-            font-size: 0.85rem;
-        }
-
-        .footer-logo {
-            font-family: var(--font-display);
-            font-size: 1rem;
-            font-weight: 700;
-            color: var(--cyan);
-            text-shadow: var(--glow-cyan);
-            display: block;
-            margin-bottom: 10px;
-        }
-
-        .footer-logo span {
+            box-shadow: var(--glow-magenta), inset 0 0 5px rgba(255,0,128,0.1);
             color: var(--magenta);
         }
 
-        .footer-links {
-            list-style: none;
-            display: flex;
-            justify-content: center;
-            gap: 20px;
-            margin-bottom: 15px;
-            flex-wrap: wrap;
+        .config-input::placeholder {
+            color: var(--text-muted);
         }
 
-        .footer-links a {
-            color: var(--text-secondary);
-            text-decoration: none;
-            transition: color 0.2s;
-            font-size: 0.85rem;
+        select.config-input {
+            cursor: pointer;
         }
 
-        .footer-links a:hover {
+        select.config-input option {
+            background-color: var(--bg-secondary);
             color: var(--cyan);
-            text-shadow: var(--glow-cyan);
         }
 
-        /* ──────────────────────────────────────────────────── */
-        /* RESPONSIVE                                           */
-        /* ──────────────────────────────────────────────────── */
-        @media (max-width: 768px) {
-            .nav {
-                padding: 16px 20px;
-                flex-direction: column;
-                gap: 16px;
-                text-align: center;
-            }
-
-            .nav-links {
-                gap: 20px;
-            }
-
-            .header {
-                padding: 40px 20px;
-            }
-
-            .container {
-                padding: 20px;
-                gap: 20px;
-            }
-
-            .button-group {
-                grid-template-columns: 1fr;
-            }
-
-            .footer {
-                padding: 30px 20px;
-            }
+        /* Button Styles */
+        .btn-primary {
+            width: 100%;
+            padding: 0.75rem 1rem;
+            border: 1px solid var(--green);
+            background-color: transparent;
+            color: var(--green);
+            font-size: 0.875rem;
+            font-weight: 600;
+            cursor: pointer;
+            font-family: var(--font-mono);
+            transition: var(--transition);
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
         }
 
-        /* Scrollbar styling */
-        ::-webkit-scrollbar {
-            width: 8px;
+        .btn-primary:hover {
+            background-color: rgba(0,255,65,0.1);
+            box-shadow: var(--glow-green);
+            color: var(--cyan);
+            border-color: var(--cyan);
         }
 
-        ::-webkit-scrollbar-track {
+        .btn-primary:active {
+            box-shadow: inset 0 0 5px rgba(0,255,65,0.3);
+        }
+
+        /* Status Indicator */
+        .status-indicator {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            padding: 0.75rem;
+            background-color: rgba(0,255,65,0.05);
+            border: 1px solid var(--green);
+            border-radius: 0;
+        }
+
+        #statusDot {
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            background-color: var(--text-muted);
+            transition: var(--transition);
+            box-shadow: none;
+        }
+
+        #statusDot.ready {
+            background-color: var(--green);
+            box-shadow: var(--glow-green);
+            animation: pulse 1s ease-in-out infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.5; }
+        }
+
+        #statusText {
+            font-size: 0.875rem;
+            color: var(--green);
+            font-family: var(--font-mono);
+            letter-spacing: 0.05em;
+        }
+
+        /* Customizer Panel */
+        .customizer-container {
+            display: flex;
+            flex-direction: column;
+            gap: 0.75rem;
+        }
+
+        .customizer-empty {
+            font-size: 0.75rem;
+            color: var(--text-muted);
+            font-style: italic;
+        }
+
+        .param-row {
+            display: grid;
+            grid-template-columns: 1fr 1.4fr;
+            align-items: center;
+            gap: 0.5rem;
+            padding-bottom: 0.5rem;
+            border-bottom: 1px solid var(--border);
+        }
+
+        .param-row:last-child { border-bottom: none; }
+
+        .param-label {
+            font-size: 0.7rem;
+            color: var(--orange);
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            word-break: break-all;
+        }
+
+        .param-label small {
+            display: block;
+            color: var(--text-muted);
+            font-weight: 400;
+            text-transform: none;
+            letter-spacing: 0;
+            font-size: 0.65rem;
+            margin-top: 0.15rem;
+        }
+
+        .param-control {
+            display: flex;
+            align-items: center;
+            gap: 0.4rem;
+        }
+
+        .param-control input[type=range] {
+            flex: 1;
+            accent-color: var(--cyan);
+            cursor: pointer;
+        }
+
+        .param-control .range-value {
+            font-size: 0.7rem;
+            color: var(--yellow);
+            font-family: var(--font-mono);
+            min-width: 2.5rem;
+            text-align: right;
+        }
+
+        .param-control input[type=number],
+        .param-control input[type=text],
+        .param-control select {
+            width: 100%;
+            padding: 0.25rem 0.4rem;
+            border: 1px solid var(--cyan);
+            background: var(--bg-secondary);
+            color: var(--cyan);
+            font-size: 0.75rem;
+            font-family: var(--font-mono);
+        }
+
+        .param-control select option { background: var(--bg-secondary); }
+
+        .param-control input[type=checkbox] {
+            width: 1rem; height: 1rem;
+            accent-color: var(--cyan);
+            cursor: pointer;
+        }
+
+        .render-btn {
+            width: 100%;
+            padding: 0.6rem;
+            border: 1px solid var(--cyan);
+            background: rgba(0,255,255,0.05);
+            color: var(--cyan);
+            font-size: 0.8rem;
+            font-weight: 700;
+            cursor: pointer;
+            font-family: var(--font-mono);
+            text-transform: uppercase;
+            letter-spacing: 0.1em;
+            transition: var(--transition);
+            margin-top: 0.5rem;
+        }
+        .render-btn:hover {
+            background: rgba(0,255,255,0.15);
+            box-shadow: var(--glow-cyan);
+        }
+        .render-btn:disabled {
+            opacity: 0.4;
+            cursor: not-allowed;
+        }
+
+        /* Config Display */
+        .config-display {
+            background-color: var(--bg-secondary);
+            border: 1px solid var(--cyan);
+            padding: 1rem;
+            font-size: 0.75rem;
+            font-family: var(--font-mono);
+            color: var(--cyan);
+            max-height: 250px;
+            overflow-y: auto;
+            line-height: 1.4;
+            box-shadow: inset 0 0 5px rgba(0,255,255,0.05);
+        }
+
+        /* Scrollbar Styling */
+        .config-display::-webkit-scrollbar,
+        .model-config-container::-webkit-scrollbar,
+        .host-section::-webkit-scrollbar {
+            width: 6px;
+        }
+
+        .config-display::-webkit-scrollbar-track,
+        .model-config-container::-webkit-scrollbar-track,
+        .host-section::-webkit-scrollbar-track {
             background: var(--bg-secondary);
         }
 
-        ::-webkit-scrollbar-thumb {
+        .config-display::-webkit-scrollbar-thumb,
+        .model-config-container::-webkit-scrollbar-thumb,
+        .host-section::-webkit-scrollbar-thumb {
             background: var(--cyan);
-            border-radius: 4px;
+            box-shadow: var(--glow-cyan);
         }
 
-        ::-webkit-scrollbar-thumb:hover {
-            background: var(--magenta);
+        /* Responsive */
+        @media (max-width: 768px) {
+            .container {
+                padding: 1rem;
+                gap: 1rem;
+            }
+
+            .viewer-section,
+            .panel {
+                padding: 1rem;
+            }
+
+            .config-display {
+                max-height: 150px;
+            }
         }
     </style>
 </head>
 <body>
-    <!-- NAVIGATION -->
-    <nav class="nav">
-        <a href="#" class="nav-logo">CYBERDECK<span>.</span>CITY</a>
-        <ul class="nav-links">
-            <li><a href="https://cyberdeck.city">← Back to Shop</a></li>
-            <li><a href="https://github.com/Ranch-Hand-Robotics/babylon_ros" target="_blank">babylon_ros</a></li>
-        </ul>
-    </nav>
-
-    <!-- HEADER -->
-    <section class="header">
-        <div class="header-content">
-            <p class="header-label">3D Model Configurator</p>
-            <h1 class="header-title">
-                DECK
-                <span class="accent">NOMAD</span>
-            </h1>
-            <p class="header-subtitle">
-                Real-time 3D visualization of your custom cyberdeck build. Adjust parameters, preview geometry,
-                and generate your complete Bill of Materials instantly.
-            </p>
-            <div class="terminal-banner">
-                <div class="terminal-banner-line">
-                    <span class="prompt">$</span> deck_nomad.configure()
-                </div>
-                <div class="terminal-banner-line dim">
-                    ▶ Initializing babylon_ros v0.5.0
-                </div>
-                <div class="terminal-banner-line dim">
-                    ▶ Loading deck_nomad SCAD parameters...
-                </div>
-                <div class="terminal-banner-line">
-                    <span class="prompt">screen_size</span> = 7" IPS
-                </div>
-            </div>
-        </div>
-    </section>
-
-    <!-- MAIN CONTENT -->
     <div class="container">
-        <!-- VIEWER -->
-        <div class="viewer-panel">
-            <div class="viewer-header">
-                <div class="viewer-title">◉ 3D Preview</div>
-                <div class="viewer-status">
-                    <span class="status-dot"></span>
-                    <span>Live Render</span>
-                </div>
-            </div>
-            <div id="viewerContainer">
-                <div style="display: flex; align-items: center; justify-content: center; height: 100%; color: var(--text-muted); font-family: var(--font-mono); text-align: center;">
-                    ▶ Loading babylon_ros viewer...
-                </div>
-            </div>
+        <!-- Model Viewer Section -->
+        <div class="viewer-section">
+            <h2>⧗ VIEWER_CORE ⧗</h2>
+            <canvas id="renderCanvas"></canvas>
         </div>
 
-        <!-- CONTROLS -->
-        <div class="control-panel">
-            <!-- Model Configuration -->
-            <div class="config-card">
-                <div class="config-card-title">Model Configuration</div>
-
-                <div class="config-group">
-                    <label class="config-label">Model File</label>
-                    <input type="text" class="config-input" id="modelUrl" placeholder="/test-model.scad" value="/test-model.scad">
-                </div>
-
-                <div class="button-group full">
-                    <button class="btn btn-primary" id="loadBtn">⟳ Load Model</button>
+        <!-- Host Controls Section -->
+        <div class="host-section">
+            <!-- Status Panel -->
+            <div class="panel">
+                <h3>System Status</h3>
+                <div class="status-indicator">
+                    <div id="statusDot"></div>
+                    <span id="statusText">Initializing...</span>
                 </div>
             </div>
 
-            <!-- Current Configuration -->
-            <div class="config-card">
-                <div class="config-card-title">Live Parameters</div>
-                <div class="config-display" id="configDisplay">
-                    <div class="config-display-item">
-                        <span class="config-key">Status:</span>
-                        <span class="config-value">awaiting_model</span>
-                    </div>
+            <!-- Theme Configuration Panel -->
+            <div class="panel">
+                <h3>Visual Config</h3>
+                <div class="config-group">
+                    <label class="config-label">Theme</label>
+                    <select id="themeSelect" class="config-input">
+                        <option value="cyberdeck">Cyberdeck (Default)</option>
+                        <option value="light">Light</option>
+                        <option value="dark">Dark</option>
+                    </select>
+                </div>
+
+                <div class="config-group">
+                    <label class="config-label">Primary Accent</label>
+                    <input type="color" id="primaryColor" class="config-input" value="#00ffff">
+                    <input type="text" id="primaryColorText" class="config-input" value="#00ffff" placeholder="#000000" style="font-size: 0.75rem; margin-top: 0.25rem;">
+                </div>
+
+                <div class="config-group">
+                    <label class="config-label">Secondary Accent</label>
+                    <input type="color" id="secondaryColor" class="config-input" value="#00ff41">
+                    <input type="text" id="secondaryColorText" class="config-input" value="#00ff41" placeholder="#000000" style="font-size: 0.75rem; margin-top: 0.25rem;">
+                </div>
+
+                <div class="config-group">
+                    <label class="config-label">Alert Color</label>
+                    <input type="color" id="accentColor" class="config-input" value="#ff0080">
+                    <input type="text" id="accentColorText" class="config-input" value="#ff0080" placeholder="#000000" style="font-size: 0.75rem; margin-top: 0.25rem;">
                 </div>
             </div>
 
-            <!-- Build Action -->
-            <div class="config-card">
-                <div class="config-card-title">Order System</div>
-
+            <!-- Model Control Panel -->
+            <div class="panel">
+                <h3>Model Loader</h3>
                 <div class="config-group">
-                    <label class="config-label">Deck Configuration JSON</label>
-                    <input type="text" class="config-input" id="deckName" placeholder="my_nomad_v2" value="">
+                    <label class="config-label">Model URL</label>
+                    <input type="text" id="modelUrl" class="config-input" placeholder="https://example.com/model.scad">
                 </div>
-
-                <div class="button-group">
-                    <button class="btn btn-success" id="generateBomBtn">📋 Generate BOM</button>
-                    <button class="btn btn-secondary" id="exportJsonBtn">💾 Export JSON</button>
+                <button class="btn-primary" id="loadModelBtn">Load from URL</button>
+                
+                <div class="config-group" style="margin-top: 1rem; border-top: 1px solid var(--border); padding-top: 1rem;">
+                    <label class="config-label">Upload File</label>
+                    <input type="file" id="fileInput" accept=".scad,.json,.urdf,.xacro" style="display: none;">
+                    <button class="btn-primary" id="uploadFileBtn">Browse Files</button>
+                    <div id="uploadStatus" style="font-size: 0.75rem; color: var(--text-muted); margin-top: 0.5rem;"></div>
                 </div>
+            </div>
 
-                <div style="margin-top: 15px;">
-                    <label class="config-label">Order Payload</label>
-                    <div class="action-output" id="actionOutput">
-                        { waiting for action... }
-                    </div>
+            <!-- Customizer Panel -->
+            <div class="panel" id="customizerPanel">
+                <h3>Customizer</h3>
+                <div id="customizerControls" class="customizer-container">
+                    <span class="customizer-empty">Load a model to see parameters.</span>
+                </div>
+            </div>
+
+            <!-- Action Log Panel -->
+            <div class="panel">
+                <h3>Event Log</h3>
+                <div class="config-display" id="actionPayload" style="color: var(--text-secondary);">
+                    Awaiting actions...
                 </div>
             </div>
         </div>
     </div>
 
-    <!-- FOOTER -->
-    <footer class="footer">
-        <span class="footer-logo">CYBERDECK<span>.</span>CITY</span>
-        <ul class="footer-links">
-            <li><a href="https://cyberdeck.city">Home</a></li>
-            <li><a href="https://cyberdeck.city/configure">Configurator</a></li>
-            <li><a href="https://github.com/Ranch-Hand-Robotics/babylon_ros">babylon_ros</a></li>
-            <li><a href="https://github.com/Ranch-Hand-Robotics/IsoGridScad">IsoGridScad</a></li>
-        </ul>
-        <p>
-            Powered by <a href="https://github.com/Ranch-Hand-Robotics/babylon_ros" style="color: var(--cyan);">babylon_ros</a>
-            &amp; <a href="https://www.babylonjs.com/" style="color: var(--cyan);">Babylon.js</a><br>
-            <small>© 2077 Cyberdeck.city — Build your deck. Go dark.</small>
-        </p>
-    </footer>
-
     <script>
+        // Point the babylon_ros OpenSCAD worker to the correct path (web/workers/)
+        window.__BABYLON_ROS_WORKER_URL = './workers/openscadWorker.js';
+    </script>
+    <script src="./ros.js"></script>
+    <script>
+        const themeConfig = {
+            cyberdeck: {
+                '--cyan': '#00ffff',
+                '--magenta': '#ff0080',
+                '--green': '#00ff41',
+                '--orange': '#ff6600',
+                '--yellow': '#ffe100',
+            },
+            light: {
+                '--cyan': '#2563eb',
+                '--magenta': '#db2777',
+                '--green': '#16a34a',
+                '--orange': '#ea580c',
+                '--yellow': '#ca8a04',
+            },
+            dark: {
+                '--cyan': '#06b6d4',
+                '--magenta': '#ec4899',
+                '--green': '#22c55e',
+                '--orange': '#f97316',
+                '--yellow': '#eab308',
+            }
+        };
+
+        let viewer = null;
         let currentModelConfig = null;
-        let viewerIframe = null;
-        let viewerReady = false;
+        let customizerVariables = [];
+        let pendingConfig = {};
 
-        // Initialize viewer
-        async function initViewer() {
-            const container = document.getElementById('viewerContainer');
-            
-            // Load with default model via URL parameter
-            const initialModel = '/test-model.scad';
-            const viewerUrl = `viewer-openscad.html?model=${encodeURIComponent(initialModel)}`;
-            
-            const iframe = document.createElement('iframe');
-            iframe.src = viewerUrl;
-            iframe.style.width = '100%';
-            iframe.style.height = '100%';
-            iframe.style.border = 'none';
-            iframe.id = 'modelViewerIframe';
-
-            container.innerHTML = '';
-            container.appendChild(iframe);
-            viewerIframe = iframe;
-
-            // Setup host integration after viewer loads
-            iframe.onload = () => {
-                console.log('%c✓ Viewer loaded', 'color: #00ff41; font-weight: bold;');
-                setupHostIntegration();
-            };
+        function applyTheme(themeName) {
+            const root = document.documentElement;
+            const colors = themeConfig[themeName] || themeConfig.cyberdeck;
+            Object.entries(colors).forEach(([key, value]) => {
+                root.style.setProperty(key, value);
+            });
+            console.log(`[THEME] Applied: ${themeName}`);
         }
 
-        function setupHostIntegration() {
-            if (!viewerIframe) return;
-            
-            try {
-                viewerIframe.contentWindow.modelViewerHost = {
-                    onConfigurationChange: function(detail) {
-                        console.log('%c✓ Config changed:', 'color: #00ffff;', detail);
-                        currentModelConfig = detail;
-                        updateConfigDisplay(detail);
-                    },
-                    onModelLoaded: function(detail) {
-                        console.log('%c✓ Model loaded:', 'color: #00ffff;', detail);
-                        currentModelConfig = detail;
-                        updateConfigDisplay(detail);
-                        viewerReady = true;
+        function updateStatus(state) {
+            const dot = document.getElementById('statusDot');
+            const text = document.getElementById('statusText');
+            if (state === 'ready') {
+                dot.classList.add('ready');
+                text.textContent = '✓ Ready';
+            } else if (state === 'loading') {
+                dot.classList.remove('ready');
+                text.textContent = '◇ Loading...';
+            } else {
+                dot.classList.remove('ready');
+                text.textContent = '✕ Error';
+            }
+        }
+
+        function buildCustomizerControls(variables, configuration) {
+            const container = document.getElementById('customizerControls');
+            if (!variables || variables.length === 0) {
+                container.innerHTML = '<span class="customizer-empty">No customizable parameters.</span>';
+                return;
+            }
+
+            pendingConfig = { ...configuration };
+
+            const rows = variables
+                .filter(v => !v.hidden)
+                .map(v => {
+                    const val = configuration[v.name] ?? v.defaultValue;
+                    const id = `param_${v.name}`;
+                    let controlHtml = '';
+
+                    if (v.widget === 'slider' && v.range) {
+                        const min = v.range.min ?? 0;
+                        const max = v.range.max ?? 100;
+                        const step = v.range.step ?? 1;
+                        controlHtml = `
+                            <div class="param-control">
+                                <input type="range" id="${id}" min="${min}" max="${max}" step="${step}" value="${val}" data-param="${v.name}" data-type="number">
+                                <span class="range-value" id="${id}_val">${val}</span>
+                            </div>`;
+                    } else if (v.widget === 'dropdown' && v.options?.length) {
+                        const opts = v.options.map(o =>
+                            `<option value="${escapeHtml(String(o.value))}" ${o.value == val ? 'selected' : ''}>${escapeHtml(String(o.label ?? o.value))}</option>`
+                        ).join('');
+                        controlHtml = `<div class="param-control"><select id="${id}" data-param="${v.name}" data-type="${v.valueType}">${opts}</select></div>`;
+                    } else if (v.widget === 'checkbox' || v.valueType === 'boolean') {
+                        controlHtml = `<div class="param-control"><input type="checkbox" id="${id}" data-param="${v.name}" data-type="boolean" ${val ? 'checked' : ''}></div>`;
+                    } else if (v.valueType === 'number') {
+                        controlHtml = `<div class="param-control"><input type="number" id="${id}" value="${val}" data-param="${v.name}" data-type="number" step="any"></div>`;
+                    } else {
+                        controlHtml = `<div class="param-control"><input type="text" id="${id}" value="${escapeHtml(String(val))}" data-param="${v.name}" data-type="string"></div>`;
+                    }
+
+                    const desc = v.description ? `<small>${escapeHtml(v.description)}</small>` : '';
+                    return `
+                        <div class="param-row">
+                            <label class="param-label" for="${id}">${escapeHtml(v.name)}${desc}</label>
+                            ${controlHtml}
+                        </div>`;
+                }).join('');
+
+            container.innerHTML = rows + `<button class="render-btn" id="renderBtn">▶ Render</button>`;
+
+            // Wire up input events to track pending config
+            container.querySelectorAll('[data-param]').forEach(el => {
+                const name = el.dataset.param;
+                const type = el.dataset.type;
+                const update = () => {
+                    let value;
+                    if (el.type === 'checkbox') value = el.checked;
+                    else if (type === 'number') value = parseFloat(el.value);
+                    else value = el.value;
+                    pendingConfig[name] = value;
+                    if (el.type === 'range') {
+                        document.getElementById(`${el.id}_val`).textContent = value;
                     }
                 };
-                
-                console.log('%c✓ Host integration ready', 'color: #00ff41;');
-            } catch (e) {
-                console.error('%c✗ Host integration failed:', 'color: #ff0080;', e);
-            }
-        }
-
-        // Update config display
-        function updateConfigDisplay(config) {
-            if (!config || !config.configuration) {
-                document.getElementById('configDisplay').innerHTML = `
-                    <div class="config-display-item">
-                        <span class="config-key">Status:</span>
-                        <span class="config-value">no_model</span>
-                    </div>
-                `;
-                return;
-            }
-
-            const items = [
-                `<div class="config-display-item"><span class="config-key">model:</span><span class="config-value">${config.modelName}</span></div>`,
-                `<div class="config-display-item"><span class="config-key">params:</span><span class="config-value">${Object.keys(config.configuration).length}</span></div>`
-            ];
-
-            Object.entries(config.configuration).forEach(([key, val]) => {
-                const displayVal = typeof val === 'object' ? JSON.stringify(val) : val;
-                items.push(
-                    `<div class="config-display-item"><span class="config-key">${key}:</span><span class="config-value">${displayVal}</span></div>`
-                );
+                el.addEventListener('input', update);
+                el.addEventListener('change', update);
             });
 
-            document.getElementById('configDisplay').innerHTML = items.join('');
-        }
-
-        // Generate BOM
-        function generateBOM() {
-            if (!currentModelConfig) {
-                alert('⚠ Load a model first');
-                return;
-            }
-
-            const deckName = document.getElementById('deckName').value || 'nomad_build';
-            const payload = {
-                action: 'generate_bom',
-                timestamp: new Date().toISOString(),
-                deck_name: deckName,
-                model: currentModelConfig.modelName,
-                parameters: currentModelConfig.configuration,
-                bom_items: [
-                    { sku: 'DISPLAY-7IPS', qty: 1, name: '7" IPS Display Kit', price: 54.99 },
-                    { sku: 'SBC-RPi4B', qty: 1, name: 'Compute Module (RPi 4B)', price: 65.00 },
-                    { sku: 'KBD-40ORT', qty: 1, name: 'Ortholinear Keyboard', price: 44.99 },
-                    { sku: 'PWR-10KMA', qty: 1, name: '10,000 mAh Power Pack', price: 39.99 },
-                    { sku: 'CASE-PANEL', qty: 1, name: 'IsoGrid Panel Set', price: 22.99 }
-                ],
-                bom_total: 227.96,
-                order_url: 'https://shop.cyberdeck.city/checkout?bom=' + btoa(JSON.stringify(currentModelConfig.configuration))
-            };
-
-            displayPayload(payload);
-            alert(`✓ BOM Generated\n\nTotal: $${payload.bom_total}\n\nCheck output below`);
-        }
-
-        // Export JSON
-        function exportJSON() {
-            if (!currentModelConfig) {
-                alert('⚠ Load a model first');
-                return;
-            }
-
-            const deckName = document.getElementById('deckName').value || 'nomad_build';
-            const payload = {
-                action: 'export_configuration',
-                timestamp: new Date().toISOString(),
-                deck_name: deckName,
-                model: currentModelConfig.modelName,
-                parameters: currentModelConfig.configuration,
-                export_format: 'application/json',
-                scad_variable_overrides: buildSCADOverrides(currentModelConfig.configuration)
-            };
-
-            displayPayload(payload);
-
-            // Trigger download
-            const json = JSON.stringify(payload, null, 2);
-            const blob = new Blob([json], { type: 'application/json' });
-            const url = URL.createObjectURL(blob);
-            const a = document.createElement('a');
-            a.href = url;
-            a.download = `${deckName}_configuration.json`;
-            a.click();
-        }
-
-        // Build SCAD overrides
-        function buildSCADOverrides(config) {
-            const overrides = [];
-            Object.entries(config).forEach(([key, val]) => {
-                if (typeof val === 'number') {
-                    overrides.push(`${key} = ${val};`);
-                } else if (typeof val === 'string') {
-                    overrides.push(`${key} = "${val}";`);
-                } else if (typeof val === 'boolean') {
-                    overrides.push(`${key} = ${val ? 'true' : 'false'};`);
+            document.getElementById('renderBtn').addEventListener('click', async () => {
+                const btn = document.getElementById('renderBtn');
+                btn.disabled = true;
+                btn.textContent = '◇ Rendering...';
+                try {
+                    await viewer.setConfiguration(pendingConfig);
+                    viewer.resetCamera();
+                    recordAction('config-applied', { config: pendingConfig });
+                } catch (e) {
+                    console.error('[RENDER] Error:', e);
+                    recordAction('render-failed', { error: e.message });
+                } finally {
+                    btn.disabled = false;
+                    btn.textContent = '▶ Render';
                 }
             });
-            return overrides.join('\n');
         }
 
-        // Display payload
-        function displayPayload(payload) {
-            document.getElementById('actionOutput').textContent = JSON.stringify(payload, null, 2);
-        }
-
-        // Event listeners
-        document.getElementById('loadBtn').addEventListener('click', () => {
-            const url = document.getElementById('modelUrl').value;
-            if (!url) {
-                alert('⚠ Enter model URL');
-                return;
-            }
-            
-            if (!viewerIframe) {
-                alert('⚠ Viewer not initialized');
-                return;
-            }
-            
-            console.log('%c⟳ Loading model:', 'color: #ffff00;', url);
-            
-            // Reload iframe with new model URL parameter
-            viewerIframe.src = `viewer-openscad.html?model=${encodeURIComponent(url)}`;
-            
-            // Re-setup host integration after reload
-            viewerIframe.onload = () => {
-                console.log('%c✓ Model viewer reloaded', 'color: #00ff41;');
-                setupHostIntegration();
+        function recordAction(action, data) {
+            const timestamp = new Date().toLocaleTimeString();
+            const payload = {
+                [timestamp]: '▶',
+                action: action,
+                ...(currentModelConfig ? { model: currentModelConfig.modelName } : {}),
+                ...data
             };
+            const display = document.getElementById('actionPayload');
+            display.textContent = JSON.stringify(payload, null, 2);
+            console.log(`[ACTION] ${action}:`, payload);
+            return payload;
+        }
+
+        function escapeHtml(text) {
+            const map = { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#039;' };
+            return text.replace(/[&<>"']/g, m => map[m]);
+        }
+
+        // Event Listeners
+        document.getElementById('themeSelect').addEventListener('change', (e) => {
+            applyTheme(e.target.value);
+            recordAction('theme-changed', { theme: e.target.value });
         });
 
-        document.getElementById('generateBomBtn').addEventListener('click', generateBOM);
-        document.getElementById('exportJsonBtn').addEventListener('click', exportJSON);
+        document.getElementById('primaryColor').addEventListener('change', (e) => {
+            document.documentElement.style.setProperty('--cyan', e.target.value);
+            document.getElementById('primaryColorText').value = e.target.value;
+            recordAction('accent-changed', { accent: 'primary', value: e.target.value });
+        });
 
-        // Initialize on load
-        window.addEventListener('DOMContentLoaded', initViewer);
+        document.getElementById('secondaryColor').addEventListener('change', (e) => {
+            document.documentElement.style.setProperty('--green', e.target.value);
+            document.getElementById('secondaryColorText').value = e.target.value;
+            recordAction('accent-changed', { accent: 'secondary', value: e.target.value });
+        });
 
-        console.log('%c╔════════════════════════════════════════════════════╗', 'color: #00ffff; font-family: monospace');
-        console.log('%c║  CYBERDECK.CITY — DECK NOMAD CONFIGURATOR v0.5    ║', 'color: #00ffff; font-family: monospace');
-        console.log('%c╚════════════════════════════════════════════════════╝', 'color: #00ffff; font-family: monospace');
-        console.log('%cPowered by babylon_ros + Babylon.js', 'color: #00ff41; font-family: monospace');
-        console.log('%cModel: deck_nomad OpenSCAD parameters', 'color: #ff0080; font-family: monospace');
+        document.getElementById('accentColor').addEventListener('change', (e) => {
+            document.documentElement.style.setProperty('--magenta', e.target.value);
+            document.getElementById('accentColorText').value = e.target.value;
+            recordAction('accent-changed', { accent: 'alert', value: e.target.value });
+        });
+
+        document.getElementById('loadModelBtn').addEventListener('click', async () => {
+            const url = document.getElementById('modelUrl').value;
+            if (!url) {
+                alert('ERR: Missing model URL');
+                recordAction('model-load-failed', { reason: 'no-url' });
+                return;
+            }
+            if (viewer) {
+                try {
+                    await viewer.loadModelFromUrl(url);
+                    recordAction('model-load-requested', { url: url });
+                } catch (e) {
+                    console.error('[LOAD] Error:', e);
+                    recordAction('model-load-failed', { error: e.message });
+                }
+            }
+        });
+
+        document.getElementById('uploadFileBtn').addEventListener('click', () => {
+            document.getElementById('fileInput').click();
+        });
+
+        document.getElementById('fileInput').addEventListener('change', async (e) => {
+            const file = e.target.files?.[0];
+            if (!file) return;
+
+            updateUploadStatus(`Loading ${file.name}...`);
+            try {
+                const content = await file.text();
+                if (viewer) {
+                    updateUploadStatus(`Converting ${file.name}...`);
+                    await viewer.loadModelData(content, file.name);
+                    updateUploadStatus(`✓ ${file.name}`);
+                    recordAction('model-uploaded', { filename: file.name, size: file.size });
+                }
+            } catch (error) {
+                const errorMsg = error instanceof Error ? error.message : 'Unknown error';
+                updateUploadStatus(`✗ Error: ${errorMsg}`);
+                recordAction('upload-failed', { filename: file.name, error: errorMsg });
+                console.error('[UPLOAD] Error:', error);
+            }
+            
+            // Reset file input
+            e.target.value = '';
+        });
+
+        function updateUploadStatus(message) {
+            const statusEl = document.getElementById('uploadStatus');
+            statusEl.textContent = message;
+        }
+
+        // Initialize
+        window.addEventListener('load', async () => {
+            applyTheme('cyberdeck');
+            updateStatus('loading');
+            recordAction('page-initialized', { theme: 'cyberdeck' });
+
+            try {
+                const canvas = document.getElementById('renderCanvas');
+                viewer = await babylon_ros.RenderOpenScadDirect({
+                    canvas: canvas,
+                    theme: themeConfig.cyberdeck,
+                    autoConvertOnLoad: false,
+                    onModelLoaded: (detail) => {
+                        console.log('[HOST] Model loaded:', detail);
+                        currentModelConfig = detail;
+                        customizerVariables = detail.variables || [];
+                        buildCustomizerControls(customizerVariables, detail.configuration);
+                        const { variables: _v, ...logDetail } = detail;
+                        recordAction('model-loaded', logDetail);
+                    },
+                    onConfigurationChange: (detail) => {
+                        console.log('[HOST] Config changed:', detail);
+                        currentModelConfig = detail;
+                        // Update range value labels if controls already exist
+                        if (detail.configuration) {
+                            Object.entries(detail.configuration).forEach(([name, val]) => {
+                                const el = document.getElementById(`param_${name}`);
+                                if (el?.type === 'range') {
+                                    el.value = String(val);
+                                    const lbl = document.getElementById(`param_${name}_val`);
+                                    if (lbl) lbl.textContent = String(val);
+                                }
+                            });
+                        }
+                        const { variables: _v, ...logDetail } = detail;
+                        recordAction('config-changed', logDetail);
+                    }
+                });
+                updateStatus('ready');
+                recordAction('viewer-initialized', { success: true });
+
+                // Prevent page scroll when mouse is over viewer
+                canvas.addEventListener('wheel', (e) => {
+                    e.preventDefault();
+                }, { passive: false });
+
+                // Monitor canvas container for size changes and update render buffer
+                const containerObserver = new ResizeObserver(() => {
+                    if (viewer) {
+                        viewer.resizeRenderer();
+                    }
+                });
+                const container = canvas.parentElement;
+                if (container) {
+                    containerObserver.observe(container);
+                }
+            } catch (e) {
+                console.error('[INIT] Failed:', e);
+                updateStatus('error');
+                recordAction('viewer-init-failed', { error: e.message });
+            }
+        });
     </script>
 </body>
 </html>

@@ -322,7 +322,7 @@
 const result = babylon_ros.parseOpenSCADCustomizer(scadCode);
 
 // Convert to STL
-const stl = await babylon_ros.convertOpenSCADToSTL({
+const stl = await babylon_ros.convertOpenSCAD({
   scadContent: scadCode,
   filename: 'model.scad',
   parameterOverrides: { width: 20 }

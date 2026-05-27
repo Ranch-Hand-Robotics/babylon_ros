@@ -102,7 +102,7 @@ Here’s a simple example which renders a the Test Page included in this package
 
 ## OpenSCAD Support
 
-Babylon_ros now includes comprehensive OpenSCAD support for browser-based conversion and customization. The implementation uses WebAssembly (openscad-wasm-prebuilt) to provide fast, client-side SCAD to STL conversion.
+Babylon_ros now includes comprehensive OpenSCAD support for browser-based conversion and customization. The implementation uses WebAssembly to provide fast, client-side SCAD to STL conversion.
 
 ### Quick Start with OpenSCAD
 
@@ -123,7 +123,7 @@ const customizer = babylon_ros.parseOpenSCADCustomizer(scadCode);
 console.log(customizer.variables); // Parameter list
 
 // Convert to STL with custom parameters
-const result = await babylon_ros.convertOpenSCADToSTL({
+const result = await babylon_ros.convertOpenSCAD({
   scadContent: scadCode,
   filename: 'model.scad',
   parameterOverrides: { width: 20, height: 30, radius: 8 }
@@ -174,6 +174,15 @@ Features:
 - Real-time parameter adjustment  
 - STL download export
 - Responsive design for mobile/desktop
+
+## License Notes for OpenSCAD Distribution
+
+`babylon_ros` is MIT-licensed, but OpenSCAD functionality uses runtime artifacts from `openscad-wasm` (GPL-2.0-or-later).
+
+If you redistribute builds that include OpenSCAD runtime artifacts, review:
+
+- [LICENSE-COMPATIBILITY.md](LICENSE-COMPATIBILITY.md)
+- [THIRDPARTYNOTICES.md](THIRDPARTYNOTICES.md)
 
 ## Support
 If you encounter any issues with this package, the following resources are provided:
