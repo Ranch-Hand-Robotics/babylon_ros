@@ -15,6 +15,15 @@ Corresponding source repositories:
 - https://github.com/Ranch-Hand-Robotics/babylon_ros
 - https://github.com/Ranch-Hand-Robotics/openscad-wasm
 
+### Liberation Fonts (embedded via `openscad.fonts.js`)
+
+- Component: Liberation font binaries embedded in `openscad.fonts.js`
+- Source: https://github.com/liberationfonts/liberation-fonts
+- License: SIL Open Font License 1.1 (OFL-1.1)
+- Usage: Fallback text/font rendering in OpenSCAD WebAssembly runtime
+
+When redistributing artifacts that include `openscad.fonts.js`, include OFL-1.1 attribution and license text for the embedded Liberation fonts.
+
 ---
 
 JointRotationGizmo.ts is Babylon.js Copyright 2023 The Babylon.js team

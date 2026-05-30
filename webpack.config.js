@@ -48,7 +48,8 @@ const webConfig = {
             // for the list of Node.js core module polyfills.
             "stream": require.resolve("stream-browserify"),
         "timers": require.resolve("timers-browserify"),
-        "url": false
+        "url": false,
+        "child_process": false
         }
     },
     devtool: 'source-map',
@@ -100,7 +101,11 @@ const nodeWorkerConfig = {
     libraryTarget: 'commonjs2'
   },
   externals: {
-    vscode: 'commonjs vscode'
+    vscode: 'commonjs vscode',
+    fs: 'commonjs fs',
+    path: 'commonjs path',
+    url: 'commonjs url',
+    os: 'commonjs os',
   },
   resolve: {
     extensions: ['.ts', '.js']
@@ -169,7 +174,8 @@ const nodeOpenSCADUtilsConfig = {
     libraryTarget: 'commonjs2'
   },
   externals: {
-    vscode: 'commonjs vscode'
+    vscode: 'commonjs vscode',
+    child_process: 'commonjs child_process'
   },
   resolve: {
     extensions: ['.ts', '.js']

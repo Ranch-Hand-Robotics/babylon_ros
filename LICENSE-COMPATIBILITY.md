@@ -21,6 +21,13 @@ When OpenSCAD support is built/downloaded, runtime files are included from:
 - License: GPL-2.0-or-later
 - Typical files: `openscad.js`, `openscad.wasm.js`, `openscad.wasm`, `openscad.fonts.js`
 
+### Embedded Liberation Fonts
+
+`openscad.fonts.js` embeds Liberation font binaries used for fallback text rendering.
+
+- Source: https://github.com/liberationfonts/liberation-fonts
+- License: SIL Open Font License 1.1 (OFL-1.1)
+
 ## Redistribution Guidance
 
 ### If you distribute MIT-only outputs
@@ -44,6 +51,7 @@ When redistributing bundles that include OpenSCAD runtime artifacts, ensure you:
 
 - [ ] Include MIT license text for `babylon_ros` code you distribute.
 - [ ] Include GPL-2.0-or-later attribution/notices for OpenSCAD runtime artifacts.
+- [ ] Include OFL-1.1 attribution/notices (and license text) when distributing `openscad.fonts.js`.
 - [ ] Preserve all copyright and license notices.
 - [ ] Provide access to corresponding source for GPL-covered distributed components.
 

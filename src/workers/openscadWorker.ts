@@ -57,13 +57,16 @@ function getNodeModules(): NodeModules {
   if (!isNodeRuntime()) {
     throw new Error('Node.js modules are unavailable in browser worker runtime.');
   }
-  const nodeRequire = (0, eval)('require') as NodeRequire;
+  // These are declared as webpack externals in nodeWorkerConfig so require() calls
+  // are preserved verbatim in the Node.js bundle output.
+  /* eslint-disable @typescript-eslint/no-var-requires */
   return {
-    fs: nodeRequire('fs') as typeof import('fs'),
-    path: nodeRequire('path') as typeof import('path'),
-    pathToFileURL: (nodeRequire('url') as typeof import('url')).pathToFileURL,
+    fs: require('fs') as typeof import('fs'),
+    path: require('path') as typeof import('path'),
+    pathToFileURL: (require('url') as typeof import('url')).pathToFileURL,
     processObj: process,
   };
+  /* eslint-enable @typescript-eslint/no-var-requires */
 }
 
 /**
@@ -291,11 +294,18 @@ async function convertOpenSCAD(request: ConversionRequest): Promise<void> {
     // Load fonts for text rendering
     try {
       console.log('[OpenSCAD Worker] Loading fonts module...');
-      const fontsModule = await import(/* webpackIgnore: true */ 
-        request.openscadScriptUrl 
+      let fontsModule: any;
+      if (isNodeRuntime()) {
+        const { path, pathToFileURL } = getNodeModules();
+        const wasmDir = getNodeWasmDir();
+        const fontsUrl = pathToFileURL(path.join(wasmDir, 'openscad.fonts.js')).href;
+        fontsModule = await import(/* webpackIgnore: true */ fontsUrl);
+      } else {
+        const fontsScriptUrl = request.openscadScriptUrl
           ? request.openscadScriptUrl.replace('openscad.js', 'openscad.fonts.js')
-          : '../openscad-wasm-build/dist/openscad.fonts.js'
-      );
+          : '../openscad-wasm-build/dist/openscad.fonts.js';
+        fontsModule = await import(/* webpackIgnore: true */ fontsScriptUrl);
+      }
       const addFonts = fontsModule.addFonts || fontsModule.default?.addFonts;
       if (typeof addFonts === 'function') {
         addFonts(instance);
@@ -512,7 +522,11 @@ function sendMessage(response: ConversionResponse, exitCode?: number): void {
   if (isNodeRuntime()) {
     const { processObj } = getNodeModules();
     processObj.send?.(response, undefined, undefined, () => {
-      if (typeof exitCode === 'number') {
+      // Do not call process.exit() here — let the IPC channel drain naturally.
+      // The parent will kill the worker after receiving the message.
+      // Forcing exit risks the message being lost before the parent reads it.
+      if (typeof exitCode === 'number' && exitCode !== 0) {
+        // Only force-exit on error codes to avoid keeping zombie workers alive on failure.
         processObj.exit(exitCode);
       }
     });

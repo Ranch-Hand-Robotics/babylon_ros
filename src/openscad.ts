@@ -9,6 +9,7 @@ import * as fs from 'fs';
 import * as path from 'path';
 import * as os from 'os';
 import { pathToFileURL } from 'url';
+import { fork } from 'child_process';
 
 import {
   OpenSCADCustomizerValue,
@@ -497,6 +498,13 @@ export interface OpenSCADNodeConversionResponse {
   progress?: string;
 }
 
+export interface OpenSCADNodeConversionOptions {
+  timeout?: number;
+  outputFormat?: 'stl' | 'glb';
+  parameterOverrides?: Record<string, OpenSCADCustomizerValue>;
+  parameterConfiguration?: OpenSCADParameterConfiguration;
+}
+
 /**
  * Get the path to the OpenSCAD Node.js worker module.
  * Can be used by Node.js applications (like RDE MCP Server) to spawn worker processes.
@@ -514,6 +522,101 @@ export function getOpenSCADNodeWorkerPath(): string {
 export function isOpenSCADNodeWorkerAvailable(): boolean {
   const workerPath = getOpenSCADNodeWorkerPath();
   return fs.existsSync(workerPath);
+}
+
+/**
+ * Convert an OpenSCAD file using the Node.js worker process.
+ * This keeps OpenSCAD execution off the extension host thread.
+ */
+export function convertOpenSCADWithNodeWorker(
+  scadFilePath: string,
+  trace?: any,
+  options?: OpenSCADNodeConversionOptions,
+): Promise<string | null> {
+  return new Promise<string | null>((resolve) => {
+    if (!fs.existsSync(scadFilePath)) {
+      trace?.appendLine(`Error: SCAD file not found: ${scadFilePath}`);
+      resolve(null);
+      return;
+    }
+
+    const workerPath = getOpenSCADNodeWorkerPath();
+    if (!fs.existsSync(workerPath)) {
+      trace?.appendLine(`Error: OpenSCAD worker not found: ${workerPath}`);
+      resolve(null);
+      return;
+    }
+
+    const timeout = options?.timeout ?? 300000;
+    const worker = fork(workerPath, [], { stdio: ['pipe', 'pipe', 'pipe', 'ipc'] });
+    let settled = false;
+
+    const finish = (result: string | null) => {
+      if (settled) {
+        return;
+      }
+      settled = true;
+      try {
+        worker.kill();
+      } catch {
+        // best effort
+      }
+      resolve(result);
+    };
+
+    const timeoutHandle = setTimeout(() => {
+      trace?.appendLine(`OpenSCAD worker conversion timed out after ${timeout}ms`);
+      finish(null);
+    }, timeout);
+
+    worker.on('message', (message: OpenSCADNodeConversionResponse) => {
+      if (message.progress) {
+        trace?.appendLine(`${message.progress}`);
+        return;
+      }
+
+      clearTimeout(timeoutHandle);
+      if (message.success && message.outputPath) {
+        finish(message.outputPath);
+      } else {
+        trace?.appendLine(`OpenSCAD worker error: ${message.error || 'Unknown error'}`);
+        finish(null);
+      }
+    });
+
+    worker.on('error', (err: Error) => {
+      clearTimeout(timeoutHandle);
+      trace?.appendLine(`OpenSCAD worker process error: ${err.message}`);
+      finish(null);
+    });
+
+    worker.on('exit', (code) => {
+      if (settled) {
+        return;
+      }
+      clearTimeout(timeoutHandle);
+      // Defer by one event loop tick so any buffered IPC messages that arrived
+      // before the process exited have a chance to be processed first.
+      setImmediate(() => {
+        if (settled) {
+          return;
+        }
+        trace?.appendLine(`OpenSCAD worker exited unexpectedly with code ${code}`);
+        finish(null);
+      });
+    });
+
+    const request: OpenSCADNodeConversionRequest = {
+      scadFilePath,
+      libraryFiles: {},
+      timeout,
+      exportFormat: options?.outputFormat ?? 'stl',
+      parameterOverrides: options?.parameterOverrides,
+      parameterConfiguration: options?.parameterConfiguration,
+    };
+
+    worker.send(request);
+  });
 }
 
 
@@ -802,158 +905,17 @@ export async function convertOpenSCADCancellable(
     outputFormat?: 'stl' | 'glb';
   },
 ): Promise<string | null> {
-  if (!fs.existsSync(scadFilePath)) {
-    trace?.appendLine(`Error: SCAD file not found: ${scadFilePath}`);
+  if (token?.isCancellationRequested) {
+    trace?.appendLine('Conversion cancelled before start');
     return null;
   }
 
-  const outputExt = options?.outputFormat === 'glb' ? '.glb' : '.stl';
-  const outputPath = scadFilePath.replace(/\.scad$/i, outputExt);
-  const timeout = options?.timeout ?? 300000; // 5 minutes default
-  const startTime = Date.now();
-
-  try {
-    // Check for cancellation before starting
-    if (token?.isCancellationRequested) {
-      trace?.appendLine('Conversion cancelled before start');
-      return null;
-    }
-
-    trace?.appendLine(`Converting OpenSCAD: ${scadFilePath}`);
-
-    const scadContent = fs.readFileSync(scadFilePath, 'utf8');
-    
-    // Apply parameter overrides if provided
-    let finalScadContent = scadContent;
-    if (options?.parameterOverrides) {
-      trace?.appendLine('Applying parameter overrides');
-      finalScadContent = applyParameterOverrides(scadContent, options.parameterOverrides);
-    }
-
-    // Get library paths for this SCAD file's directory
-    const scadDir = path.dirname(scadFilePath);
-    const workspaceRoot = path.resolve(scadDir, '../..');
-    const libraryPaths = await getAllOpenSCADLibraryPaths(workspaceRoot);
-
-    // Create OpenSCAD WASM instance with stderr capture
-    const errors: string[] = [];
-    const warnings: string[] = [];
-
-    const instance = await createOpenSCADInstance(
-      (_text: string) => { /* stdout — ignore render output */ },
-      (text: string) => {
-        if (/ERROR|error/.test(text)) {
-          errors.push(text);
-          trace?.appendLine(`Error: ${text}`);
-        } else if (/WARNING|warning/.test(text)) {
-          warnings.push(text);
-          trace?.appendLine(`Warning: ${text}`);
-        }
-      },
-    );
-
-    // Check for cancellation before writing files
-    if (token?.isCancellationRequested) {
-      trace?.appendLine('Conversion cancelled before WASM initialization');
-      return null;
-    }
-
-    // Load fonts to avoid fontconfig errors
-    await loadOpenSCADFonts(instance);
-
-    // Load libraries into WASM FS
-    trace?.appendLine(`Loading libraries from ${libraryPaths.length} paths`);
-    await loadLibraryFiles(instance, libraryPaths, trace);
-
-    // Write SCAD content to WASM FS
-    instance.FS.writeFile('/input.scad', finalScadContent);
-
-    // Check for cancellation before conversion
-    if (token?.isCancellationRequested) {
-      trace?.appendLine('Conversion cancelled before OpenSCAD execution');
-      return null;
-    }
-
-    // Run OpenSCAD conversion with timeout
-    // Note: Use /input.scad first, then -o flag, matching openscad CLI convention
-    const outputFileName = options?.outputFormat === 'glb' ? '/output.glb' : '/output.stl';
-    trace?.appendLine(`Running OpenSCAD conversion to ${outputFileName}...`);
-    
-    const conversionPromise = new Promise<number>((resolve, reject) => {
-      try {
-        const exitCode: number = instance.callMain(['/input.scad', '-o', outputFileName]);
-        resolve(exitCode);
-      } catch (err) {
-        reject(err);
-      }
-    });
-
-    // Handle timeout and cancellation
-    let exitCode = -1;
-    try {
-      const timeoutPromise = new Promise<number>((_resolve, reject) => {
-        setTimeout(() => {
-          reject(new Error(`OpenSCAD conversion timeout after ${timeout}ms`));
-        }, timeout);
-      });
-
-      const cancellationPromise = token
-        ? new Promise<number>((_resolve, reject) => {
-            token.onCancellationRequested(() => {
-              reject(new Error('OpenSCAD conversion cancelled by user'));
-            });
-          })
-        : null;
-
-      const promises = [conversionPromise];
-      if (cancellationPromise) {
-        promises.push(cancellationPromise);
-      }
-      if (timeout > 0) {
-        promises.push(timeoutPromise);
-      }
-
-      exitCode = await Promise.race(promises);
-    } catch (err) {
-      const message = err instanceof Error ? err.message : String(err);
-      trace?.appendLine(`Conversion error: ${message}`);
-      errors.push(message);
-    }
-
-    if (errors.length > 0) {
-      trace?.appendLine(`Conversion failed with ${errors.length} error(s)`);
-      return null;
-    }
-
-    if (exitCode !== 0) {
-      trace?.appendLine(`OpenSCAD exited with code ${exitCode}`);
-      return null;
-    }
-
-    // Check for cancellation before reading output
-    if (token?.isCancellationRequested) {
-      trace?.appendLine('Conversion cancelled before reading output');
-      return null;
-    }
-
-    // Read output from WASM FS and write to filesystem
-    try {
-      const outputData = instance.FS.readFile(outputFileName);
-      fs.writeFileSync(outputPath, Buffer.from(outputData));
-      
-      const elapsed = Date.now() - startTime;
-      trace?.appendLine(`Conversion succeeded in ${elapsed}ms: ${outputPath}`);
-      return outputPath;
-    } catch (err) {
-      const message = err instanceof Error ? err.message : String(err);
-      trace?.appendLine(`Failed to read/write output: ${message}`);
-      return null;
-    }
-  } catch (err) {
-    const message = err instanceof Error ? err.message : String(err);
-    trace?.appendLine(`Conversion exception: ${message}`);
-    return null;
-  }
+  return convertOpenSCADWithNodeWorker(scadFilePath, trace, {
+    timeout: options?.timeout,
+    outputFormat: options?.outputFormat,
+    parameterOverrides: options?.parameterOverrides,
+    parameterConfiguration: options?.parameterConfiguration,
+  });
 }
 
 /**
@@ -989,6 +951,32 @@ export async function exportOpenSCAD(
   const outputPath = scadFilePath.replace(/\.scad$/i, extension);
   const timeout = options?.timeout ?? 300000; // 5 minutes default
   const startTime = Date.now();
+
+  // STL export is routed through the Node worker so extension-host execution
+  // stays responsive and behavior matches preview conversion plumbing.
+  if (exportFormat === 'stl') {
+    if (token?.isCancellationRequested) {
+      if (!options?.suppressErrorMessage) {
+        trace?.appendLine('Export cancelled before start');
+      }
+      return null;
+    }
+
+    if (!options?.suppressErrorMessage) {
+      trace?.appendLine(`Exporting OpenSCAD to STL via worker: ${scadFilePath}`);
+    }
+
+    const stlPath = await convertOpenSCADWithNodeWorker(scadFilePath, trace, {
+      timeout,
+      outputFormat: 'stl',
+      parameterOverrides: options?.parameterOverrides,
+    });
+
+    if (!stlPath && !options?.suppressErrorMessage && !token?.isCancellationRequested) {
+      trace?.appendLine('STL export failed via worker');
+    }
+    return stlPath;
+  }
 
   try {
     // Check for cancellation before starting

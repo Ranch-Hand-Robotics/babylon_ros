@@ -22,7 +22,7 @@ module letter_pendant(letter = "A") {
         // Main hollow circle
         // Letter (parameterized - can be any letter)
         translate([0,- 0.6, 0]) {
-            draw_letter(letter, letter_size, letter_height);
+            %draw_letter(letter, letter_size, letter_height);
         }
         
         color(mainColor)
