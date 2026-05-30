@@ -451,7 +451,7 @@ export class JointRotationGizmo extends BABYLON.Gizmo {
             "ignore",
             {
                 diameter: 0.6,
-                thickness: 0.03 * thickness,
+                thickness: 0.12 * thickness,
                 tessellation,
             },
             this.gizmoLayer.utilityLayerScene
