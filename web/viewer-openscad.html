@@ -1,0 +1,305 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>babylon_ros OpenSCAD Viewer</title>
+  <style>
+    :root {
+      --viewer-bg: #111827;
+      --panel-bg: #1f2937;
+      --panel-border: #374151;
+      --text-primary: #f3f4f6;
+      --text-secondary: #9ca3af;
+      --accent: #3b82f6;
+      --accent-strong: #2563eb;
+      --success: #16a34a;
+      --error: #dc2626;
+      --input-bg: #0f172a;
+      --input-border: #4b5563;
+      --customizer-border: #4b5563;
+      --customizer-field-bg: #111827;
+      --customizer-label: #e5e7eb;
+      --customizer-text: #e5e7eb;
+      --customizer-tab-border: #4b5563;
+      --customizer-tab-active: #3b82f6;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    html, body {
+      width: 100%;
+      height: 100%;
+      overflow: hidden;
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      color: var(--text-primary);
+      background: var(--viewer-bg);
+    }
+
+    .container {
+      display: flex;
+      width: 100%;
+      height: 100%;
+    }
+
+    .sidebar {
+      width: 320px;
+      border-right: 1px solid var(--panel-border);
+      background: var(--panel-bg);
+      padding: 14px;
+      overflow-y: auto;
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+    }
+
+    .section {
+      border: 1px solid var(--panel-border);
+      border-radius: 8px;
+      padding: 10px;
+      background: rgba(0, 0, 0, 0.12);
+    }
+
+    .title {
+      font-size: 12px;
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
+      color: var(--text-secondary);
+      margin-bottom: 8px;
+      font-weight: 700;
+    }
+
+    .button,
+    .input-label {
+      border: none;
+      border-radius: 6px;
+      padding: 9px 10px;
+      font-size: 13px;
+      cursor: pointer;
+      width: 100%;
+      display: inline-block;
+      text-align: center;
+    }
+
+    .input-label {
+      background: var(--accent);
+      color: white;
+      font-weight: 600;
+    }
+
+    .button {
+      background: var(--accent);
+      color: white;
+      font-weight: 600;
+      margin-top: 8px;
+    }
+
+    .button:hover,
+    .input-label:hover {
+      background: var(--accent-strong);
+    }
+
+    .button:disabled {
+      opacity: 0.6;
+      cursor: not-allowed;
+    }
+
+    .button.secondary {
+      background: #4b5563;
+    }
+
+    #fileInput {
+      display: none;
+    }
+
+    #fileInfo {
+      display: none;
+      margin-top: 8px;
+      border: 1px solid var(--panel-border);
+      border-radius: 6px;
+      padding: 8px;
+      font-size: 12px;
+      color: var(--text-secondary);
+      background: var(--input-bg);
+      word-break: break-word;
+    }
+
+    #customizerContainer {
+      display: none;
+    }
+
+    #noCustomizerMessage {
+      color: var(--text-secondary);
+      font-size: 12px;
+    }
+
+    .viewport {
+      flex: 1;
+      position: relative;
+    }
+
+    #renderCanvas {
+      width: 100%;
+      height: 100%;
+      touch-action: none;
+      display: block;
+    }
+
+    .controls {
+      position: absolute;
+      right: 14px;
+      bottom: 14px;
+      display: flex;
+      gap: 8px;
+    }
+
+    .controls .button {
+      width: auto;
+      margin: 0;
+      padding: 8px 12px;
+      font-size: 12px;
+      background: rgba(17, 24, 39, 0.82);
+      border: 1px solid #6b7280;
+    }
+
+    .status {
+      display: none;
+      position: absolute;
+      left: 14px;
+      bottom: 14px;
+      padding: 10px 12px;
+      border-radius: 8px;
+      background: rgba(17, 24, 39, 0.82);
+      border: 1px solid #4b5563;
+      color: var(--text-primary);
+      font-size: 12px;
+      max-width: 420px;
+    }
+
+    .status.success {
+      border-color: var(--success);
+    }
+
+    .status.error {
+      border-color: var(--error);
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <aside class="sidebar">
+      <section class="section">
+        <div class="title">Load Model</div>
+        <input type="file" id="fileInput" accept=".scad,.stl,.obj,.glb">
+        <label class="input-label" for="fileInput">Choose File</label>
+        <div id="fileInfo"></div>
+      </section>
+
+      <section class="section">
+        <div class="title">Customizer</div>
+        <div id="customizerContainer"></div>
+        <div id="noCustomizerMessage">No configurable parameters found.</div>
+        <button id="convertButton" class="button" disabled>Convert &amp; Preview</button>
+        <button id="downloadButton" class="button secondary" disabled>Download GLB</button>
+      </section>
+
+      <section class="section" id="hostControlsSection" style="display: none;">
+        <div class="title">Host Controls</div>
+        <div id="hostControlsContainer"></div>
+      </section>
+    </aside>
+
+    <main class="viewport">
+      <canvas id="renderCanvas" touch-action="none"></canvas>
+      <div class="controls">
+        <button id="resetView" class="button">Reset View</button>
+        <button id="toggleGrid" class="button">Toggle Grid</button>
+      </div>
+      <div class="status" id="status"></div>
+    </main>
+  </div>
+
+  <script src="./ros.js"></script>
+  <script>
+    // Check if running in hosted mode (iframe with host control)
+    const params = new URLSearchParams(window.location.search);
+    const isHosted = params.get('hosted') === 'true';
+    
+    if (isHosted) {
+      // Mark as hosted mode before anything renders
+      document.documentElement.setAttribute('data-hosted', 'true');
+      document.body.classList.add('hosted-mode');
+      
+      // Hide ALL UI immediately with inline styles on the body
+      const style = document.createElement('style');
+      style.id = 'hosted-mode-styles';
+      style.textContent = `
+        body.hosted-mode .sidebar {
+          display: none !important;
+          visibility: hidden !important;
+          width: 0 !important;
+          height: 0 !important;
+        }
+        body.hosted-mode .controls {
+          display: none !important;
+        }
+        body.hosted-mode .status {
+          display: none !important;
+        }
+        body.hosted-mode #fileInput {
+          display: none !important;
+        }
+        /* Ensure viewport fills entire container */
+        body.hosted-mode .container {
+          grid-template-columns: 1fr !important;
+        }
+        body.hosted-mode .viewport {
+          width: 100% !important;
+        }
+      `;
+      document.head.appendChild(style);
+      
+      console.log('[VIEWER] Hosted mode: raw 3D viewer only');
+    }
+    
+    // Handle postMessage from host
+    window.addEventListener('message', async (event) => {
+      console.log('[VIEWER] Message:', event.data);
+      
+      if (event.data.command === 'loadModel') {
+        const url = event.data.url;
+        try {
+          console.log('[VIEWER] Loading from URL:', url);
+          const response = await fetch(url);
+          if (!response.ok) throw new Error(`HTTP ${response.status}`);
+          
+          const filename = url.split('/').pop() || 'model.scad';
+          const blob = await response.blob();
+          const file = new File([blob], filename, { type: blob.type });
+          
+          const fileInput = document.getElementById('fileInput');
+          if (fileInput) {
+            const dataTransfer = new DataTransfer();
+            dataTransfer.items.add(file);
+            fileInput.files = dataTransfer.files;
+            fileInput.dispatchEvent(new Event('change', { bubbles: true }));
+            console.log('[VIEWER] Loaded:', filename);
+          }
+        } catch (e) {
+          console.error('[VIEWER] Load failed:', e);
+        }
+      }
+    });
+    
+    window.addEventListener('load', () => {
+      if (typeof babylon_ros !== 'undefined' && typeof babylon_ros.RenderOpenScadMain === 'function') {
+        babylon_ros.RenderOpenScadMain();
+      }
+    });
+  </script>
+</body>
+</html>

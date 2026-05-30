@@ -1,10 +1,32 @@
 web/*.js*
+web/workers/*.js*
 docs/ros.js
 docs/ros.js.map
 
 web/user/**
 .vscode/*.db*
 **/log
+
+**/*.wasm
+
+build*.txt
+build*.log
+
+# OpenSCAD WASM build artifacts (downloaded from GitHub releases)
+openscad-wasm-build/
+
+# Generated mesh exports from local OpenSCAD/viewer testing
+web/*.glb
+web/*.gltf
+web/*.stl
+web/*.obj
+test/scad/*.glb
+test/scad/*.gltf
+test/scad/*.stl
+test/scad/*.obj
+
+tmp-collateral
+
 # Logs
 logs
 *.log

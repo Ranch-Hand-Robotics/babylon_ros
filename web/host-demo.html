@@ -1,0 +1,1042 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Model Host Demo - Configurable Theme</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        :root {
+            /* Color Palette (configurable by theme) */
+            --primary-color: #2563eb;
+            --primary-dark: #1e40af;
+            --primary-light: #3b82f6;
+            --secondary-color: #10b981;
+            --secondary-dark: #059669;
+            --accent-color: #f59e0b;
+            --danger-color: #ef4444;
+            
+            /* Neutral Colors */
+            --bg-primary: #ffffff;
+            --bg-secondary: #f9fafb;
+            --bg-tertiary: #f3f4f6;
+            --text-primary: #1f2937;
+            --text-secondary: #6b7280;
+            --text-tertiary: #9ca3af;
+            --border-color: #e5e7eb;
+            
+            /* Spacing */
+            --spacing-xs: 0.25rem;
+            --spacing-sm: 0.5rem;
+            --spacing-md: 1rem;
+            --spacing-lg: 1.5rem;
+            --spacing-xl: 2rem;
+            
+            /* Typography */
+            --font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+            --font-size-sm: 0.875rem;
+            --font-size-md: 1rem;
+            --font-size-lg: 1.125rem;
+            --font-size-xl: 1.25rem;
+            --font-size-2xl: 1.5rem;
+            
+            /* Shadows */
+            --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+            --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+            --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+        }
+
+        /* Dark Theme */
+        body.theme-dark {
+            --bg-primary: #1f2937;
+            --bg-secondary: #111827;
+            --bg-tertiary: #374151;
+            --text-primary: #f9fafb;
+            --text-secondary: #d1d5db;
+            --text-tertiary: #9ca3af;
+            --border-color: #4b5563;
+        }
+
+        /* High Contrast Theme */
+        body.theme-highcontrast {
+            --primary-color: #0000ff;
+            --primary-light: #3366ff;
+            --secondary-color: #00aa00;
+            --accent-color: #ff0000;
+            --bg-primary: #000000;
+            --bg-secondary: #1a1a1a;
+            --text-primary: #ffffff;
+            --border-color: #ffffff;
+        }
+
+        body {
+            font-family: var(--font-family);
+            background-color: var(--bg-secondary);
+            color: var(--text-primary);
+            line-height: 1.5;
+        }
+
+        .container {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: var(--spacing-lg);
+            height: 100vh;
+            padding: var(--spacing-lg);
+        }
+
+        @media (max-width: 1200px) {
+            .container {
+                grid-template-columns: 1fr;
+                height: auto;
+            }
+        }
+
+        /* Viewer Section */
+        .viewer-section {
+            display: flex;
+            flex-direction: column;
+            gap: var(--spacing-md);
+            background-color: var(--bg-primary);
+            border-radius: 0.5rem;
+            padding: var(--spacing-lg);
+            box-shadow: var(--shadow-md);
+            min-height: 0;
+        }
+
+        .viewer-section h2 {
+            font-size: var(--font-size-xl);
+            font-weight: 600;
+            color: var(--text-primary);
+            margin-bottom: var(--spacing-sm);
+        }
+
+        #renderCanvas {
+            flex: 1;
+            border: 1px solid var(--border-color);
+            border-radius: 0.375rem;
+            display: block;
+            background-color: var(--bg-secondary);
+            min-height: 400px;
+        }
+
+        /* Host Controls Section */
+        .host-section {
+            display: flex;
+            flex-direction: column;
+            gap: var(--spacing-lg);
+        }
+
+        .panel {
+            background-color: var(--bg-primary);
+            border-radius: 0.5rem;
+            padding: var(--spacing-lg);
+            box-shadow: var(--shadow-md);
+        }
+
+        .panel h3 {
+            font-size: var(--font-size-lg);
+            font-weight: 600;
+            color: var(--text-primary);
+            margin-bottom: var(--spacing-md);
+            display: flex;
+            align-items: center;
+            gap: var(--spacing-sm);
+        }
+
+        .panel h3::before {
+            content: '';
+            display: inline-block;
+            width: 4px;
+            height: 20px;
+            background-color: var(--primary-color);
+            border-radius: 2px;
+        }
+
+        /* Configuration Controls */
+        .config-group {
+            margin-bottom: var(--spacing-lg);
+        }
+
+        .config-group:last-child {
+            margin-bottom: 0;
+        }
+
+        .config-label {
+            display: block;
+            font-size: var(--font-size-sm);
+            font-weight: 500;
+            color: var(--text-primary);
+            margin-bottom: var(--spacing-sm);
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .config-input {
+            width: 100%;
+            padding: var(--spacing-sm) var(--spacing-md);
+            border: 1px solid var(--border-color);
+            border-radius: 0.375rem;
+            background-color: var(--bg-secondary);
+            color: var(--text-primary);
+            font-size: var(--font-size-md);
+            transition: border-color 0.2s, box-shadow 0.2s;
+        }
+
+        .config-input:focus {
+            outline: none;
+            border-color: var(--primary-color);
+            box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
+        }
+
+        .select-group {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: var(--spacing-sm);
+        }
+
+        .color-picker-group {
+            display: grid;
+            grid-template-columns: auto 1fr;
+            gap: var(--spacing-md);
+            align-items: center;
+        }
+
+        .color-input {
+            width: 60px;
+            height: 40px;
+            border: 1px solid var(--border-color);
+            border-radius: 0.375rem;
+            cursor: pointer;
+        }
+
+        /* Current Configuration Display */
+        .config-display {
+            background-color: var(--bg-secondary);
+            border-left: 3px solid var(--primary-color);
+            padding: var(--spacing-md);
+            border-radius: 0.375rem;
+            font-size: var(--font-size-sm);
+            font-family: 'Monaco', 'Courier New', monospace;
+            white-space: pre-wrap;
+            word-break: break-all;
+            max-height: 200px;
+            overflow-y: auto;
+        }
+
+        /* Action Buttons */
+        .button-group {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: var(--spacing-md);
+        }
+
+        button {
+            padding: var(--spacing-md) var(--spacing-lg);
+            border: none;
+            border-radius: 0.375rem;
+            font-size: var(--font-size-md);
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.2s;
+            font-family: var(--font-family);
+        }
+
+        .btn-primary {
+            background-color: var(--primary-color);
+            color: white;
+        }
+
+        .btn-primary:hover {
+            background-color: var(--primary-dark);
+            box-shadow: var(--shadow-lg);
+        }
+
+        .btn-primary:active {
+            transform: scale(0.98);
+        }
+
+        .btn-success {
+            background-color: var(--secondary-color);
+            color: white;
+        }
+
+        .btn-success:hover {
+            background-color: var(--secondary-dark);
+            box-shadow: var(--shadow-lg);
+        }
+
+        .btn-secondary {
+            background-color: var(--bg-secondary);
+            color: var(--text-primary);
+            border: 1px solid var(--border-color);
+        }
+
+        .btn-secondary:hover {
+            background-color: var(--bg-tertiary);
+        }
+
+        /* Status Indicator */
+        .status {
+            display: flex;
+            align-items: center;
+            gap: var(--spacing-sm);
+            padding: var(--spacing-md);
+            background-color: var(--bg-secondary);
+            border-radius: 0.375rem;
+            font-size: var(--font-size-sm);
+        }
+
+        .status-dot {
+            display: inline-block;
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background-color: var(--danger-color);
+            animation: pulse 2s infinite;
+        }
+
+        .status-dot.ready {
+            background-color: var(--secondary-color);
+        }
+
+        @keyframes pulse {
+            0%, 100% {
+                opacity: 1;
+            }
+            50% {
+                opacity: 0.5;
+            }
+        }
+
+        /* Model Configuration Output */
+        .model-config {
+            background-color: var(--bg-secondary);
+            border: 1px dashed var(--border-color);
+            padding: var(--spacing-md);
+            border-radius: 0.375rem;
+            font-size: var(--font-size-sm);
+        }
+
+        .model-config-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: var(--spacing-sm) 0;
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        .model-config-item:last-child {
+            border-bottom: none;
+        }
+
+        .model-config-label {
+            color: var(--text-secondary);
+            font-weight: 500;
+        }
+
+        .model-config-value {
+            color: var(--primary-color);
+            font-family: monospace;
+        }
+
+        /* Theme Indicator */
+        .theme-indicator {
+            display: inline-block;
+            padding: var(--spacing-sm) var(--spacing-md);
+            background-color: var(--primary-light);
+            color: white;
+            border-radius: 0.25rem;
+            font-size: var(--font-size-sm);
+            font-weight: 500;
+            margin-top: var(--spacing-sm);
+        }
+
+        /* Customizer Styles */
+        .customizer-container {
+            display: flex;
+            flex-direction: column;
+            gap: 0.75rem;
+        }
+
+        .customizer-empty {
+            color: var(--text-secondary);
+            font-size: var(--font-size-sm);
+            text-align: center;
+            padding: 1rem;
+        }
+
+        .param-row {
+            display: grid;
+            grid-template-columns: 1fr 1.4fr;
+            align-items: center;
+            gap: 0.5rem;
+            padding-bottom: 0.75rem;
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        .param-row:last-child { border-bottom: none; }
+
+        .param-label {
+            font-size: 0.75rem;
+            color: var(--accent-color);
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            word-break: break-all;
+        }
+
+        .param-label small {
+            display: block;
+            color: var(--text-secondary);
+            font-weight: 400;
+            text-transform: none;
+            letter-spacing: 0;
+            font-size: 0.65rem;
+            margin-top: 0.15rem;
+        }
+
+        .param-control {
+            display: flex;
+            align-items: center;
+            gap: 0.4rem;
+        }
+
+        .param-control input[type=range] {
+            flex: 1;
+            accent-color: var(--primary-color);
+            cursor: pointer;
+        }
+
+        .param-control .range-value {
+            font-size: 0.75rem;
+            color: var(--primary-color);
+            font-family: monospace;
+            min-width: 2.5rem;
+            text-align: right;
+        }
+
+        .param-control input[type=number],
+        .param-control input[type=text],
+        .param-control select {
+            width: 100%;
+            padding: 0.25rem 0.4rem;
+            border: 1px solid var(--border-color);
+            background: var(--bg-secondary);
+            color: var(--text-primary);
+            font-size: 0.75rem;
+            font-family: var(--font-family);
+            border-radius: 0.25rem;
+        }
+
+        .param-control select option { 
+            background: var(--bg-secondary);
+            color: var(--text-primary);
+        }
+
+        .param-control input[type=checkbox] {
+            width: 1rem;
+            height: 1rem;
+            accent-color: var(--primary-color);
+            cursor: pointer;
+        }
+
+        .render-btn {
+            width: 100%;
+            padding: 0.6rem;
+            border: 1px solid var(--primary-color);
+            background: rgba(37, 99, 235, 0.05);
+            color: var(--primary-color);
+            font-size: 0.8rem;
+            font-weight: 700;
+            cursor: pointer;
+            font-family: var(--font-family);
+            text-transform: uppercase;
+            letter-spacing: 0.1em;
+            margin-top: 0.5rem;
+            border-radius: 0.375rem;
+            transition: var(--transition);
+        }
+
+        .render-btn:hover {
+            background: rgba(37, 99, 235, 0.15);
+            box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
+        }
+
+        .render-btn:disabled {
+            opacity: 0.4;
+            cursor: not-allowed;
+        }
+
+        /* Scrollbar Styling */
+        ::-webkit-scrollbar {
+            width: 8px;
+            height: 8px;
+        }
+
+        ::-webkit-scrollbar-track {
+            background: var(--bg-secondary);
+        }
+
+        ::-webkit-scrollbar-thumb {
+            background: var(--border-color);
+            border-radius: 4px;
+        }
+
+        ::-webkit-scrollbar-thumb:hover {
+            background: var(--text-secondary);
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <!-- Viewer Section -->
+        <div class="viewer-section">
+            <div>
+                <h2>Model Viewer</h2>
+                <div class="status">
+                    <span class="status-dot" id="statusDot"></span>
+                    <span id="statusText">Initializing...</span>
+                </div>
+            </div>
+            <canvas id="renderCanvas"></canvas>
+        </div>
+
+        <!-- Host Controls Section -->
+        <div class="host-section">
+            <!-- Theme Configuration Panel -->
+            <div class="panel">
+                <h3>Theme Configuration</h3>
+                
+                <div class="config-group">
+                    <label class="config-label">Active Theme</label>
+                    <select class="config-input" id="themeSelect" style="cursor: pointer;">
+                        <option value="light">Light (Default)</option>
+                        <option value="dark">Dark</option>
+                        <option value="highcontrast">High Contrast</option>
+                    </select>
+                </div>
+
+                <div class="config-group">
+                    <label class="config-label">Primary Color</label>
+                    <div class="color-picker-group">
+                        <input type="color" class="color-input" id="primaryColor" value="#2563eb" />
+                        <input type="text" class="config-input" id="primaryColorText" value="#2563eb" readonly />
+                    </div>
+                </div>
+
+                <div class="config-group">
+                    <label class="config-label">Secondary Color</label>
+                    <div class="color-picker-group">
+                        <input type="color" class="color-input" id="secondaryColor" value="#10b981" />
+                        <input type="text" class="config-input" id="secondaryColorText" value="#10b981" readonly />
+                    </div>
+                </div>
+
+                <div class="config-group">
+                    <label class="config-label">Accent Color</label>
+                    <div class="color-picker-group">
+                        <input type="color" class="color-input" id="accentColor" value="#f59e0b" />
+                        <input type="text" class="config-input" id="accentColorText" value="#f59e0b" readonly />
+                    </div>
+                </div>
+
+                <div class="theme-indicator" id="themeIndicator">Theme: Light</div>
+            </div>
+
+            <!-- Model Configuration Panel -->
+            <div class="panel">
+                <h3>Model & File Configuration</h3>
+                
+                <div class="config-group">
+                    <label class="config-label">Model File URL</label>
+                    <input 
+                        type="text" 
+                        class="config-input" 
+                        id="modelUrl"
+                        placeholder="e.g., https://example.com/models/part.scad or /test-model.scad"
+                        value="/test-model.scad"
+                    />
+                </div>
+
+                <div class="button-group">
+                    <button class="btn-primary" id="loadModelBtn">Load Model</button>
+                    <button class="btn-secondary" id="resetBtn">Reset</button>
+                </div>
+
+                <hr style="margin: var(--spacing-lg) 0; opacity: 0.2;">
+
+                <div class="config-group">
+                    <label class="config-label">Upload File</label>
+                    <input type="file" id="fileInput" accept=".scad,.json,.urdf,.xacro" style="display: none;">
+                    <button class="btn-primary" id="uploadFileBtn">Browse Files</button>
+                    <div id="uploadStatus" style="font-size: 0.75rem; color: var(--text-secondary); margin-top: 0.5rem;"></div>
+                </div>
+
+                <hr style="margin: var(--spacing-lg) 0; opacity: 0.2;">
+
+                <div class="config-group">
+                    <label class="config-label">Current Model Configuration</label>
+                    <div class="model-config" id="modelConfig">
+                        <div class="model-config-item">
+                            <span class="model-config-label">Status</span>
+                            <span class="model-config-value">No model loaded</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Customizer Panel -->
+            <div class="panel" id="customizerPanel">
+                <h3>Customizer</h3>
+                <div id="customizerControls" class="customizer-container">
+                    <span class="customizer-empty">Load a model to see parameters.</span>
+                </div>
+            </div>
+
+            <!-- Host Actions Panel -->
+            <div class="panel">
+                <h3>Host Actions</h3>
+                <p style="color: var(--text-secondary); font-size: var(--font-size-sm); margin-bottom: var(--spacing-md);">
+                    Simulate a host platform (e-commerce, CAD repository, etc.) receiving model configuration
+                </p>
+
+                <div class="config-group">
+                    <button class="btn-success" id="buyNowBtn" style="width: 100%; padding: var(--spacing-lg);">
+                        💳 Buy Now (with current config)
+                    </button>
+                </div>
+
+                <div class="config-group">
+                    <label class="config-label">Last Action Payload</label>
+                    <div class="config-display" id="actionPayload" style="color: var(--text-secondary);">
+                        Waiting for action...
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        window.__BABYLON_ROS_WORKER_URL = './workers/openscadWorker.js';
+    </script>
+    <script src="./ros.js"></script>
+    <script>
+        const themeConfig = {
+            light: {
+                '--primary-color': '#2563eb',
+                '--primary-dark': '#1e40af',
+                '--primary-light': '#3b82f6',
+                '--secondary-color': '#10b981',
+                '--secondary-dark': '#059669',
+                '--accent-color': '#f59e0b',
+            },
+            dark: {
+                '--primary-color': '#60a5fa',
+                '--primary-dark': '#3b82f6',
+                '--primary-light': '#93c5fd',
+                '--secondary-color': '#34d399',
+                '--secondary-dark': '#10b981',
+                '--accent-color': '#fbbf24',
+            },
+            highcontrast: {
+                '--primary-color': '#0000ff',
+                '--primary-light': '#3366ff',
+                '--secondary-color': '#00aa00',
+                '--accent-color': '#ff0000',
+            }
+        };
+
+        let viewer = null;
+        let currentModelConfig = null;
+        let customizerVariables = [];
+        let pendingConfig = {};
+
+        function applyTheme(themeName, colorOverrides = {}) {
+            // Apply theme class to body
+            document.body.classList.remove('theme-light', 'theme-dark', 'theme-highcontrast');
+            if (themeName !== 'light') {
+                document.body.classList.add(`theme-${themeName}`);
+            }
+
+            // Apply color overrides
+            const root = document.documentElement;
+            const baseColors = themeConfig[themeName] || themeConfig.light;
+            
+            Object.entries(baseColors).forEach(([key, value]) => {
+                root.style.setProperty(key, colorOverrides[key] || value);
+            });
+
+            updateThemeIndicator(themeName);
+        }
+
+        function updateThemeIndicator(themeName) {
+            const indicator = document.getElementById('themeIndicator');
+            const displayName = themeName.charAt(0).toUpperCase() + themeName.slice(1);
+            indicator.textContent = `Theme: ${displayName}`;
+        }
+
+        // ============================================================
+        // Model Viewer Integration
+        // ============================================================
+
+        function updateStatus(state) {
+            const dot = document.getElementById('statusDot');
+            const text = document.getElementById('statusText');
+
+            if (state === 'ready') {
+                dot.classList.add('ready');
+                text.textContent = 'Viewer Ready';
+            } else if (state === 'loading') {
+                dot.classList.remove('ready');
+                text.textContent = 'Loading...';
+            } else {
+                dot.classList.remove('ready');
+                text.textContent = 'Error';
+            }
+        }
+
+        function buildCustomizerControls(variables, configuration) {
+            const container = document.getElementById('customizerControls') || createCustomizerContainer();
+            if (!variables || variables.length === 0) {
+                container.innerHTML = '<span class="customizer-empty">No customizable parameters.</span>';
+                return;
+            }
+
+            pendingConfig = { ...configuration };
+
+            const rows = variables
+                .filter(v => !v.hidden)
+                .map(v => {
+                    const val = configuration[v.name] ?? v.defaultValue;
+                    const id = `param_${v.name}`;
+                    let controlHtml = '';
+
+                    if (v.widget === 'slider' && v.range) {
+                        const min = v.range.min ?? 0;
+                        const max = v.range.max ?? 100;
+                        const step = v.range.step ?? 1;
+                        controlHtml = `
+                            <div class="param-control">
+                                <input type="range" id="${id}" min="${min}" max="${max}" step="${step}" value="${val}" data-param="${v.name}" data-type="number">
+                                <span class="range-value" id="${id}_val">${val}</span>
+                            </div>`;
+                    } else if (v.widget === 'dropdown' && v.options?.length) {
+                        const opts = v.options.map(o =>
+                            `<option value="${escapeHtml(String(o.value))}" ${o.value == val ? 'selected' : ''}>${escapeHtml(String(o.label ?? o.value))}</option>`
+                        ).join('');
+                        controlHtml = `<div class="param-control"><select id="${id}" data-param="${v.name}" data-type="${v.valueType}">${opts}</select></div>`;
+                    } else if (v.widget === 'checkbox' || v.valueType === 'boolean') {
+                        controlHtml = `<div class="param-control"><input type="checkbox" id="${id}" data-param="${v.name}" data-type="boolean" ${val ? 'checked' : ''}></div>`;
+                    } else if (v.valueType === 'number') {
+                        controlHtml = `<div class="param-control"><input type="number" id="${id}" value="${val}" data-param="${v.name}" data-type="number" step="any"></div>`;
+                    } else {
+                        controlHtml = `<div class="param-control"><input type="text" id="${id}" value="${escapeHtml(String(val))}" data-param="${v.name}" data-type="string"></div>`;
+                    }
+
+                    const desc = v.description ? `<small>${escapeHtml(v.description)}</small>` : '';
+                    return `
+                        <div class="param-row">
+                            <label class="param-label" for="${id}">${escapeHtml(v.name)}${desc}</label>
+                            ${controlHtml}
+                        </div>`;
+                }).join('');
+
+            const hasControls = document.getElementById('customizerControls');
+            if (hasControls) {
+                container.innerHTML = rows + `<button class="render-btn" id="renderBtn">▶ Render</button>`;
+            } else {
+                // Can't update without container
+                return;
+            }
+
+            container.querySelectorAll('[data-param]').forEach(el => {
+                const name = el.dataset.param;
+                const type = el.dataset.type;
+                const update = () => {
+                    let value;
+                    if (el.type === 'checkbox') value = el.checked;
+                    else if (type === 'number') value = parseFloat(el.value);
+                    else value = el.value;
+                    pendingConfig[name] = value;
+                    if (el.type === 'range') {
+                        document.getElementById(`${el.id}_val`).textContent = value;
+                    }
+                };
+                el.addEventListener('input', update);
+                el.addEventListener('change', update);
+            });
+
+            document.getElementById('renderBtn').addEventListener('click', async () => {
+                const btn = document.getElementById('renderBtn');
+                btn.disabled = true;
+                btn.textContent = '◇ Rendering...';
+                try {
+                    await viewer.setConfiguration(pendingConfig);
+                    viewer.resetCamera();
+                    recordAction('config-applied', { config: pendingConfig });
+                } catch (e) {
+                    console.error('[RENDER] Error:', e);
+                    recordAction('render-failed', { error: e.message });
+                } finally {
+                    btn.disabled = false;
+                    btn.textContent = '▶ Render';
+                }
+            });
+        }
+
+        function createCustomizerContainer() {
+            const panel = document.getElementById('customizerPanel');
+            if (!panel) return null;
+            const container = document.createElement('div');
+            container.id = 'customizerControls';
+            container.className = 'customizer-container';
+            const existing = panel.querySelector('.customizer-container');
+            if (existing) existing.replaceWith(container);
+            else panel.appendChild(container);
+            return container;
+        }
+
+        function updateModelConfigDisplay(config) {
+            const display = document.getElementById('modelConfig');
+            if (!display) return;
+            
+            if (!config || !config.configuration) {
+                display.innerHTML = '<div class="model-config-item"><span class="model-config-label">Status</span><span class="model-config-value">No model loaded</span></div>';
+                return;
+            }
+
+            const items = [
+                { label: 'Model Name', value: config.modelName || 'Unknown' },
+                { label: 'Parameter Count', value: Object.keys(config.configuration).length }
+            ];
+
+            // Add first few parameters
+            Object.entries(config.configuration).slice(0, 5).forEach(([key, value]) => {
+                items.push({
+                    label: key,
+                    value: typeof value === 'object' ? JSON.stringify(value) : String(value)
+                });
+            });
+
+            display.innerHTML = items.map(item => `
+                <div class="model-config-item">
+                    <span class="model-config-label">${escapeHtml(String(item.label))}</span>
+                    <span class="model-config-value">${escapeHtml(String(item.value))}</span>
+                </div>
+            `).join('');
+        }
+
+        function updateModelConfig(detail) {
+            if (detail && detail.configuration) {
+                currentModelConfig = detail;
+                updateModelConfigDisplay(detail);  
+            }
+        }
+
+        function recordAction(action, data) {
+            const timestamp = new Date().toLocaleTimeString();
+            const payload = {
+                [timestamp]: '▶',
+                action: action,
+                ...(currentModelConfig ? { model: currentModelConfig.modelName } : {}),
+                ...data
+            };
+
+            const display = document.getElementById('actionPayload');
+            display.textContent = JSON.stringify(payload, null, 2);
+
+            console.log(`[ACTION] ${action}:`, payload);
+            return payload;
+        }
+
+        function escapeHtml(text) {
+            const map = {
+                '&': '&amp;',
+                '<': '&lt;',
+                '>': '&gt;',
+                '"': '&quot;',
+                "'": '&#039;'
+            };
+            return text.replace(/[&<>"']/g, m => map[m]);
+        }
+
+        function updateUploadStatus(message) {
+            const statusEl = document.getElementById('uploadStatus');
+            if (statusEl) statusEl.textContent = message;
+        }
+
+        // ============================================================
+        // Event Listeners
+        // ============================================================
+        document.getElementById('themeSelect').addEventListener('change', (e) => {
+            const themeName = e.target.value;
+            applyTheme(themeName);
+            recordAction('theme-changed', { theme: themeName });
+        });
+
+        document.getElementById('primaryColor').addEventListener('change', (e) => {
+            const root = document.documentElement;
+            root.style.setProperty('--primary-color', e.target.value);
+            root.style.setProperty('--primary-light', e.target.value + '8c'); // Add transparency
+            document.getElementById('primaryColorText').value = e.target.value;
+            recordAction('color-changed', { colorType: 'primary', value: e.target.value });
+        });
+
+        document.getElementById('secondaryColor').addEventListener('change', (e) => {
+            document.documentElement.style.setProperty('--secondary-color', e.target.value);
+            document.getElementById('secondaryColorText').value = e.target.value;
+            recordAction('color-changed', { colorType: 'secondary', value: e.target.value });
+        });
+
+        document.getElementById('accentColor').addEventListener('change', (e) => {
+            document.documentElement.style.setProperty('--accent-color', e.target.value);
+            document.getElementById('accentColorText').value = e.target.value;
+            recordAction('color-changed', { colorType: 'accent', value: e.target.value });
+        });
+
+        document.getElementById('loadModelBtn').addEventListener('click', async () => {
+            const url = document.getElementById('modelUrl').value;
+            if (!url) {
+                alert('Please enter a model file URL');
+                return;
+            }
+
+            if (viewer) {
+                try {
+                    await viewer.loadModelFromUrl(url);
+                    recordAction('model-load-requested', { url: url });
+                } catch (e) {
+                    console.error('[LOAD] Error:', e);
+                    recordAction('model-load-failed', { error: e.message });
+                    alert('Could not load model: ' + e.message);
+                }
+            }
+        });
+
+        document.getElementById('uploadFileBtn').addEventListener('click', () => {
+            document.getElementById('fileInput').click();
+        });
+
+        document.getElementById('fileInput').addEventListener('change', async (e) => {
+            const file = e.target.files?.[0];
+            if (!file) return;
+
+            updateUploadStatus(`Loading ${file.name}...`);
+            try {
+                const content = await file.text();
+                if (viewer) {
+                    updateUploadStatus(`Converting ${file.name}...`);
+                    await viewer.loadModelData(content, file.name);
+                    updateUploadStatus(`✓ ${file.name}`);
+                    recordAction('model-uploaded', { filename: file.name, size: file.size });
+                }
+            } catch (error) {
+                const errorMsg = error instanceof Error ? error.message : 'Unknown error';
+                updateUploadStatus(`✗ Error: ${errorMsg}`);
+                recordAction('upload-failed', { filename: file.name, error: errorMsg });
+                console.error('[UPLOAD] Error:', error);
+            }
+            
+            e.target.value = '';
+        });
+
+        document.getElementById('resetBtn').addEventListener('click', () => {
+            document.getElementById('modelUrl').value = '/test-model.scad';
+            applyTheme('light');
+            document.getElementById('themeSelect').value = 'light';
+            document.getElementById('primaryColor').value = '#2563eb';
+            document.getElementById('secondaryColor').value = '#10b981';
+            document.getElementById('accentColor').value = '#f59e0b';
+            recordAction('reset-clicked', {});
+        });
+
+        document.getElementById('buyNowBtn').addEventListener('click', () => {
+            const payload = recordAction('buy-now-clicked', {
+                timestamp: new Date().toISOString()
+            });
+            alert(`Purchase initiated!\n\nOrder Summary:\nModel: ${currentModelConfig?.modelName || 'Unknown'}\nParameters: ${JSON.stringify(currentModelConfig?.configuration || {})}\n\n(See console for full payload)`);
+        });
+
+        // ============================================================
+        // Initialization
+        // ============================================================
+        window.addEventListener('load', async () => {
+            applyTheme('light');
+            updateStatus('loading');
+            recordAction('page-initialized', { theme: 'light' });
+
+            try {
+                const canvas = document.getElementById('renderCanvas');
+                viewer = await babylon_ros.RenderOpenScadDirect({
+                    canvas: canvas,
+                    theme: themeConfig.light,
+                    autoConvertOnLoad: false,
+                    onModelLoaded: (detail) => {
+                        console.log('[HOST] Model loaded:', detail);
+                        currentModelConfig = detail;
+                        customizerVariables = detail.variables || [];
+                        buildCustomizerControls(customizerVariables, detail.configuration);
+                        const { variables: _v, ...logDetail } = detail;
+                        recordAction('model-loaded', logDetail);
+                    },
+                    onConfigurationChange: (detail) => {
+                        console.log('[HOST] Config changed:', detail);
+                        currentModelConfig = detail;
+                        if (detail.configuration) {
+                            Object.entries(detail.configuration).forEach(([name, val]) => {
+                                const el = document.getElementById(`param_${name}`);
+                                if (el?.type === 'range') {
+                                    el.value = String(val);
+                                    const lbl = document.getElementById(`param_${name}_val`);
+                                    if (lbl) lbl.textContent = String(val);
+                                }
+                            });
+                        }
+                        const { variables: _v, ...logDetail } = detail;
+                        recordAction('config-changed', logDetail);
+                    }
+                });
+                updateStatus('ready');
+                recordAction('viewer-initialized', { success: true });
+
+                canvas.addEventListener('wheel', (e) => {
+                    e.preventDefault();
+                }, { passive: false });
+
+                // Monitor canvas container for size changes and update render buffer
+                const containerObserver = new ResizeObserver(() => {
+                    if (viewer) {
+                        viewer.resizeRenderer();
+                    }
+                });
+                const container = canvas.parentElement;
+                if (container) {
+                    containerObserver.observe(container);
+                }
+            } catch (e) {
+                console.error('[INIT] Failed:', e);
+                updateStatus('error');
+                recordAction('viewer-init-failed', { error: e.message });
+            }
+        });
+
+        console.log('%c=== Model Host Demo ===', 'font-size: 14px; font-weight: bold; color: #2563eb;');
+        console.log('This demo shows how a host platform can:');
+        console.log('1. Provide configurable theming via CSS variables');
+        console.log('2. Load and configure models via URL parameters');
+        console.log('3. Receive real-time model configuration updates');
+        console.log('4. Integrate host actions (e.g., "Buy Now") with model state');
+        console.log('%c=== Try these:', 'font-size: 12px; font-weight: bold;');
+        console.log('- Change theme and see colors update');
+        console.log('- Load a model from URL');
+        console.log('- Adjust model parameters and see them reflected');
+        console.log('- Click "Buy Now" to see the payload sent to host');
+    </script>
+</body>
+</html>
