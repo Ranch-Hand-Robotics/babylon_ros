@@ -10,13 +10,13 @@ jobs:
       - name: Checkout main
         uses: actions/checkout@v2
 
-      - name: Use Node.js ${{ matrix.node-version }}
-        uses: actions/setup-node@v3
+      - uses: actions/setup-node@v4
         with:
-          node-version: ${{ matrix.node-version }}
+          node-version: '24.x'
+          registry-url: 'https://registry.npmjs.org'
       - run: npm ci
-      - name: Download latest openscad-wasm release
-        run: npm run download-openscad
+      - name: Build openscad-wasm from source
+        run: npm run build-openscad-from-source
       - run: npm run build --if-present
       - run: cp -r ./web/ros.js ./docs/ros.js
       - name: Deploy docs

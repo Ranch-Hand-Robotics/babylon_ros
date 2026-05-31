@@ -29,6 +29,7 @@ export class RobotScene {
   public ground : BABYLON.GroundMesh | undefined = undefined;
   public camera : BABYLON.ArcRotateCamera | undefined = undefined;
   private mirrorTexture : BABYLON.MirrorTexture | undefined = undefined;
+  private mirrorLayerEnabled: boolean = true;
   private statusLabel = new GUI.TextBlock();
   public readyToRender : Boolean = false;
 
@@ -52,6 +53,11 @@ export class RobotScene {
   private savedFramingRadius: number = 1;
   private savedFramingAlpha: number = -Math.PI / 3;
   private savedFramingBeta: number = 5 * Math.PI / 12;
+  // Camera position saved before reloading URDF, to avoid resetting the user's view on live edits
+  private preservedCameraAlpha: number | undefined = undefined;
+  private preservedCameraBeta: number | undefined = undefined;
+  private preservedCameraRadius: number | undefined = undefined;
+  private preservedCameraTarget: BABYLON.Vector3 | undefined = undefined;
   
   // Default camera position configuration
   private defaultCameraAlpha: number = -5 * Math.PI / 4; // Horizontal angle (rotation around Y-axis)
@@ -511,13 +517,36 @@ export class RobotScene {
     const mirrorMaterial = mirrorGround.material as BABYLON.StandardMaterial;
 
     if (options.enabled !== undefined) {
-      mirrorGround.setEnabled(options.enabled);
-      if (!options.enabled) return; // Skip other settings if disabled
+      this.mirrorLayerEnabled = options.enabled;
+    }
+
+    const mirrorReflectionLevel = options.reflectionLevel !== undefined
+      ? Math.max(0, Math.min(1, options.reflectionLevel))
+      : this.mirrorTexture?.level ?? 0;
+    const shouldShowMirrorPlane = this.mirrorLayerEnabled && mirrorReflectionLevel > 0;
+
+    if (options.enabled !== undefined) {
+      mirrorGround.setEnabled(shouldShowMirrorPlane);
+      mirrorGround.isVisible = shouldShowMirrorPlane;
+      if (!shouldShowMirrorPlane) {
+        mirrorGround.visibility = 0;
+      }
     }
 
     if (options.reflectionLevel !== undefined && this.mirrorTexture) {
-      this.mirrorTexture.level = Math.max(0, Math.min(1, options.reflectionLevel));
+      this.mirrorTexture.level = mirrorReflectionLevel;
     }
+
+    if (!shouldShowMirrorPlane) {
+      mirrorGround.setEnabled(false);
+      mirrorGround.isVisible = false;
+      mirrorGround.visibility = 0;
+      return;
+    }
+
+    mirrorGround.setEnabled(true);
+    mirrorGround.isVisible = true;
+    mirrorGround.visibility = 1;
 
     if (options.alpha !== undefined) {
       mirrorMaterial.alpha = Math.max(0, Math.min(1, options.alpha));
@@ -1008,7 +1037,9 @@ export class RobotScene {
     // Toggle mirror ground visibility
     const mirrorGround = this.scene.getMeshByName("mirrorGround");
     if (mirrorGround) {
-      mirrorGround.setEnabled(this.enhancedVisualsEnabled);
+      const shouldShowMirror = this.enhancedVisualsEnabled && this.mirrorLayerEnabled;
+      mirrorGround.setEnabled(shouldShowMirror);
+      mirrorGround.isVisible = shouldShowMirror;
     }
     
     // Toggle edge fade effects
@@ -1215,6 +1246,19 @@ export class RobotScene {
         this.currentLoadSessionId++;
         const sessionId = this.currentLoadSessionId;
         
+        // If the robot was already visible, save the user's camera position to restore after reload
+        if (this.hasBeenFramed && this.camera) {
+          this.preservedCameraAlpha = this.camera.alpha;
+          this.preservedCameraBeta = this.camera.beta;
+          this.preservedCameraRadius = this.camera.radius;
+          this.preservedCameraTarget = this.camera.target.clone();
+        } else {
+          this.preservedCameraAlpha = undefined;
+          this.preservedCameraBeta = undefined;
+          this.preservedCameraRadius = undefined;
+          this.preservedCameraTarget = undefined;
+        }
+
         // Reset mesh loading tracking and framing flag
         this.meshLoadPromises = [];
         this.pendingMeshLoads = 0;
@@ -1408,6 +1452,12 @@ export class RobotScene {
       return;
     }
 
+    const wasFramed = this.hasBeenFramed;
+    const currentCameraAlpha = this.camera.alpha;
+    const currentCameraBeta = this.camera.beta;
+    const currentCameraRadius = this.camera.radius;
+    const currentCameraTarget = this.camera.target.clone();
+
     // Get all meshes in the scene (excluding ground, world axis, etc.)
     const robotMeshes: BABYLON.AbstractMesh[] = [];
     
@@ -1454,18 +1504,34 @@ export class RobotScene {
     this.camera.minZ = maxDimension * 0.001;
     this.camera.maxZ = maxDimension * 1000;
 
-    // Keep the same viewing angles but ensure good framing
-    // You can adjust these angles if needed
-    this.camera.alpha = this.defaultCameraAlpha;
-    this.camera.beta = this.defaultCameraBeta;
-    
-    // Save the framing information for resetCamera()
+    // Save the auto-framed position for resetCamera()
     this.savedFramingTarget = center.clone();
     this.savedFramingRadius = this.camera.radius;
-    this.savedFramingAlpha = this.camera.alpha;
-    this.savedFramingBeta = this.camera.beta;
-    
+    this.savedFramingAlpha = this.defaultCameraAlpha;
+    this.savedFramingBeta = this.defaultCameraBeta;
     this.hasBeenFramed = true;
+
+    // If the user had previously positioned the camera, restore it rather than snapping to defaults
+    if (this.preservedCameraAlpha !== undefined && this.preservedCameraTarget !== undefined) {
+      this.camera.alpha = this.preservedCameraAlpha;
+      this.camera.beta = this.preservedCameraBeta!;
+      this.camera.radius = this.preservedCameraRadius!;
+      this.camera.setTarget(this.preservedCameraTarget);
+      this.preservedCameraAlpha = undefined;
+      this.preservedCameraBeta = undefined;
+      this.preservedCameraRadius = undefined;
+      this.preservedCameraTarget = undefined;
+    } else if (wasFramed) {
+      // Generic refresh/reload path: keep the user's current camera view.
+      this.camera.alpha = currentCameraAlpha;
+      this.camera.beta = currentCameraBeta;
+      this.camera.radius = currentCameraRadius;
+      this.camera.setTarget(currentCameraTarget);
+    } else {
+      // First load: use default viewing angles
+      this.camera.alpha = this.defaultCameraAlpha;
+      this.camera.beta = this.defaultCameraBeta;
+    }
   }
 
   /**
@@ -1547,6 +1613,8 @@ export class RobotScene {
     const mirrorGround = BABYLON.MeshBuilder.CreateGround("mirrorGround", {width: 100, height: 100}, this.scene);
     mirrorGround.position.y = -0.001; // Minimal offset to avoid z-fighting without visible gap
     mirrorGround.isPickable = false;
+    mirrorGround.setEnabled(this.enhancedVisualsEnabled && this.mirrorLayerEnabled);
+    mirrorGround.isVisible = this.enhancedVisualsEnabled && this.mirrorLayerEnabled;
 
     // Mirror material with subtle, blurred reflection
     const mirrorMaterial = new BABYLON.StandardMaterial("mirrorMaterial", this.scene);

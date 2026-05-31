@@ -14,7 +14,9 @@ import {
   OpenSCADCustomizerParseResult,
   OpenSCADCustomizerValue,
   createOpenSCADCustomizerUI,
+  injectCustomizerTheme,
   parseOpenSCADCustomizer,
+  VSCODE_CUSTOMIZER_THEME,
 } from './openscadCustomizer';
 
 import {
@@ -30,12 +32,25 @@ interface ModelViewerHost {
   modelName?: string;
   libraryFiles?: Record<string, string>;
   autoConvertOnLoad?: boolean;
+  /** Host-provided element for the built-in customizer UI.
+   * When set and renderControls is absent, the library renders
+   * its default customizer panel into this element. */
+  customizerContainer?: HTMLElement;
+  /**
+   * CSS variable map applied to customizerContainer before the UI
+   * is built.  Use VSCODE_CUSTOMIZER_THEME to match a VS Code
+   * webview's color scheme.  Defaults to VSCODE_CUSTOMIZER_THEME
+   * when customizerContainer is set and no explicit value is given.
+   */
+  customizerTheme?: Record<string, string>;
   renderControls?: (
     container: HTMLElement,
     context: {
       getConfiguration: () => Record<string, OpenSCADCustomizerValue>;
       getModelName: () => string | null;
-      onConfigurationChange: (callback: (detail: unknown) => void) => () => void;
+      onConfigurationChange: (
+        callback: (detail: unknown) => void
+      ) => () => void;
     }
   ) => void;
   onModelLoaded?: (detail: unknown) => void;
@@ -238,8 +253,41 @@ function renderCustomizer(model: OpenSCADCustomizerParseResult): void {
     defaultValues[variable.name] = variable.defaultValue;
   });
 
-  // In hosted mode, these elements don't exist - customizer is handled by host
-  if (!customizerContainer || !noCustomizerMessage) {
+  // In hosted mode, DOM sidebar elements may not exist.
+  // If the host supplied a customizerContainer element, use that
+  // to render the built-in customizer UI.
+  if (!customizerContainer) {
+    const hostEl = state.hostConfig?.customizerContainer;
+    if (hostEl && !state.hostConfig?.renderControls) {
+      if (!model.variables.length) {
+        hostEl.style.display = 'none';
+        state.customizerValues = {};
+        notifyConfigurationChanged();
+        return;
+      }
+
+      hostEl.style.display = 'block';
+      injectCustomizerTheme(
+        hostEl,
+        state.hostConfig?.customizerTheme ?? VSCODE_CUSTOMIZER_THEME
+      );
+      const ui = createOpenSCADCustomizerUI();
+      ui.render(hostEl, model, (values) => {
+        state.customizerValues = { ...values };
+        notifyConfigurationChanged();
+      });
+      state.customizerValues = ui.getValues();
+      notifyConfigurationChanged();
+      return;
+    }
+
+    // No DOM sidebar and no host container — just propagate defaults.
+    state.customizerValues = defaultValues;
+    notifyConfigurationChanged();
+    return;
+  }
+
+  if (!noCustomizerMessage) {
     state.customizerValues = defaultValues;
     notifyConfigurationChanged();
     return;
@@ -545,6 +593,16 @@ export interface ViewerOptions {
   modelName?: string;
   libraryFiles?: Record<string, string>;
   autoConvertOnLoad?: boolean;
+  /** Optional element to receive the built-in customizer UI when the
+   * host does not supply a renderControls callback. */
+  customizerContainer?: HTMLElement;
+  /**
+   * CSS variable map applied to customizerContainer.
+   * Defaults to VSCODE_CUSTOMIZER_THEME, which maps customizer
+   * variables to VS Code webview CSS variables.
+   * Pass an empty object `{}` to skip all theme injection.
+   */
+  customizerTheme?: Record<string, string>;
   onModelLoaded?: (detail: unknown) => void;
   onConfigurationChange?: (detail: unknown) => void;
 }
@@ -574,6 +632,8 @@ export async function RenderOpenScadDirect(options: ViewerOptions): Promise<View
     modelName: options.modelName,
     libraryFiles: options.libraryFiles,
     autoConvertOnLoad: options.autoConvertOnLoad,
+    customizerContainer: options.customizerContainer,
+    customizerTheme: options.customizerTheme,
     onModelLoaded: options.onModelLoaded,
     onConfigurationChange: options.onConfigurationChange,
   };

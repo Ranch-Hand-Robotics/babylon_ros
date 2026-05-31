@@ -11,6 +11,7 @@ web/user/**
 
 build*.txt
 build*.log
+build-src/
 
 # OpenSCAD WASM build artifacts (downloaded from GitHub releases)
 openscad-wasm-build/

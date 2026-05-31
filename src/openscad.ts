@@ -198,9 +198,24 @@ export async function getAllOpenSCADLibraryPaths(
 
   if (configuredPaths) {
     for (const rawPath of configuredPaths) {
-      const resolved = workspaceRoot
-        ? rawPath.replace(/\$\{workspaceFolder\}/g, workspaceRoot)
+      const withWorkspaceTokens = workspaceRoot
+        ? rawPath
+            .replace(/\$\{workspaceFolder\}/g, workspaceRoot)
+            .replace(/\$\{workspace\}/g, workspaceRoot)
         : rawPath;
+
+      let resolved = withWorkspaceTokens;
+      if (/^(file|vscode-file):\/\//i.test(withWorkspaceTokens)) {
+        try {
+          const parsed = new URL(withWorkspaceTokens);
+          const decoded = decodeURIComponent(parsed.pathname);
+          resolved = process.platform === 'win32' && /^\/[A-Za-z]:\//.test(decoded)
+            ? decoded.slice(1)
+            : decoded;
+        } catch {
+          resolved = withWorkspaceTokens;
+        }
+      }
       candidates.push(resolved);
     }
   }
@@ -482,6 +497,7 @@ export interface OpenSCADNodeConversionRequest {
   scadFilePath: string;
   libraryFiles: { [virtualPath: string]: string }; // Base64 encoded content
   workspaceRoot?: string;
+  configuredLibraryPaths?: string[];
   timeout?: number; // Custom timeout in milliseconds
   exportFormat?: 'stl' | 'svg' | 'glb'; // Export format
   parameterOverrides?: Record<string, OpenSCADCustomizerValue>;
@@ -501,6 +517,8 @@ export interface OpenSCADNodeConversionResponse {
 export interface OpenSCADNodeConversionOptions {
   timeout?: number;
   outputFormat?: 'stl' | 'glb';
+  workspaceRoot?: string;
+  configuredLibraryPaths?: string[];
   parameterOverrides?: Record<string, OpenSCADCustomizerValue>;
   parameterConfiguration?: OpenSCADParameterConfiguration;
 }
@@ -609,6 +627,8 @@ export function convertOpenSCADWithNodeWorker(
     const request: OpenSCADNodeConversionRequest = {
       scadFilePath,
       libraryFiles: {},
+      workspaceRoot: options?.workspaceRoot,
+      configuredLibraryPaths: options?.configuredLibraryPaths,
       timeout,
       exportFormat: options?.outputFormat ?? 'stl',
       parameterOverrides: options?.parameterOverrides,

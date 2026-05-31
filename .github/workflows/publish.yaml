@@ -12,13 +12,13 @@ jobs:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
         with:
-          node-version: '22.x'
+          node-version: '24.x'
           registry-url: 'https://registry.npmjs.org'
       # Ensure npm 11.5.1 or later is installed
       - name: Update npm
         run: npm install -g npm@latest
       - run: npm ci
-      - name: Download latest openscad-wasm release
-        run: npm run download-openscad
+      - name: Build openscad-wasm from source
+        run: npm run build-openscad-from-source
       - run: npm run build --if-present
       - run: npm publish

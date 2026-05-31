@@ -18,6 +18,7 @@ interface ConversionRequest {
   // Node request shape
   scadFilePath?: string;
   workspaceRoot?: string;
+  configuredLibraryPaths?: string[];
 
   // Shared fields
   libraryFiles?: { [virtualPath: string]: string }; // Base64 encoded content
@@ -26,6 +27,18 @@ interface ConversionRequest {
   parameterOverrides?: Record<string, OpenSCADCustomizerValue>;
   parameterConfiguration?: OpenSCADParameterConfiguration;
 }
+
+const EXCLUDED_DIRS = new Set([
+  'node_modules', '.git', 'dist', 'build', 'out', '__pycache__',
+  'venv', '.venv', '.tox', 'coverage',
+]);
+
+const SUPPORTED_EXTS = new Set([
+  '.scad', '.stl', '.off', '.amf', '.3mf', '.dxf', '.svg',
+  '.png', '.jpg', '.jpeg', '.bmp',
+]);
+
+const MAX_FILE_BYTES = 50 * 1024 * 1024;
 
 interface ConversionResponse {
   success: boolean;
@@ -195,6 +208,156 @@ function stripScadExtension(fileName: string): string {
     : fileName;
 }
 
+function getDefaultOpenSCADLibraryPathsInWorker(): string[] {
+  if (!isNodeRuntime()) {
+    return [];
+  }
+  const { path, processObj } = getNodeModules();
+  const home = processObj.env.USERPROFILE || processObj.env.HOME || '';
+  const platform = processObj.platform;
+
+  if (platform === 'win32') {
+    return [path.join(home, 'Documents', 'OpenSCAD', 'libraries')];
+  }
+  if (platform === 'darwin') {
+    return [path.join(home, 'Documents', 'OpenSCAD', 'libraries')];
+  }
+  return [path.join(home, '.local', 'share', 'OpenSCAD', 'libraries')];
+}
+
+function normalizeConfiguredLibraryPath(rawPath: string, workspaceRoot?: string): string {
+  const replaced = workspaceRoot
+    ? rawPath
+      .replace(/\$\{workspaceFolder\}/g, workspaceRoot)
+      .replace(/\$\{workspace\}/g, workspaceRoot)
+    : rawPath;
+
+  if (!/^(file|vscode-file):\/\//i.test(replaced)) {
+    return replaced;
+  }
+
+  try {
+    const parsed = new URL(replaced);
+    const decoded = decodeURIComponent(parsed.pathname);
+    if (isNodeRuntime()) {
+      const { path, processObj } = getNodeModules();
+      if (processObj.platform === 'win32') {
+        const windowsPath = /^\/[A-Za-z]:\//.test(decoded)
+          ? decoded.slice(1)
+          : decoded;
+        return windowsPath.replace(/\//g, path.sep);
+      }
+      return decoded;
+    }
+    return decoded;
+  } catch {
+    return replaced;
+  }
+}
+
+function getResolvedLibraryDirectories(request: ConversionRequest): string[] {
+  if (!isNodeRuntime()) {
+    return [];
+  }
+
+  const { fs } = getNodeModules();
+  const candidates = new Set<string>(getDefaultOpenSCADLibraryPathsInWorker());
+
+  for (const rawPath of request.configuredLibraryPaths ?? []) {
+    const normalized = normalizeConfiguredLibraryPath(rawPath, request.workspaceRoot);
+    if (normalized.trim().length > 0) {
+      candidates.add(normalized);
+    }
+  }
+
+  const existing: string[] = [];
+  for (const candidate of candidates) {
+    try {
+      const stat = fs.statSync(candidate);
+      if (stat.isDirectory()) {
+        existing.push(candidate);
+      }
+    } catch {
+      // ignore missing/invalid paths
+    }
+  }
+
+  return existing;
+}
+
+function ensureVfsDirectory(instance: any, vfsPath: string): void {
+  const normalized = vfsPath.replace(/\\/g, '/');
+  const segments = normalized.split('/').filter(s => s.length > 0);
+  let current = '';
+  for (const segment of segments) {
+    current += '/' + segment;
+    try {
+      instance.FS.mkdir(current);
+    } catch {
+      // already exists
+    }
+  }
+}
+
+async function loadDirectoryIntoVfs(
+  instance: any,
+  diskDir: string,
+  virtualBase: string,
+  opts?: { skipFile?: string },
+): Promise<void> {
+  if (!isNodeRuntime()) {
+    return;
+  }
+
+  const { fs: nodefs, path: nodepath } = getNodeModules();
+  let entries: import('fs').Dirent[];
+  try {
+    entries = await nodefs.promises.readdir(diskDir, { withFileTypes: true });
+  } catch {
+    return;
+  }
+
+  for (const entry of entries) {
+    if (EXCLUDED_DIRS.has(entry.name)) {
+      continue;
+    }
+
+    const diskPath = nodepath.join(diskDir, entry.name);
+    const vfsPath = `${virtualBase}/${entry.name}`.replace(/\\/g, '/');
+
+    if (entry.isDirectory()) {
+      ensureVfsDirectory(instance, vfsPath);
+      await loadDirectoryIntoVfs(instance, diskPath, vfsPath, opts);
+      continue;
+    }
+
+    if (!entry.isFile()) {
+      continue;
+    }
+
+    if (opts?.skipFile && diskPath === opts.skipFile) {
+      continue;
+    }
+
+    const ext = nodepath.extname(entry.name).toLowerCase();
+    if (!SUPPORTED_EXTS.has(ext)) {
+      continue;
+    }
+
+    try {
+      const stat = await nodefs.promises.stat(diskPath);
+      if (stat.size > MAX_FILE_BYTES) {
+        continue;
+      }
+      const content = await nodefs.promises.readFile(diskPath);
+      ensureVfsDirectory(instance, vfsPath.substring(0, vfsPath.lastIndexOf('/')));
+      instance.FS.writeFile(vfsPath, content);
+    } catch {
+      // skip unreadable files
+    }
+  }
+}
+
 async function getScadContent(request: ConversionRequest): Promise<string> {
   if (typeof request.scadContent === 'string') {
     return request.scadContent;
@@ -334,6 +497,25 @@ async function convertOpenSCAD(request: ConversionRequest): Promise<void> {
       } catch (error: unknown) {
         const errorMsg = error instanceof Error ? error.message : String(error);
         sendProgress(`Failed to load library file ${virtualPath}: ${errorMsg}`);
+      }
+    }
+
+    // In Node.js mode, load the SCAD file's directory into the WASM virtual FS.
+    // This enables relative imports: STL/DXF/SCAD files in the same directory
+    // (e.g. `import("part.stl")` or `use <locallib/utils.scad>`) are resolved correctly
+    // because the input file is written to the virtual FS root as `/${baseName}.scad`.
+    if (isNodeRuntime() && request.scadFilePath) {
+      const { path: nodepath } = getNodeModules();
+      const scadDir = nodepath.dirname(request.scadFilePath);
+      await loadDirectoryIntoVfs(instance, scadDir, '', {
+        skipFile: request.scadFilePath,
+      });
+      sendProgress(`Loaded project files from: ${scadDir}`);
+
+      const libraryDirs = getResolvedLibraryDirectories(request);
+      for (const libDir of libraryDirs) {
+        await loadDirectoryIntoVfs(instance, libDir, '');
+        sendProgress(`Loaded OpenSCAD libraries from: ${libDir}`);
       }
     }
 
