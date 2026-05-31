@@ -76,6 +76,7 @@ interface OpenScadViewerState {
   customizerModel?: OpenSCADCustomizerParseResult;
   customizerValues: Record<string, OpenSCADCustomizerValue>;
   hostConfig?: ModelViewerHost;
+  renderSessionId: number;
 }
 
 const HOST_MESSAGE_SOURCE = 'babylon_ros.viewer';
@@ -83,6 +84,7 @@ const HOST_COMMAND_SOURCE = 'babylon_ros.host';
 
 const state: OpenScadViewerState = {
   customizerValues: {},
+  renderSessionId: 0,
 };
 
 function getElement(id: string): HTMLElement | null {
@@ -191,6 +193,8 @@ function renderMeshUri(uri: string, forcedExtension: string): void {
     return;
   }
 
+  const renderSessionId = ++state.renderSessionId;
+
   clearCurrentRobot();
 
   const robot = new Robot();
@@ -204,12 +208,25 @@ function renderMeshUri(uri: string, forcedExtension: string): void {
 
   visual.geometry = new Mesh(uri, scale, forcedExtension);
   if (isOpenScadGlb) {
-    // Robot root applies -90° around X for ROS alignment; compensate for OpenSCAD GLB previews.
-    visual.rpy = new BABYLON.Vector3(Math.PI / 2, 0, 0);
+    // Intentionally do not apply an extra visual rotation here.
+    // Robot root transform already converts ROS/OpenSCAD Z-up into Babylon Y-up.
   }
   visual.material = new Material();
   visual.material.name = 'default';
   visual.material.color = new BABYLON.Color4(0.95, 0.95, 0.95, 1.0);
+
+  let hasFramed = false;
+  const frameWhenReady = () => {
+    if (hasFramed || state.renderSessionId !== renderSessionId) {
+      return;
+    }
+    hasFramed = true;
+    state.robotScene?.frameModel();
+  };
+
+  visual.geometry.setLoadCompleteCallback?.(() => {
+    frameWhenReady();
+  });
 
   link.visuals.push(visual);
   robot.links.set('base_link', link);
@@ -217,9 +234,10 @@ function renderMeshUri(uri: string, forcedExtension: string): void {
   state.robotScene.currentRobot = robot;
   robot.create(state.robotScene.scene);
 
+  // Safety fallback in case a loader path does not emit completion callbacks.
   window.setTimeout(() => {
-    state.robotScene?.frameModel();
-  }, 400);
+    frameWhenReady();
+  }, 1000);
 }
 
 function renderBinaryMeshData(

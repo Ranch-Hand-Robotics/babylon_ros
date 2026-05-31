@@ -2,6 +2,8 @@ web/*.js*
 web/workers/*.js*
 docs/ros.js
 docs/ros.js.map
+*.glb
+*.vsix
 
 web/user/**
 .vscode/*.db*

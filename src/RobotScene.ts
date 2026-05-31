@@ -30,6 +30,7 @@ export class RobotScene {
   public camera : BABYLON.ArcRotateCamera | undefined = undefined;
   private mirrorTexture : BABYLON.MirrorTexture | undefined = undefined;
   private mirrorLayerEnabled: boolean = true;
+  private groundPlaneEnabled: boolean = true;
   private statusLabel = new GUI.TextBlock();
   public readyToRender : Boolean = false;
 
@@ -77,6 +78,7 @@ export class RobotScene {
   private menuScrollViewer: GUI.ScrollViewer | undefined = undefined;
   private menuContainer: GUI.Rectangle | undefined = undefined;
   private isMenuExpanded: boolean = false;
+  private hamburgerMenuVisible: boolean = true;
   
   // Grid units properties
   private gridUnitsVisible: boolean = false;
@@ -523,7 +525,9 @@ export class RobotScene {
     const mirrorReflectionLevel = options.reflectionLevel !== undefined
       ? Math.max(0, Math.min(1, options.reflectionLevel))
       : this.mirrorTexture?.level ?? 0;
-    const shouldShowMirrorPlane = this.mirrorLayerEnabled && mirrorReflectionLevel > 0;
+    const shouldShowMirrorPlane = this.groundPlaneEnabled
+      && this.mirrorLayerEnabled
+      && mirrorReflectionLevel > 0;
 
     if (options.enabled !== undefined) {
       mirrorGround.setEnabled(shouldShowMirrorPlane);
@@ -566,6 +570,39 @@ export class RobotScene {
   }
 
   /**
+   * Shows or hides the XY ground plane and related visual effects.
+   */
+  public setGroundVisible(enabled: boolean): void {
+    this.groundPlaneEnabled = enabled;
+
+    if (this.ground) {
+      this.ground.setEnabled(enabled);
+      this.ground.isVisible = enabled;
+    }
+
+    if (!this.scene) {
+      return;
+    }
+
+    const mirrorGround = this.scene.getMeshByName("mirrorGround");
+    if (mirrorGround) {
+      const mirrorReflectionLevel = this.mirrorTexture?.level ?? 0;
+      const shouldShowMirrorPlane = enabled
+        && this.enhancedVisualsEnabled
+        && this.mirrorLayerEnabled
+        && mirrorReflectionLevel > 0;
+      mirrorGround.setEnabled(shouldShowMirrorPlane);
+      mirrorGround.isVisible = shouldShowMirrorPlane;
+      mirrorGround.visibility = shouldShowMirrorPlane ? 1 : 0;
+    }
+
+    const edgeFade = this.scene.getMeshByName("edgeFade");
+    if (edgeFade) {
+      edgeFade.setEnabled(enabled && this.enhancedVisualsEnabled);
+    }
+  }
+
+  /**
    * Sets all visual properties at once
    * @param config Complete visual configuration
    */
@@ -586,6 +623,9 @@ export class RobotScene {
     mirrorBlurKernel?: number;
     mirrorRoughness?: number;
     mirrorEnabled?: boolean;
+    groundEnabled?: boolean;
+    worldAxisEnabled?: boolean;
+    hamburgerMenuEnabled?: boolean;
   }): void {
     if (config.cameraRadius !== undefined) {
       this.setCameraRadius(config.cameraRadius);
@@ -628,6 +668,18 @@ export class RobotScene {
 
     if (Object.keys(mirrorOptions).length > 0) {
       this.setMirrorProperties(mirrorOptions);
+    }
+
+    if (config.groundEnabled !== undefined) {
+      this.setGroundVisible(config.groundEnabled);
+    }
+
+    if (config.worldAxisEnabled !== undefined) {
+      this.setWorldAxisVisible(config.worldAxisEnabled);
+    }
+
+    if (config.hamburgerMenuEnabled !== undefined) {
+      this.setHamburgerMenuVisible(config.hamburgerMenuEnabled);
     }
   }
   
@@ -679,6 +731,8 @@ export class RobotScene {
     this.hamburgerButton.onPointerUpObservable.add(() => {
       this.toggleMenu();
     });
+
+    this.hamburgerButton.isVisible = this.hamburgerMenuVisible;
     
     this.UILayer.addControl(this.hamburgerButton);
 
@@ -695,6 +749,9 @@ export class RobotScene {
     this.menuContainer.leftInPixels = 10;
     this.menuContainer.topInPixels = 60;
     this.menuContainer.isVisible = false;
+    this.menuContainer.isVisible = this.hamburgerMenuVisible
+      ? this.menuContainer.isVisible
+      : false;
     
     this.UILayer.addControl(this.menuContainer);
 
@@ -807,6 +864,10 @@ export class RobotScene {
   }
 
   toggleMenu() {
+    if (!this.hamburgerMenuVisible) {
+      return;
+    }
+
     this.isMenuExpanded = !this.isMenuExpanded;
     if (this.menuContainer) {
       this.menuContainer.isVisible = this.isMenuExpanded;
@@ -815,6 +876,21 @@ export class RobotScene {
     // Update hamburger button icon
     if (this.hamburgerButton) {
       this.hamburgerButton.textBlock!.text = this.isMenuExpanded ? "✕" : "☰";
+    }
+  }
+
+  public setHamburgerMenuVisible(visible: boolean): void {
+    this.hamburgerMenuVisible = visible;
+
+    if (this.hamburgerButton) {
+      this.hamburgerButton.isVisible = visible;
+    }
+
+    if (this.menuContainer) {
+      if (!visible) {
+        this.isMenuExpanded = false;
+      }
+      this.menuContainer.isVisible = visible ? this.isMenuExpanded : false;
     }
   }
 
@@ -928,6 +1004,17 @@ export class RobotScene {
     }
   }
 
+  public setWorldAxisVisible(visible: boolean): void {
+    if (!this.worldAxis) {
+      return;
+    }
+
+    this.worldAxis.setEnabled(visible);
+    this.worldAxisLabels.forEach((label) => {
+      label.setEnabled(visible);
+    });
+  }
+
   clearGridUnits() {
     this.gridUnitLabels.forEach((label) => {
       label.dispose();
@@ -1037,7 +1124,9 @@ export class RobotScene {
     // Toggle mirror ground visibility
     const mirrorGround = this.scene.getMeshByName("mirrorGround");
     if (mirrorGround) {
-      const shouldShowMirror = this.enhancedVisualsEnabled && this.mirrorLayerEnabled;
+      const shouldShowMirror = this.enhancedVisualsEnabled
+        && this.mirrorLayerEnabled
+        && this.groundPlaneEnabled;
       mirrorGround.setEnabled(shouldShowMirror);
       mirrorGround.isVisible = shouldShowMirror;
     }
@@ -1613,8 +1702,14 @@ export class RobotScene {
     const mirrorGround = BABYLON.MeshBuilder.CreateGround("mirrorGround", {width: 100, height: 100}, this.scene);
     mirrorGround.position.y = -0.001; // Minimal offset to avoid z-fighting without visible gap
     mirrorGround.isPickable = false;
-    mirrorGround.setEnabled(this.enhancedVisualsEnabled && this.mirrorLayerEnabled);
-    mirrorGround.isVisible = this.enhancedVisualsEnabled && this.mirrorLayerEnabled;
+    mirrorGround.setEnabled(
+      this.enhancedVisualsEnabled
+      && this.mirrorLayerEnabled
+      && this.groundPlaneEnabled
+    );
+    mirrorGround.isVisible = this.enhancedVisualsEnabled
+      && this.mirrorLayerEnabled
+      && this.groundPlaneEnabled;
 
     // Mirror material with subtle, blurred reflection
     const mirrorMaterial = new BABYLON.StandardMaterial("mirrorMaterial", this.scene);
