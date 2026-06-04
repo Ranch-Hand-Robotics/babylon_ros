@@ -231,80 +231,6 @@ function clearWasmBuildStamps(wasmSourceDir) {
   }
 }
 
-function parseSemver(version) {
-  const match = `${version ?? ''}`.match(/(\d+)\.(\d+)\.(\d+)/);
-  if (!match) {
-    return null;
-  }
-  return {
-    major: Number(match[1]),
-    minor: Number(match[2]),
-    patch: Number(match[3]),
-  };
-}
-
-function getRuntimeLockedTypeScriptVersion(wasmSourceDir) {
-  const lockPath = path.join(wasmSourceDir, 'runtime', 'package-lock.json');
-  if (!fs.existsSync(lockPath)) {
-    return null;
-  }
-
-  try {
-    const lock = JSON.parse(fs.readFileSync(lockPath, 'utf8'));
-    return lock?.packages?.['node_modules/typescript']?.version
-      ?? lock?.dependencies?.typescript?.version
-      ?? null;
-  } catch {
-    return null;
-  }
-}
-
-function ensureRuntimeTsconfigCompatibility(wasmSourceDir) {
-  const tsconfigPath = path.join(wasmSourceDir, 'runtime', 'tsconfig.json');
-  if (!fs.existsSync(tsconfigPath)) {
-    return;
-  }
-
-  const lockedTsVersion = getRuntimeLockedTypeScriptVersion(wasmSourceDir);
-  const semver = parseSemver(lockedTsVersion);
-  const isPreNode16Ts = semver
-    ? semver.major < 4 || (semver.major === 4 && semver.minor < 7)
-    : false;
-
-  if (!isPreNode16Ts) {
-    return;
-  }
-
-  let tsconfig;
-  try {
-    tsconfig = JSON.parse(fs.readFileSync(tsconfigPath, 'utf8'));
-  } catch {
-    log(`Could not parse runtime tsconfig at ${tsconfigPath}; skipping compatibility patch.`);
-    return;
-  }
-
-  const compilerOptions = tsconfig.compilerOptions ?? {};
-  const needsPatch = compilerOptions.module === 'node16'
-    || compilerOptions.moduleResolution === 'node16';
-
-  if (!needsPatch) {
-    return;
-  }
-
-  log(
-    `Applying runtime TypeScript compatibility patch (locked typescript ${lockedTsVersion}): node16 -> node12 in runtime/tsconfig.json`
-  );
-  compilerOptions.module = compilerOptions.module === 'node16'
-    ? 'node12'
-    : compilerOptions.module;
-  compilerOptions.moduleResolution = compilerOptions.moduleResolution === 'node16'
-    ? 'node12'
-    : compilerOptions.moduleResolution;
-  tsconfig.compilerOptions = compilerOptions;
-
-  fs.writeFileSync(tsconfigPath, `${JSON.stringify(tsconfig, null, 2)}\n`);
-}
-
 // ── Main ──────────────────────────────────────────────────────────────────────
 
 log('=== Build OpenSCAD-wasm from source ===');
@@ -342,10 +268,6 @@ if (FORCE_REBUILD) {
   log('Forcing full wasm image rebuild to pick up local OpenSCAD source changes...');
   clearWasmBuildStamps(wasmSourceDir);
 }
-
-// 4b. Work around openscad-wasm runtime lockfiles that pin older TypeScript
-//     versions which do not support module/moduleResolution = node16.
-ensureRuntimeTsconfigCompatibility(wasmSourceDir);
 
 log('Running make wasm …  (this can take a long time — Docker must be running)');
 run('make wasm', wasmSourceDir);
