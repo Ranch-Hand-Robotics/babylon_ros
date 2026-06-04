@@ -516,7 +516,7 @@ export interface OpenSCADNodeConversionResponse {
 
 export interface OpenSCADNodeConversionOptions {
   timeout?: number;
-  outputFormat?: 'stl' | 'glb';
+  outputFormat?: 'stl' | 'svg' | 'glb';
   workspaceRoot?: string;
   configuredLibraryPaths?: string[];
   parameterOverrides?: Record<string, OpenSCADCustomizerValue>;
@@ -955,7 +955,7 @@ export async function convertOpenSCADCancellable(
  */
 export async function exportOpenSCAD(
   scadFilePath: string,
-  exportFormat: 'stl' | 'svg',
+  exportFormat: 'stl' | 'svg' | 'glb',
   trace: any,
   token?: any,
   options?: {
@@ -973,14 +973,18 @@ export async function exportOpenSCAD(
     return null;
   }
 
-  const extension = exportFormat === 'svg' ? '.svg' : '.stl';
+  const extension = exportFormat === 'svg'
+    ? '.svg'
+    : exportFormat === 'glb'
+      ? '.glb'
+      : '.stl';
   const outputPath = scadFilePath.replace(/\.scad$/i, extension);
   const timeout = options?.timeout ?? 300000; // 5 minutes default
   const startTime = Date.now();
 
-  // STL export is routed through the Node worker so extension-host execution
-  // stays responsive and behavior matches preview conversion plumbing.
-  if (exportFormat === 'stl') {
+  // Route exports through the Node worker so format handling stays consistent
+  // across STL and SVG, and extension-host execution stays responsive.
+  if (exportFormat === 'stl' || exportFormat === 'svg') {
     if (token?.isCancellationRequested) {
       if (!options?.suppressErrorMessage) {
         trace?.appendLine('Export cancelled before start');
@@ -989,19 +993,21 @@ export async function exportOpenSCAD(
     }
 
     if (!options?.suppressErrorMessage) {
-      trace?.appendLine(`Exporting OpenSCAD to STL via worker: ${scadFilePath}`);
+      trace?.appendLine(`Exporting OpenSCAD to ${exportFormat.toUpperCase()} via worker: ${scadFilePath}`);
     }
 
-    const stlPath = await convertOpenSCADWithNodeWorker(scadFilePath, trace, {
+    const outputPath = await convertOpenSCADWithNodeWorker(scadFilePath, trace, {
       timeout,
-      outputFormat: 'stl',
+      outputFormat: exportFormat,
       parameterOverrides: options?.parameterOverrides,
+      workspaceRoot: options?.workspaceRoot,
+      configuredLibraryPaths: options?.configuredLibraryPaths,
     });
 
-    if (!stlPath && !options?.suppressErrorMessage && !token?.isCancellationRequested) {
-      trace?.appendLine('STL export failed via worker');
+    if (!outputPath && !options?.suppressErrorMessage && !token?.isCancellationRequested) {
+      trace?.appendLine(`${exportFormat.toUpperCase()} export failed via worker`);
     }
-    return stlPath;
+    return outputPath;
   }
 
   try {
@@ -1086,7 +1092,7 @@ export async function exportOpenSCAD(
       trace?.appendLine(`Running OpenSCAD export to ${exportFormat.toUpperCase()}...`);
     }
     
-    const outputFileName = exportFormat === 'svg' ? '/output.svg' : '/output.stl';
+    const outputFileName = '/output.glb';
     const exportPromise = new Promise<number>((_resolve, reject) => {
       try {
         const exitCode: number = instance.callMain(['/input.scad', '-o', outputFileName]);
