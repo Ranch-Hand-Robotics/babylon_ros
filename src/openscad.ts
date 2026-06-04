@@ -923,6 +923,8 @@ export async function convertOpenSCADCancellable(
     parameterOverrides?: Record<string, OpenSCADCustomizerValue>;
     parameterConfiguration?: OpenSCADParameterConfiguration;
     outputFormat?: 'stl' | 'glb';
+    workspaceRoot?: string;
+    configuredLibraryPaths?: string[];
   },
 ): Promise<string | null> {
   if (token?.isCancellationRequested) {
@@ -935,6 +937,8 @@ export async function convertOpenSCADCancellable(
     outputFormat: options?.outputFormat,
     parameterOverrides: options?.parameterOverrides,
     parameterConfiguration: options?.parameterConfiguration,
+    workspaceRoot: options?.workspaceRoot,
+    configuredLibraryPaths: options?.configuredLibraryPaths,
   });
 }
 
@@ -958,6 +962,8 @@ export async function exportOpenSCAD(
     timeout?: number;
     parameterOverrides?: Record<string, OpenSCADCustomizerValue>;
     suppressErrorMessage?: boolean;
+    workspaceRoot?: string;
+    configuredLibraryPaths?: string[];
   },
 ): Promise<string | null> {
   if (!fs.existsSync(scadFilePath)) {
@@ -1024,8 +1030,12 @@ export async function exportOpenSCAD(
 
     // Get library paths for this SCAD file's directory
     const scadDir = path.dirname(scadFilePath);
-    const workspaceRoot = path.resolve(scadDir, '../..');
-    const libraryPaths = await getAllOpenSCADLibraryPaths(workspaceRoot);
+    // Use explicit workspace root if provided, otherwise guess from SCAD file location
+    const workspaceRoot = options?.workspaceRoot || path.resolve(scadDir, '../..');
+    const libraryPaths = await getAllOpenSCADLibraryPaths(
+      workspaceRoot,
+      options?.configuredLibraryPaths,
+    );
 
     // Create OpenSCAD WASM instance with stderr capture
     const errors: string[] = [];
