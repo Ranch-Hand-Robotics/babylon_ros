@@ -198,9 +198,24 @@ export async function getAllOpenSCADLibraryPaths(
 
   if (configuredPaths) {
     for (const rawPath of configuredPaths) {
-      const resolved = workspaceRoot
-        ? rawPath.replace(/\$\{workspaceFolder\}/g, workspaceRoot)
+      const withWorkspaceTokens = workspaceRoot
+        ? rawPath
+            .replace(/\$\{workspaceFolder\}/g, workspaceRoot)
+            .replace(/\$\{workspace\}/g, workspaceRoot)
         : rawPath;
+
+      let resolved = withWorkspaceTokens;
+      if (/^(file|vscode-file):\/\//i.test(withWorkspaceTokens)) {
+        try {
+          const parsed = new URL(withWorkspaceTokens);
+          const decoded = decodeURIComponent(parsed.pathname);
+          resolved = process.platform === 'win32' && /^\/[A-Za-z]:\//.test(decoded)
+            ? decoded.slice(1)
+            : decoded;
+        } catch {
+          resolved = withWorkspaceTokens;
+        }
+      }
       candidates.push(resolved);
     }
   }
@@ -482,6 +497,7 @@ export interface OpenSCADNodeConversionRequest {
   scadFilePath: string;
   libraryFiles: { [virtualPath: string]: string }; // Base64 encoded content
   workspaceRoot?: string;
+  configuredLibraryPaths?: string[];
   timeout?: number; // Custom timeout in milliseconds
   exportFormat?: 'stl' | 'svg' | 'glb'; // Export format
   parameterOverrides?: Record<string, OpenSCADCustomizerValue>;
@@ -500,7 +516,9 @@ export interface OpenSCADNodeConversionResponse {
 
 export interface OpenSCADNodeConversionOptions {
   timeout?: number;
-  outputFormat?: 'stl' | 'glb';
+  outputFormat?: 'stl' | 'svg' | 'glb';
+  workspaceRoot?: string;
+  configuredLibraryPaths?: string[];
   parameterOverrides?: Record<string, OpenSCADCustomizerValue>;
   parameterConfiguration?: OpenSCADParameterConfiguration;
 }
@@ -609,6 +627,8 @@ export function convertOpenSCADWithNodeWorker(
     const request: OpenSCADNodeConversionRequest = {
       scadFilePath,
       libraryFiles: {},
+      workspaceRoot: options?.workspaceRoot,
+      configuredLibraryPaths: options?.configuredLibraryPaths,
       timeout,
       exportFormat: options?.outputFormat ?? 'stl',
       parameterOverrides: options?.parameterOverrides,
@@ -903,6 +923,8 @@ export async function convertOpenSCADCancellable(
     parameterOverrides?: Record<string, OpenSCADCustomizerValue>;
     parameterConfiguration?: OpenSCADParameterConfiguration;
     outputFormat?: 'stl' | 'glb';
+    workspaceRoot?: string;
+    configuredLibraryPaths?: string[];
   },
 ): Promise<string | null> {
   if (token?.isCancellationRequested) {
@@ -915,6 +937,8 @@ export async function convertOpenSCADCancellable(
     outputFormat: options?.outputFormat,
     parameterOverrides: options?.parameterOverrides,
     parameterConfiguration: options?.parameterConfiguration,
+    workspaceRoot: options?.workspaceRoot,
+    configuredLibraryPaths: options?.configuredLibraryPaths,
   });
 }
 
@@ -931,13 +955,15 @@ export async function convertOpenSCADCancellable(
  */
 export async function exportOpenSCAD(
   scadFilePath: string,
-  exportFormat: 'stl' | 'svg',
+  exportFormat: 'stl' | 'svg' | 'glb',
   trace: any,
   token?: any,
   options?: {
     timeout?: number;
     parameterOverrides?: Record<string, OpenSCADCustomizerValue>;
     suppressErrorMessage?: boolean;
+    workspaceRoot?: string;
+    configuredLibraryPaths?: string[];
   },
 ): Promise<string | null> {
   if (!fs.existsSync(scadFilePath)) {
@@ -947,14 +973,18 @@ export async function exportOpenSCAD(
     return null;
   }
 
-  const extension = exportFormat === 'svg' ? '.svg' : '.stl';
+  const extension = exportFormat === 'svg'
+    ? '.svg'
+    : exportFormat === 'glb'
+      ? '.glb'
+      : '.stl';
   const outputPath = scadFilePath.replace(/\.scad$/i, extension);
   const timeout = options?.timeout ?? 300000; // 5 minutes default
   const startTime = Date.now();
 
-  // STL export is routed through the Node worker so extension-host execution
-  // stays responsive and behavior matches preview conversion plumbing.
-  if (exportFormat === 'stl') {
+  // Route exports through the Node worker so format handling stays consistent
+  // across STL and SVG, and extension-host execution stays responsive.
+  if (exportFormat === 'stl' || exportFormat === 'svg') {
     if (token?.isCancellationRequested) {
       if (!options?.suppressErrorMessage) {
         trace?.appendLine('Export cancelled before start');
@@ -963,19 +993,21 @@ export async function exportOpenSCAD(
     }
 
     if (!options?.suppressErrorMessage) {
-      trace?.appendLine(`Exporting OpenSCAD to STL via worker: ${scadFilePath}`);
+      trace?.appendLine(`Exporting OpenSCAD to ${exportFormat.toUpperCase()} via worker: ${scadFilePath}`);
     }
 
-    const stlPath = await convertOpenSCADWithNodeWorker(scadFilePath, trace, {
+    const outputPath = await convertOpenSCADWithNodeWorker(scadFilePath, trace, {
       timeout,
-      outputFormat: 'stl',
+      outputFormat: exportFormat,
       parameterOverrides: options?.parameterOverrides,
+      workspaceRoot: options?.workspaceRoot,
+      configuredLibraryPaths: options?.configuredLibraryPaths,
     });
 
-    if (!stlPath && !options?.suppressErrorMessage && !token?.isCancellationRequested) {
-      trace?.appendLine('STL export failed via worker');
+    if (!outputPath && !options?.suppressErrorMessage && !token?.isCancellationRequested) {
+      trace?.appendLine(`${exportFormat.toUpperCase()} export failed via worker`);
     }
-    return stlPath;
+    return outputPath;
   }
 
   try {
@@ -1004,8 +1036,12 @@ export async function exportOpenSCAD(
 
     // Get library paths for this SCAD file's directory
     const scadDir = path.dirname(scadFilePath);
-    const workspaceRoot = path.resolve(scadDir, '../..');
-    const libraryPaths = await getAllOpenSCADLibraryPaths(workspaceRoot);
+    // Use explicit workspace root if provided, otherwise guess from SCAD file location
+    const workspaceRoot = options?.workspaceRoot || path.resolve(scadDir, '../..');
+    const libraryPaths = await getAllOpenSCADLibraryPaths(
+      workspaceRoot,
+      options?.configuredLibraryPaths,
+    );
 
     // Create OpenSCAD WASM instance with stderr capture
     const errors: string[] = [];
@@ -1056,7 +1092,7 @@ export async function exportOpenSCAD(
       trace?.appendLine(`Running OpenSCAD export to ${exportFormat.toUpperCase()}...`);
     }
     
-    const outputFileName = exportFormat === 'svg' ? '/output.svg' : '/output.stl';
+    const outputFileName = '/output.glb';
     const exportPromise = new Promise<number>((_resolve, reject) => {
       try {
         const exitCode: number = instance.callMain(['/input.scad', '-o', outputFileName]);

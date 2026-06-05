@@ -14,7 +14,9 @@ import {
   OpenSCADCustomizerParseResult,
   OpenSCADCustomizerValue,
   createOpenSCADCustomizerUI,
+  injectCustomizerTheme,
   parseOpenSCADCustomizer,
+  VSCODE_CUSTOMIZER_THEME,
 } from './openscadCustomizer';
 
 import {
@@ -30,12 +32,25 @@ interface ModelViewerHost {
   modelName?: string;
   libraryFiles?: Record<string, string>;
   autoConvertOnLoad?: boolean;
+  /** Host-provided element for the built-in customizer UI.
+   * When set and renderControls is absent, the library renders
+   * its default customizer panel into this element. */
+  customizerContainer?: HTMLElement;
+  /**
+   * CSS variable map applied to customizerContainer before the UI
+   * is built.  Use VSCODE_CUSTOMIZER_THEME to match a VS Code
+   * webview's color scheme.  Defaults to VSCODE_CUSTOMIZER_THEME
+   * when customizerContainer is set and no explicit value is given.
+   */
+  customizerTheme?: Record<string, string>;
   renderControls?: (
     container: HTMLElement,
     context: {
       getConfiguration: () => Record<string, OpenSCADCustomizerValue>;
       getModelName: () => string | null;
-      onConfigurationChange: (callback: (detail: unknown) => void) => () => void;
+      onConfigurationChange: (
+        callback: (detail: unknown) => void
+      ) => () => void;
     }
   ) => void;
   onModelLoaded?: (detail: unknown) => void;
@@ -61,6 +76,7 @@ interface OpenScadViewerState {
   customizerModel?: OpenSCADCustomizerParseResult;
   customizerValues: Record<string, OpenSCADCustomizerValue>;
   hostConfig?: ModelViewerHost;
+  renderSessionId: number;
 }
 
 const HOST_MESSAGE_SOURCE = 'babylon_ros.viewer';
@@ -68,6 +84,7 @@ const HOST_COMMAND_SOURCE = 'babylon_ros.host';
 
 const state: OpenScadViewerState = {
   customizerValues: {},
+  renderSessionId: 0,
 };
 
 function getElement(id: string): HTMLElement | null {
@@ -176,6 +193,8 @@ function renderMeshUri(uri: string, forcedExtension: string): void {
     return;
   }
 
+  const renderSessionId = ++state.renderSessionId;
+
   clearCurrentRobot();
 
   const robot = new Robot();
@@ -189,12 +208,25 @@ function renderMeshUri(uri: string, forcedExtension: string): void {
 
   visual.geometry = new Mesh(uri, scale, forcedExtension);
   if (isOpenScadGlb) {
-    // Robot root applies -90° around X for ROS alignment; compensate for OpenSCAD GLB previews.
-    visual.rpy = new BABYLON.Vector3(Math.PI / 2, 0, 0);
+    // Intentionally do not apply an extra visual rotation here.
+    // Robot root transform already converts ROS/OpenSCAD Z-up into Babylon Y-up.
   }
   visual.material = new Material();
   visual.material.name = 'default';
   visual.material.color = new BABYLON.Color4(0.95, 0.95, 0.95, 1.0);
+
+  let hasFramed = false;
+  const frameWhenReady = () => {
+    if (hasFramed || state.renderSessionId !== renderSessionId) {
+      return;
+    }
+    hasFramed = true;
+    state.robotScene?.frameModel();
+  };
+
+  visual.geometry.setLoadCompleteCallback?.(() => {
+    frameWhenReady();
+  });
 
   link.visuals.push(visual);
   robot.links.set('base_link', link);
@@ -202,9 +234,10 @@ function renderMeshUri(uri: string, forcedExtension: string): void {
   state.robotScene.currentRobot = robot;
   robot.create(state.robotScene.scene);
 
+  // Safety fallback in case a loader path does not emit completion callbacks.
   window.setTimeout(() => {
-    state.robotScene?.frameModel();
-  }, 400);
+    frameWhenReady();
+  }, 1000);
 }
 
 function renderBinaryMeshData(
@@ -238,8 +271,41 @@ function renderCustomizer(model: OpenSCADCustomizerParseResult): void {
     defaultValues[variable.name] = variable.defaultValue;
   });
 
-  // In hosted mode, these elements don't exist - customizer is handled by host
-  if (!customizerContainer || !noCustomizerMessage) {
+  // In hosted mode, DOM sidebar elements may not exist.
+  // If the host supplied a customizerContainer element, use that
+  // to render the built-in customizer UI.
+  if (!customizerContainer) {
+    const hostEl = state.hostConfig?.customizerContainer;
+    if (hostEl && !state.hostConfig?.renderControls) {
+      if (!model.variables.length) {
+        hostEl.style.display = 'none';
+        state.customizerValues = {};
+        notifyConfigurationChanged();
+        return;
+      }
+
+      hostEl.style.display = 'block';
+      injectCustomizerTheme(
+        hostEl,
+        state.hostConfig?.customizerTheme ?? VSCODE_CUSTOMIZER_THEME
+      );
+      const ui = createOpenSCADCustomizerUI();
+      ui.render(hostEl, model, (values) => {
+        state.customizerValues = { ...values };
+        notifyConfigurationChanged();
+      });
+      state.customizerValues = ui.getValues();
+      notifyConfigurationChanged();
+      return;
+    }
+
+    // No DOM sidebar and no host container — just propagate defaults.
+    state.customizerValues = defaultValues;
+    notifyConfigurationChanged();
+    return;
+  }
+
+  if (!noCustomizerMessage) {
     state.customizerValues = defaultValues;
     notifyConfigurationChanged();
     return;
@@ -545,6 +611,16 @@ export interface ViewerOptions {
   modelName?: string;
   libraryFiles?: Record<string, string>;
   autoConvertOnLoad?: boolean;
+  /** Optional element to receive the built-in customizer UI when the
+   * host does not supply a renderControls callback. */
+  customizerContainer?: HTMLElement;
+  /**
+   * CSS variable map applied to customizerContainer.
+   * Defaults to VSCODE_CUSTOMIZER_THEME, which maps customizer
+   * variables to VS Code webview CSS variables.
+   * Pass an empty object `{}` to skip all theme injection.
+   */
+  customizerTheme?: Record<string, string>;
   onModelLoaded?: (detail: unknown) => void;
   onConfigurationChange?: (detail: unknown) => void;
 }
@@ -574,6 +650,8 @@ export async function RenderOpenScadDirect(options: ViewerOptions): Promise<View
     modelName: options.modelName,
     libraryFiles: options.libraryFiles,
     autoConvertOnLoad: options.autoConvertOnLoad,
+    customizerContainer: options.customizerContainer,
+    customizerTheme: options.customizerTheme,
     onModelLoaded: options.onModelLoaded,
     onConfigurationChange: options.onConfigurationChange,
   };

@@ -5,7 +5,7 @@
     "url": "https://github.com/Ranch-Hand-Robotics/babylon_ros.git"
   },
   "description": "Babylon.JS abstractions for ROS 2",
-  "version": "0.6.0",
+  "version": "0.6.2",
   "main": "dist/ros.js",
   "types": "types/src/ros.d.ts",
   "exports": {
@@ -30,13 +30,13 @@
     "build-openscad-from-source": "node scripts/build-openscad-from-source.js",
     "build-openscad-from-source-update": "node scripts/build-openscad-from-source.js --update",
     "build-all-local": "npm run build-openscad-from-source && npm run build",
-    "prebuild": "npm run download-openscad",
+    "prebuild": "npm run build-openscad-from-source",
     "test": "jest --ci --coverage --reporters=default --reporters=jest-junit",
     "build": "webpack --mode development",
     "postbuild": "node -e \"const fs=require('fs');fs.mkdirSync('web/workers',{recursive:true});fs.copyFileSync('dist/workers/openscadWorker.js','web/workers/openscadWorker.js');console.log('Copied worker to web/workers/');\"",
     "watch": "webpack --mode development --watch",
     "pretest": "npm run build",
-    "prepublishOnly": "npm run download-openscad && webpack --mode=production",
+    "prepublishOnly": "npm run build-openscad-from-source && webpack --mode=production",
     "serve": "npx http-server ./web -c-1 -o"
   },
   "keywords": [

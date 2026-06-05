@@ -2,6 +2,80 @@
  * OpenSCAD Customizer for babylon_ros
  */
 
+/**
+ * CSS variable names used by the built-in customizer UI.
+ * A host can override any of these by setting them on the
+ * container element (or a parent) before or after rendering.
+ */
+export const CUSTOMIZER_CSS_VARS = [
+  '--customizer-text',
+  '--customizer-label',
+  '--customizer-border',
+  '--customizer-input-bg',
+  '--customizer-field-bg',
+  '--customizer-tab-border',
+  '--customizer-tab-active',
+] as const;
+
+/**
+ * Preset theme that maps customizer CSS variables to VS Code
+ * webview CSS variables (with dark-theme fallbacks).
+ * Pass this as `customizerTheme` in ViewerOptions when hosting
+ * inside a VS Code webview so the panel matches the user's theme.
+ */
+export const VSCODE_CUSTOMIZER_THEME: Record<string, string> = {
+  '--customizer-text':
+    'var(--vscode-editor-foreground, #e5e7eb)',
+  '--customizer-label':
+    'var(--vscode-editor-foreground, #e5e7eb)',
+  '--customizer-border':
+    'var(--vscode-input-border, var(--vscode-panel-border, #4b5563))',
+  '--customizer-input-bg':
+    'var(--vscode-input-background, #0f172a)',
+  '--customizer-field-bg':
+    'var(--vscode-sideBar-background, transparent)',
+  '--customizer-tab-border':
+    'var(--vscode-panel-border, var(--vscode-tab-border, #4b5563))',
+  '--customizer-tab-active':
+    'var(--vscode-button-background, #3b82f6)',
+};
+
+/**
+ * Inject a scoped `<style>` element into `container` that sets the
+ * customizer CSS variables.  Removes any previously injected style.
+ *
+ * @param container  The element that will host the customizer UI.
+ * @param theme      CSS-variable map.  Defaults to VSCODE_CUSTOMIZER_THEME.
+ */
+export function injectCustomizerTheme(
+  container: HTMLElement,
+  theme: Record<string, string> = VSCODE_CUSTOMIZER_THEME
+): void {
+  // Remove a previously injected style to avoid duplicates on re-render.
+  const existing = container.querySelector(
+    'style[data-customizer-theme]'
+  );
+  if (existing) {
+    existing.remove();
+  }
+
+  const style = document.createElement('style');
+  style.setAttribute('data-customizer-theme', '');
+
+  // Generate a unique scope class so the rules don't leak out.
+  const scopeClass = `customizer-scope-${Math.random()
+    .toString(36)
+    .slice(2, 8)}`;
+  container.classList.add(scopeClass);
+
+  const declarations = Object.entries(theme)
+    .map(([k, v]) => `  ${k}: ${v};`)
+    .join('\n');
+
+  style.textContent = `.${scopeClass} {\n${declarations}\n}`;
+  container.insertBefore(style, container.firstChild);
+}
+
 export interface OpenSCADCustomizerOption {
   label?: string;
   value: string | number | boolean;
