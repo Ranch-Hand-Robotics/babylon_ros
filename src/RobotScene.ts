@@ -522,12 +522,16 @@ export class RobotScene {
       this.mirrorLayerEnabled = options.enabled;
     }
 
+    if (options.enabled === false && this.mirrorTexture) {
+      // Clear the active reflection strength so other scene refresh paths
+      // cannot accidentally re-show the mirror plane from stale state.
+      this.mirrorTexture.level = 0;
+    }
+
     const mirrorReflectionLevel = options.reflectionLevel !== undefined
       ? Math.max(0, Math.min(1, options.reflectionLevel))
       : this.mirrorTexture?.level ?? 0;
-    const shouldShowMirrorPlane = this.groundPlaneEnabled
-      && this.mirrorLayerEnabled
-      && mirrorReflectionLevel > 0;
+    const shouldShowMirrorPlane = this.shouldShowMirrorPlane(mirrorReflectionLevel);
 
     if (options.enabled !== undefined) {
       mirrorGround.setEnabled(shouldShowMirrorPlane);
@@ -587,19 +591,12 @@ export class RobotScene {
     const mirrorGround = this.scene.getMeshByName("mirrorGround");
     if (mirrorGround) {
       const mirrorReflectionLevel = this.mirrorTexture?.level ?? 0;
-      const shouldShowMirrorPlane = enabled
-        && this.enhancedVisualsEnabled
-        && this.mirrorLayerEnabled
-        && mirrorReflectionLevel > 0;
+      const shouldShowMirrorPlane = this.shouldShowMirrorPlane(mirrorReflectionLevel, enabled);
       mirrorGround.setEnabled(shouldShowMirrorPlane);
       mirrorGround.isVisible = shouldShowMirrorPlane;
       mirrorGround.visibility = shouldShowMirrorPlane ? 1 : 0;
     }
 
-    const edgeFade = this.scene.getMeshByName("edgeFade");
-    if (edgeFade) {
-      edgeFade.setEnabled(enabled && this.enhancedVisualsEnabled);
-    }
   }
 
   /**
@@ -1124,17 +1121,9 @@ export class RobotScene {
     // Toggle mirror ground visibility
     const mirrorGround = this.scene.getMeshByName("mirrorGround");
     if (mirrorGround) {
-      const shouldShowMirror = this.enhancedVisualsEnabled
-        && this.mirrorLayerEnabled
-        && this.groundPlaneEnabled;
+      const shouldShowMirror = this.shouldShowMirrorPlane(this.mirrorTexture?.level ?? 0);
       mirrorGround.setEnabled(shouldShowMirror);
       mirrorGround.isVisible = shouldShowMirror;
-    }
-    
-    // Toggle edge fade effects
-    const edgeFade = this.scene.getMeshByName("edgeFade");
-    if (edgeFade) {
-      edgeFade.setEnabled(this.enhancedVisualsEnabled);
     }
     
     // Toggle background sphere
@@ -1702,14 +1691,9 @@ export class RobotScene {
     const mirrorGround = BABYLON.MeshBuilder.CreateGround("mirrorGround", {width: 100, height: 100}, this.scene);
     mirrorGround.position.y = -0.001; // Minimal offset to avoid z-fighting without visible gap
     mirrorGround.isPickable = false;
-    mirrorGround.setEnabled(
-      this.enhancedVisualsEnabled
-      && this.mirrorLayerEnabled
-      && this.groundPlaneEnabled
-    );
-    mirrorGround.isVisible = this.enhancedVisualsEnabled
-      && this.mirrorLayerEnabled
-      && this.groundPlaneEnabled;
+    const initialMirrorVisibility = this.shouldShowMirrorPlane(0.5);
+    mirrorGround.setEnabled(initialMirrorVisibility);
+    mirrorGround.isVisible = initialMirrorVisibility;
 
     // Mirror material with subtle, blurred reflection
     const mirrorMaterial = new BABYLON.StandardMaterial("mirrorMaterial", this.scene);
@@ -1732,49 +1716,6 @@ export class RobotScene {
     mirrorMaterial.backFaceCulling = false;
     
     mirrorGround.material = mirrorMaterial;
-
-    // Create edge fade effect
-    this.createGroundEdgeEffects();
-  }
-
-  /**
-   * Creates fade-out effects at the edges of the ground
-   */
-  private createGroundEdgeEffects(): void {
-    if (!this.scene) return;
-
-    // Create edge fade planes
-    const edgeSize = 100;
-    const fadeHeight = 0.1;
-    
-    // Create fade material
-    const fadeMaterial = new BABYLON.StandardMaterial("fadeMaterial", this.scene);
-    fadeMaterial.diffuseColor = new BABYLON.Color3(0.05, 0.2, 0.08);
-    fadeMaterial.alpha = 0.3;
-    fadeMaterial.alphaMode = BABYLON.Engine.ALPHA_PREMULTIPLIED;
-    
-    // Create dynamic texture for gradient effect
-    const fadeTexture = new BABYLON.DynamicTexture("fadeTexture", {width: 512, height: 512}, this.scene);
-    const fadeContext = fadeTexture.getContext();
-    
-    // Create radial gradient
-    const gradient = fadeContext.createRadialGradient(256, 256, 0, 256, 256, 256);
-    gradient.addColorStop(0, "rgba(5, 50, 20, 0)");
-    gradient.addColorStop(0.7, "rgba(5, 50, 20, 0)");
-    gradient.addColorStop(0.9, "rgba(5, 50, 20, 0.3)");
-    gradient.addColorStop(1, "rgba(5, 50, 20, 0.8)");
-    
-    fadeContext.fillStyle = gradient;
-    fadeContext.fillRect(0, 0, 512, 512);
-    fadeTexture.update();
-    
-    fadeMaterial.diffuseTexture = fadeTexture;
-    
-    // Create edge fade plane
-    const edgeFade = BABYLON.MeshBuilder.CreateGround("edgeFade", {width: edgeSize * 1.2, height: edgeSize * 1.2}, this.scene);
-    edgeFade.position.y = 0.005;
-    edgeFade.material = fadeMaterial;
-    edgeFade.isPickable = false;
   }
 
   /**
@@ -1861,6 +1802,20 @@ export class RobotScene {
       }
     });
     
+  }
+
+  /**
+   * Determines whether the mirror plane should be visible.
+   * A zero or disabled mirror should stay hidden across all scene refreshes.
+   */
+  private shouldShowMirrorPlane(
+    mirrorReflectionLevel: number,
+    groundEnabled: boolean = this.groundPlaneEnabled
+  ): boolean {
+    return groundEnabled
+      && this.enhancedVisualsEnabled
+      && this.mirrorLayerEnabled
+      && mirrorReflectionLevel > 0;
   }
 
   /**
