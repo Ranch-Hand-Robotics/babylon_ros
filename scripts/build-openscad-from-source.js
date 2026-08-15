@@ -31,6 +31,12 @@ const OPENSCAD_WASM_BRANCH = process.env.OPENSCAD_WASM_BRANCH || 'main';
 const OPENSCAD_WASM_BRANCH_FALLBACK = 'master';
 const OPENSCAD_REPO      = 'https://github.com/ranchhandrobotics/openscad.git';
 const OPENSCAD_BRANCH    = 'feature/color_export';
+const FONTCONFIG_REPO    = 'https://gitlab.freedesktop.org/fontconfig/fontconfig.git';
+// Keep this in sync with patches/fontconfig.patch in openscad-wasm. Tracking
+// Fontconfig's moving main branch makes that patch fail whenever Makefile.am
+// changes upstream.
+const FONTCONFIG_REVISION = process.env.FONTCONFIG_REVISION ||
+  '9b53fa0c6e8a0a3dced6fc49792da77223f36c04';
 
 const ROOT_DIR       = path.resolve(__dirname, '..');
 const SRC_DIR        = path.join(ROOT_DIR, 'build-src');
@@ -184,6 +190,50 @@ function getOriginUrl(repoDir) {
   }
 }
 
+function getHeadRevision(repoDir) {
+  try {
+    return execSync('git rev-parse HEAD', {
+      cwd: repoDir,
+      encoding: 'utf8',
+      stdio: ['ignore', 'pipe', 'ignore'],
+    }).trim();
+  } catch {
+    return '';
+  }
+}
+
+function ensurePinnedPatchedRepo(repo, revision, dest, patchPath) {
+  if (!fs.existsSync(dest)) {
+    ensureDir(dest);
+    run('git -c core.autocrlf=false init', dest);
+    run(`git remote add origin ${repo}`, dest);
+    run(`git fetch --depth 1 origin ${revision}`, dest);
+    run('git checkout --detach FETCH_HEAD', dest);
+  } else if (!isGitRepo(dest)) {
+    throw new Error(`Path exists but is not a git repo: ${dest}. Remove it and re-run.`);
+  }
+
+  const actualRevision = getHeadRevision(dest);
+  if (actualRevision !== revision) {
+    throw new Error(
+      `Expected ${dest} at ${revision}, but found ${actualRevision || 'an unknown revision'}. ` +
+      'Remove that dependency directory and re-run.'
+    );
+  }
+
+  const quotedPatchPath = `"${patchPath}"`;
+  if (runAllowFailure(`git apply --reverse --check ${quotedPatchPath}`, dest)) {
+    log(`Patch already applied: ${patchPath}`);
+    return;
+  }
+
+  if (!runAllowFailure(`git apply --check ${quotedPatchPath}`, dest)) {
+    throw new Error(`Patch does not apply to pinned revision ${revision}: ${patchPath}`);
+  }
+
+  run(`git apply ${quotedPatchPath}`, dest);
+}
+
 function ensureRepoRemoteAndBranch(repoDir, expectedRepo, branch, recursive) {
   const currentOrigin = getOriginUrl(repoDir);
   if (!currentOrigin) {
@@ -252,7 +302,19 @@ if (wasmSourceDir === CLONED_WASM_SRC_DIR) {
   log(`Using local openscad-wasm source: ${wasmSourceDir}`);
 }
 
-// 3. Ensure openscad fork exists at libs/openscad for the wasm build.
+// 3. Preseed Fontconfig at the revision expected by the openscad-wasm patch.
+//    This prevents `make libs` from cloning Fontconfig's moving main branch.
+const fontconfigLibsDir = path.join(wasmSourceDir, 'libs', 'fontconfig');
+const fontconfigPatch = path.join(wasmSourceDir, 'patches', 'fontconfig.patch');
+ensureDir(path.join(wasmSourceDir, 'libs'));
+ensurePinnedPatchedRepo(
+  FONTCONFIG_REPO,
+  FONTCONFIG_REVISION,
+  fontconfigLibsDir,
+  fontconfigPatch,
+);
+
+// 4. Ensure openscad fork exists at libs/openscad for the wasm build.
 const openscadLibsDir = path.join(wasmSourceDir, 'libs', 'openscad');
 ensureDir(path.join(wasmSourceDir, 'libs'));
 if (!fs.existsSync(openscadLibsDir)) {
@@ -263,7 +325,7 @@ if (!fs.existsSync(openscadLibsDir)) {
   throw new Error(`Path exists but is not a git repo: ${openscadLibsDir}. Remove it and re-run.`);
 }
 
-// 4. Build.
+// 5. Build.
 if (FORCE_REBUILD) {
   log('Forcing full wasm image rebuild to pick up local OpenSCAD source changes...');
   clearWasmBuildStamps(wasmSourceDir);
@@ -272,7 +334,7 @@ if (FORCE_REBUILD) {
 log('Running make wasm …  (this can take a long time — Docker must be running)');
 run('make wasm', wasmSourceDir);
 
-// 5. Copy artifacts to openscad-wasm-build/build/.
+// 6. Copy artifacts to openscad-wasm-build/build/.
 log(`Copying artifacts to ${OUTPUT_DIR}`);
 ensureDir(OUTPUT_DIR);
 const wasmBuildDir = path.join(wasmSourceDir, 'build');
@@ -303,7 +365,7 @@ if (copiedCount === 0) {
   process.exit(1);
 }
 
-// 6. Write a version stamp so the downloader skips the GitHub fetch when the
+// 7. Write a version stamp so the downloader skips the GitHub fetch when the
 //    local build is already present.
 const versionFile = path.join(ROOT_DIR, 'openscad-wasm-build', 'version.json');
 const stamp = {
@@ -312,6 +374,7 @@ const stamp = {
   source: {
     openscadWasm: wasmSourceDir,
     openscad: `${OPENSCAD_REPO}#${OPENSCAD_BRANCH}`,
+    fontconfig: `${FONTCONFIG_REPO}#${FONTCONFIG_REVISION}`,
   },
 };
 fs.writeFileSync(versionFile, JSON.stringify(stamp, null, 2) + '\n');
