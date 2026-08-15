@@ -4,6 +4,7 @@ docs/ros.js
 docs/ros.js.map
 *.glb
 *.vsix
+**/*.glb
 
 web/user/**
 .vscode/*.db*
