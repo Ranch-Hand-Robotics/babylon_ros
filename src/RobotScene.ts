@@ -1691,9 +1691,12 @@ export class RobotScene {
     const mirrorGround = BABYLON.MeshBuilder.CreateGround("mirrorGround", {width: 100, height: 100}, this.scene);
     mirrorGround.position.y = -0.001; // Minimal offset to avoid z-fighting without visible gap
     mirrorGround.isPickable = false;
-    const initialMirrorVisibility = this.shouldShowMirrorPlane(0.5);
-    mirrorGround.setEnabled(initialMirrorVisibility);
-    mirrorGround.isVisible = initialMirrorVisibility;
+    // Keep the mirror hidden until the host explicitly enables it. Using the
+    // material's default reflection level here renders an origin plane before
+    // host settings arrive, which can flicker and clip intersecting models.
+    mirrorGround.setEnabled(false);
+    mirrorGround.isVisible = false;
+    mirrorGround.visibility = 0;
 
     // Mirror material with subtle, blurred reflection
     const mirrorMaterial = new BABYLON.StandardMaterial("mirrorMaterial", this.scene);

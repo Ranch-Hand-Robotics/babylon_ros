@@ -500,14 +500,17 @@ async function convertOpenSCAD(request: ConversionRequest): Promise<void> {
       }
     }
 
-    // In Node.js mode, load the SCAD file's directory into the WASM virtual FS.
-    // This enables relative imports: STL/DXF/SCAD files in the same directory
-    // (e.g. `import("part.stl")` or `use <locallib/utils.scad>`) are resolved correctly
-    // because the input file is written to the virtual FS root as `/${baseName}.scad`.
+    let inputVirtualDir = '/';
+
+    // In Node.js mode, load the SCAD file's directory into a stable virtual
+    // project folder and keep the input file in that same folder.
+    // This preserves relative include/import behavior for nested subdirectories.
     if (isNodeRuntime() && request.scadFilePath) {
       const { path: nodepath } = getNodeModules();
       const scadDir = nodepath.dirname(request.scadFilePath);
-      await loadDirectoryIntoVfs(instance, scadDir, '', {
+      inputVirtualDir = '/workspace';
+      ensureVfsDirectory(instance, inputVirtualDir);
+      await loadDirectoryIntoVfs(instance, scadDir, inputVirtualDir, {
         skipFile: request.scadFilePath,
       });
       sendProgress(`Loaded project files from: ${scadDir}`);
@@ -522,7 +525,7 @@ async function convertOpenSCAD(request: ConversionRequest): Promise<void> {
     const baseName = stripScadExtension(inputName);
     const fileExtension = `.${exportFormat}`;
     const virtualOutputPath = `/${baseName}${fileExtension}`;
-    const inputVirtualPath = `/${baseName}.scad`;
+    const inputVirtualPath = `${inputVirtualDir}/${baseName}.scad`;
     const exportFormatCli = exportFormat === 'stl' ? 'binstl' : 'glb';
 
     const scadContent = await getScadContent(request);

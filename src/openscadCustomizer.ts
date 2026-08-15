@@ -89,6 +89,79 @@ export interface OpenSCADCustomizerRangeConstraint {
 
 export type OpenSCADCustomizerValue = string | number | boolean | number[];
 
+export interface OpenSCADParameterProfile {
+  fileFormatVersion: '1';
+  parameterSets: Record<string, Record<string, OpenSCADCustomizerValue>>;
+}
+
+export function createOpenSCADParameterProfile(
+  values: Record<string, OpenSCADCustomizerValue>,
+  parameterSetName: string = 'Default'
+): OpenSCADParameterProfile {
+  const normalizedName = parameterSetName.trim() || 'Default';
+  return {
+    fileFormatVersion: '1',
+    parameterSets: {
+      [normalizedName]: { ...values },
+    },
+  };
+}
+
+export function parseOpenSCADParameterProfile(jsonContent: string): OpenSCADParameterProfile {
+  let parsed: unknown;
+  try {
+    parsed = JSON.parse(jsonContent);
+  } catch (error) {
+    throw new Error(`Invalid JSON: ${error instanceof Error ? error.message : String(error)}`);
+  }
+
+  if (!parsed || typeof parsed !== 'object' || Array.isArray(parsed)) {
+    throw new Error('The profile must be a JSON object.');
+  }
+
+  const candidate = parsed as Record<string, unknown>;
+  if (candidate.fileFormatVersion !== '1') {
+    throw new Error('Unsupported or missing OpenSCAD profile fileFormatVersion.');
+  }
+  if (!candidate.parameterSets || typeof candidate.parameterSets !== 'object' || Array.isArray(candidate.parameterSets)) {
+    throw new Error('The profile must contain a parameterSets object.');
+  }
+
+  const parameterSets: Record<string, Record<string, OpenSCADCustomizerValue>> = {};
+  for (const [setName, rawValues] of Object.entries(candidate.parameterSets)) {
+    if (!rawValues || typeof rawValues !== 'object' || Array.isArray(rawValues)) {
+      throw new Error(`Parameter set '${setName}' must be an object.`);
+    }
+
+    const values: Record<string, OpenSCADCustomizerValue> = {};
+    for (const [name, value] of Object.entries(rawValues)) {
+      if (!isOpenSCADCustomizerValue(value)) {
+        throw new Error(`Parameter '${name}' in set '${setName}' has an unsupported value.`);
+      }
+      values[name] = value;
+    }
+    parameterSets[setName] = values;
+  }
+
+  if (Object.keys(parameterSets).length === 0) {
+    throw new Error('The profile does not contain any parameter sets.');
+  }
+
+  return { fileFormatVersion: '1', parameterSets };
+}
+
+function isOpenSCADCustomizerValue(value: unknown): value is OpenSCADCustomizerValue {
+  if (typeof value === 'string' || typeof value === 'boolean') {
+    return true;
+  }
+  if (typeof value === 'number') {
+    return Number.isFinite(value);
+  }
+  return Array.isArray(value)
+    && value.length <= 4
+    && value.every(item => typeof item === 'number' && Number.isFinite(item));
+}
+
 export type OpenSCADCustomizerWidgetType =
   | 'dropdown'
   | 'slider'
@@ -600,6 +673,76 @@ export function createOpenSCADCustomizerUI(): OpenSCADCustomizerUI {
         buildVariablesUI(container, variables);
       }
     }
+
+    buildProfileActions(container);
+  }
+
+  function buildProfileActions(parent: HTMLElement) {
+    const actions = document.createElement('div');
+    actions.className = 'openscad-customizer-profile-actions';
+    actions.style.cssText = `
+      display: flex;
+      gap: 8px;
+      margin-top: 12px;
+    `;
+
+    const saveButton = document.createElement('button');
+    saveButton.type = 'button';
+    saveButton.textContent = 'Save';
+    saveButton.title = 'Save the current configuration as an OpenSCAD JSON profile';
+
+    const loadButton = document.createElement('button');
+    loadButton.type = 'button';
+    loadButton.textContent = 'Load';
+    loadButton.title = 'Load an OpenSCAD JSON profile';
+
+    const fileInput = document.createElement('input');
+    fileInput.type = 'file';
+    fileInput.accept = '.json,application/json';
+    fileInput.style.display = 'none';
+
+    saveButton.addEventListener('click', () => {
+      const profile = createOpenSCADParameterProfile(currentValues);
+      const blob = new Blob([JSON.stringify(profile, null, 2) + '\n'], { type: 'application/json' });
+      const url = URL.createObjectURL(blob);
+      const link = document.createElement('a');
+      link.href = url;
+      link.download = 'openscad-profile.json';
+      link.click();
+      URL.revokeObjectURL(url);
+    });
+
+    loadButton.addEventListener('click', () => fileInput.click());
+    fileInput.addEventListener('change', () => {
+      const file = fileInput.files?.[0];
+      if (!file || !currentModel) {
+        return;
+      }
+
+      void file.text()
+        .then(jsonContent => {
+          const profile = parseOpenSCADParameterProfile(jsonContent);
+          const firstSet = Object.values(profile.parameterSets)[0];
+          const allowedNames = new Set(currentModel?.variables.map(variable => variable.name) ?? []);
+          const applicableValues = Object.fromEntries(
+            Object.entries(firstSet).filter(([name]) => allowedNames.has(name))
+          );
+          currentValues = { ...currentValues, ...applicableValues };
+          buildUI();
+          notifyChange();
+        })
+        .catch(error => {
+          window.alert(`Unable to load OpenSCAD profile: ${error instanceof Error ? error.message : String(error)}`);
+        })
+        .finally(() => {
+          fileInput.value = '';
+        });
+    });
+
+    actions.appendChild(saveButton);
+    actions.appendChild(loadButton);
+    actions.appendChild(fileInput);
+    parent.appendChild(actions);
   }
 
   function buildVariablesUI(container: HTMLElement, variables: OpenSCADCustomizerVariable[]) {
