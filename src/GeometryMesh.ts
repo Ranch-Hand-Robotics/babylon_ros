@@ -22,6 +22,8 @@ export class Mesh implements IGeometry {
     private name: string = "mesh";
     private forcedExtension: string | undefined;
     private onLoadComplete?: () => void;
+    private onLoadError?: (error: Error) => void;
+    private disposed = false;
     private onLoadProgress?: (event: BABYLON.ISceneLoaderProgressEvent) => void;
 
     private normalizeExtension(ext: string | undefined): string {
@@ -121,10 +123,14 @@ export class Mesh implements IGeometry {
                 scene,
                 (mesh, ps, sk, ag, tn, g, l, sm) => { this.meshCallback(scene, mesh, ps, sk, ag, tn, g, l, sm); },
                 this.onLoadProgress,
-                null,
+                (_scene, message, exception) => this.loadFailed(message, exception),
                 '.stl'
             );
-        } catch {
+        } catch (error) {
+            if (this.onLoadError) {
+                this.loadFailed('Failed to load ASCII STL', error);
+                return;
+            }
             // Do not throw from fallback path; primary load already reported errors.
             if (this.onLoadComplete) {
                 this.onLoadComplete();
@@ -141,12 +147,32 @@ export class Mesh implements IGeometry {
     public setLoadCompleteCallback(callback: () => void): void {
         this.onLoadComplete = callback;
     }
+
+    public setLoadErrorCallback(callback: (error: Error) => void): void {
+        this.onLoadError = callback;
+    }
+
+    private loadFailed(message: string, exception?: unknown): void {
+        this.onLoadError?.(new Error(exception instanceof Error
+            ? `${message}: ${exception.message}` : message));
+    }
     
     public setLoadProgressCallback(callback: (event: BABYLON.ISceneLoaderProgressEvent) => void): void {
         this.onLoadProgress = callback;
     }
     
     private meshCallback(scene: BABYLON.Scene, meshes : BABYLON.AbstractMesh[], particleSystems : BABYLON.IParticleSystem[] | undefined, skeletons : BABYLON.Skeleton[] | undefined, animationGroups: BABYLON.AnimationGroup[], transformNodes: BABYLON.TransformNode[], geometries: BABYLON.Geometry[], lights: BABYLON.Light[], spriteManagers: BABYLON.ISpriteManager[]) {
+        if (this.disposed) {
+            meshes.forEach(mesh => mesh.dispose());
+            transformNodes.forEach(node => node.dispose());
+            skeletons?.forEach(skeleton => skeleton.dispose());
+            animationGroups.forEach(group => group.dispose());
+            return;
+        }
+        if (meshes.length === 0 && this.onLoadError) {
+            this.loadFailed('Model contained no meshes');
+            return;
+        }
         // Get a pointer to the mesh
         if (meshes.length > 0 && this.transform != undefined) {
             this.meshes = meshes;
@@ -271,7 +297,7 @@ export class Mesh implements IGeometry {
                 scene, 
                 (mesh, ps, sk, ag, tn, g, l, sm) => {this.meshCallback(scene, mesh, ps, sk, ag, tn, g, l,sm)}, 
                 this.onLoadProgress, 
-                null, 
+                (_scene, message, exception) => this.loadFailed(message, exception),
                 this.ext
             );
         } else {
@@ -296,7 +322,8 @@ export class Mesh implements IGeometry {
                     scene, 
                     (mesh, ps, sk, ag, tn, g, l, sm) => {this.meshCallback(scene, mesh, ps, sk, ag, tn, g, l, sm)},
                     this.onLoadProgress,
-                    isStl ? (() => { this.retryLoadAsAsciiStl(scene); }) : undefined,
+                    isStl ? (() => { void this.retryLoadAsAsciiStl(scene); })
+                        : ((_scene, message, exception) => this.loadFailed(message, exception)),
                     this.ext || undefined
                 );
             }
@@ -304,6 +331,7 @@ export class Mesh implements IGeometry {
     }
 
     public dispose(): void {
+        this.disposed = true;
         if (this.skeletons != undefined) {
             this.skeletons.forEach(s => {
                 s.bones.forEach(b => {

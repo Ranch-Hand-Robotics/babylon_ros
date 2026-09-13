@@ -74,6 +74,11 @@ export interface OpenSCADConversionResponse {
   progress?: string;
 }
 
+export interface OpenSCADConversionOptions {
+  /** Observational only; callback exceptions do not interrupt conversion. */
+  onProgress?: (message: string) => void;
+}
+
 // ── WASM loader ───────────────────────────────────────────────────────────────
 
 /** Directories to skip when scanning for library files */
@@ -649,7 +654,11 @@ function createOpenSCADWorker(workerScript?: string): Worker {
     // Use provided worker script
     const blob = new Blob([workerScript], { type: 'application/javascript' });
     const workerUrl = URL.createObjectURL(blob);
-    return new Worker(workerUrl);
+    try {
+      return new Worker(workerUrl);
+    } finally {
+      URL.revokeObjectURL(workerUrl);
+    }
   }
 
   // Load the compiled browser worker
@@ -664,51 +673,75 @@ function createOpenSCADWorker(workerScript?: string): Worker {
  */
 export function convertOpenSCAD(
   request: OpenSCADConversionRequest,
-  workerScript?: string
+  workerScript?: string,
+  options?: OpenSCADConversionOptions
 ): Promise<OpenSCADConversionResponse> {
   return new Promise<OpenSCADConversionResponse>((resolve, reject) => {
+    let worker: Worker | undefined;
+    let timeoutHandle: ReturnType<typeof setTimeout> | undefined;
+    let settled = false;
+    let stage = 'Creating OpenSCAD worker';
+    const progress = (message: string) => {
+      stage = message;
+      try {
+        options?.onProgress?.(message);
+      } catch (error) {
+        console.warn('OpenSCAD progress callback failed:', error);
+      }
+    };
+    const finish = (error?: unknown, response?: OpenSCADConversionResponse) => {
+      if (settled) return;
+      settled = true;
+      clearTimeout(timeoutHandle);
+      if (worker) {
+        worker.onmessage = null;
+        worker.onerror = null;
+        worker.onmessageerror = null;
+        worker.terminate();
+      }
+      if (response) resolve(response);
+      else reject(new Error(`${error instanceof Error ? error.message : String(error)} (stage: ${stage})`));
+    };
     try {
-      // Create an inline worker if no script provided
-      const worker = createOpenSCADWorker(workerScript);
+      progress(stage);
+      worker = createOpenSCADWorker(workerScript);
 
       // Set timeout for conversion
-      const timeout = request.timeout || 300000; // 5 minutes default
-      const timeoutHandle = setTimeout(() => {
-        worker.terminate();
-        reject(new Error(`OpenSCAD conversion timed out after ${timeout}ms`));
+      const timeout = request.timeout ?? 300000; // 5 minutes default
+      timeoutHandle = setTimeout(() => {
+        finish(new Error(`OpenSCAD conversion timed out after ${timeout}ms`));
       }, timeout);
 
       // Handle worker messages
       worker.onmessage = (event: MessageEvent<OpenSCADConversionResponse>) => {
+        if (settled) return;
         if (event.data.progress) {
+          progress(event.data.progress);
           return;
         }
-        clearTimeout(timeoutHandle);
         if (event.data.success) {
-          worker.terminate();
-          resolve(event.data);
+          finish(undefined, event.data);
         } else {
-          worker.terminate();
-          reject(new Error(event.data.error || 'OpenSCAD conversion failed'));
+          finish(new Error(event.data.error || 'OpenSCAD conversion failed'));
         }
       };
 
       // Handle worker errors
       worker.onerror = (error: ErrorEvent) => {
-        clearTimeout(timeoutHandle);
-        worker.terminate();
-        reject(new Error(`Worker error: ${error.message}`));
+        finish(new Error(`Worker error: ${error.message}`));
       };
+      worker.onmessageerror = () => finish(new Error('Cannot decode OpenSCAD worker response'));
 
       const openscadScriptUrl = resolveOpenSCADScriptUrl(request.openscadScriptUrl);
 
       // Send conversion request to worker with the OpenSCAD script URL
+      progress('Starting OpenSCAD worker');
       worker.postMessage({
         ...request,
         openscadScriptUrl
       });
     } catch (error) {
-      reject(error);
+      finish(error);
     }
   }).catch(async (error: unknown): Promise<OpenSCADConversionResponse> => {
     // If worker initialization/importScripts fails (CSP, offline, blocked local assets),
@@ -722,7 +755,7 @@ export function convertOpenSCAD(
     throw new Error(
       'OpenSCAD runtime is unavailable. ' +
       'Run "npm run download-openscad" and then "npm run build" to refresh runtime assets, ' +
-      'or provide request.openscadScriptUrl to point to openscad.js.'
+      'or provide request.openscadScriptUrl to point to openscad.js. ' + message
     );
   });
 }

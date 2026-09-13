@@ -32,6 +32,9 @@ interface ModelViewerHost {
   modelName?: string;
   libraryFiles?: Record<string, string>;
   autoConvertOnLoad?: boolean;
+  /** Worker conversion deadline in milliseconds (default: 300000). */
+  conversionTimeout?: number;
+  onConversionProgress?: (message: string) => void;
   /** Host-provided element for the built-in customizer UI.
    * When set and renderControls is absent, the library renders
    * its default customizer panel into this element. */
@@ -188,25 +191,23 @@ function clearCurrentRobot(): void {
   robot.dispose();
 }
 
-function renderMeshUri(uri: string, forcedExtension: string): void {
-  if (!state.robotScene?.scene) {
-    return;
-  }
-
-  const renderSessionId = ++state.renderSessionId;
-
-  clearCurrentRobot();
-
+async function renderMeshUri(
+  uri: string, forcedExtension: string, fromOpenScad: boolean,
+  renderSessionId: number
+): Promise<void> {
+  const robotScene = state.robotScene;
+  if (!robotScene?.scene) throw new Error('Viewer scene is not ready');
   const robot = new Robot();
   const link = new Link();
   const visual = new Visual();
 
-  const isOpenScadGlb = forcedExtension === '.glb' && state.currentModelFromOpenScad === true;
+  const isOpenScadGlb = forcedExtension === '.glb' && fromOpenScad;
   const scale = forcedExtension === '.stl' || forcedExtension === '.obj' || isOpenScadGlb
     ? new BABYLON.Vector3(0.001, 0.001, 0.001)
     : new BABYLON.Vector3(1, 1, 1);
 
-  visual.geometry = new Mesh(uri, scale, forcedExtension);
+  const geometry = new Mesh(uri, scale, forcedExtension);
+  visual.geometry = geometry;
   if (isOpenScadGlb) {
     // Intentionally do not apply an extra visual rotation here.
     // Robot root transform already converts ROS/OpenSCAD Z-up into Babylon Y-up.
@@ -215,41 +216,34 @@ function renderMeshUri(uri: string, forcedExtension: string): void {
   visual.material.name = 'default';
   visual.material.color = new BABYLON.Color4(0.95, 0.95, 0.95, 1.0);
 
-  let hasFramed = false;
-  const frameWhenReady = () => {
-    if (hasFramed || state.renderSessionId !== renderSessionId) {
-      return;
-    }
-    hasFramed = true;
-    state.robotScene?.frameModel();
-  };
-
-  visual.geometry.setLoadCompleteCallback?.(() => {
-    frameWhenReady();
-  });
-
   link.visuals.push(visual);
   robot.links.set('base_link', link);
 
-  state.robotScene.currentRobot = robot;
-  robot.create(state.robotScene.scene);
-
-  // Safety fallback in case a loader path does not emit completion callbacks.
-  window.setTimeout(() => {
-    frameWhenReady();
-  }, 1000);
+  try {
+    await new Promise<void>((resolve, reject) => {
+      geometry.setLoadCompleteCallback(resolve);
+      geometry.setLoadErrorCallback(reject);
+      robot.create(robotScene.scene!);
+    });
+    if (state.renderSessionId !== renderSessionId) {
+      throw new Error('Render superseded by a newer request');
+    }
+    // Keep the last successful preview until the replacement has loaded.
+    clearCurrentRobot();
+    robotScene.currentRobot = robot;
+    robotScene.frameModel();
+  } catch (error) {
+    robot.dispose();
+    throw error;
+  }
 }
 
-function renderBinaryMeshData(
+async function renderBinaryMeshData(
   data: Uint8Array,
   extension: '.stl' | '.obj' | '.glb',
-  fromOpenScad: boolean = false
-): void {
-  state.currentModelData = data;
-  state.currentModelExtension = extension;
-  state.currentModelFromOpenScad = fromOpenScad;
-  revokeCurrentBlobUrl();
-
+  fromOpenScad: boolean = false,
+  renderSessionId = ++state.renderSessionId
+): Promise<void> {
   const blobType = extension === '.glb'
     ? 'model/gltf-binary'
     : extension === '.obj'
@@ -257,8 +251,18 @@ function renderBinaryMeshData(
       : 'model/stl';
 
   const blob = new Blob([toBlobPart(data)], { type: blobType });
-  state.currentBlobUrl = URL.createObjectURL(blob);
-  renderMeshUri(state.currentBlobUrl, extension);
+  const url = URL.createObjectURL(blob);
+  try {
+    await renderMeshUri(url, extension, fromOpenScad, renderSessionId);
+    revokeCurrentBlobUrl();
+    state.currentBlobUrl = url;
+    state.currentModelData = data;
+    state.currentModelExtension = extension;
+    state.currentModelFromOpenScad = fromOpenScad;
+  } catch (error) {
+    URL.revokeObjectURL(url);
+    throw error;
+  }
 }
 
 function renderCustomizer(model: OpenSCADCustomizerParseResult): void {
@@ -383,15 +387,31 @@ async function loadModelFromRemoteUrl(modelUrl: string): Promise<void> {
     const message = `Failed to load ${modelUrl}: ${error instanceof Error ? error.message : String(error)}`;
     showStatus(message, 'error');
     postHostMessage('modelviewer:error', { message, modelUrl });
+    throw error;
+  }
+}
+
+function reportAsyncError(error: unknown): void {
+  console.error('[OpenSCAD viewer]', error);
+  showStatus(error instanceof Error ? error.message : String(error), 'error');
+}
+
+function reportConversionProgress(message: string): void {
+  if (/warning|error|failed/i.test(message)) console.warn('[OpenSCAD]', message);
+  try {
+    state.hostConfig?.onConversionProgress?.(message);
+  } catch (error) {
+    console.warn('OpenSCAD progress callback failed:', error);
   }
 }
 
 async function convertAndRenderCurrentScad(): Promise<void> {
   if (!state.currentScadContent || !state.currentFileName) {
     showStatus('No OpenSCAD file loaded.', 'error');
-    return;
+    throw new Error('No OpenSCAD file loaded.');
   }
 
+  const renderSessionId = ++state.renderSessionId;
   const convertButton = getElement('convertButton') as HTMLButtonElement | null;
   const downloadButton = getElement('downloadButton') as HTMLButtonElement | null;
 
@@ -405,26 +425,42 @@ async function convertAndRenderCurrentScad(): Promise<void> {
       exportFormat: 'glb',
       parameterOverrides: state.customizerValues,
       libraryFiles: state.libraryFiles || {},
+      timeout: state.hostConfig?.conversionTimeout,
+    }, undefined, {
+      onProgress: (message) => {
+        if (state.renderSessionId === renderSessionId) reportConversionProgress(message);
+      },
     });
 
+    if (state.renderSessionId !== renderSessionId) {
+      throw new Error('Render superseded by a newer request');
+    }
     if (!response.success || !response.outputData) {
       throw new Error(response.error || 'OpenSCAD conversion failed');
     }
 
-    renderBinaryMeshData(response.outputData, '.glb', true);
+    response.logs?.filter(message => /warning|error|failed/i.test(message))
+      .forEach(message => console.warn('[OpenSCAD]', message));
+    reportConversionProgress('Loading GLB preview...');
+    await renderBinaryMeshData(response.outputData, '.glb', true, renderSessionId);
     if (downloadButton) downloadButton.disabled = false;
     showStatus('Rendered OpenSCAD model with GLB export.', 'success');
   } catch (error: unknown) {
-    showStatus(error instanceof Error ? error.message : String(error), 'error');
+    if (state.renderSessionId === renderSessionId) {
+      const message = error instanceof Error ? error.message : String(error);
+      showStatus(message, 'error');
+      postHostMessage('modelviewer:error', { message });
+    }
+    throw error;
   } finally {
-    if (convertButton) convertButton.disabled = false;
+    if (convertButton && state.renderSessionId === renderSessionId) convertButton.disabled = false;
   }
 }
 
-function applyConfigurationOverrides(configuration: Record<string, OpenSCADCustomizerValue>): void {
+async function applyConfigurationOverrides(configuration: Record<string, OpenSCADCustomizerValue>): Promise<void> {
   state.customizerValues = { ...state.customizerValues, ...configuration };
   notifyConfigurationChanged();
-  void convertAndRenderCurrentScad();
+  await convertAndRenderCurrentScad();
 }
 
 async function downloadCurrentModel(): Promise<void> {
@@ -463,7 +499,7 @@ async function handleFileUpload(event: Event): Promise<void> {
     const bytes = new Uint8Array(await file.arrayBuffer());
     if (extension === 'stl') {
       setCurrentFile(file.name, '');
-      renderBinaryMeshData(bytes, '.stl');
+      await renderBinaryMeshData(bytes, '.stl');
       const downloadButton = getElement('downloadButton') as HTMLButtonElement | null;
       if (downloadButton) downloadButton.disabled = false;
       showStatus('STL preview updated.', 'success');
@@ -472,14 +508,14 @@ async function handleFileUpload(event: Event): Promise<void> {
 
     if (extension === 'obj') {
       setCurrentFile(file.name, '');
-      renderBinaryMeshData(bytes, '.obj');
+      await renderBinaryMeshData(bytes, '.obj');
       showStatus('OBJ preview updated.', 'success');
       return;
     }
 
     if (extension === 'glb') {
       setCurrentFile(file.name, '');
-      renderBinaryMeshData(bytes, '.glb');
+      await renderBinaryMeshData(bytes, '.glb');
       showStatus('GLB preview updated.', 'success');
       return;
     }
@@ -536,7 +572,7 @@ async function handleHostMessage(event: MessageEvent): Promise<void> {
   }
 
   if (data.command === 'applyConfiguration' && typeof data.configuration === 'object' && data.configuration) {
-    applyConfigurationOverrides(data.configuration as Record<string, OpenSCADCustomizerValue>);
+    await applyConfigurationOverrides(data.configuration as Record<string, OpenSCADCustomizerValue>);
     return;
   }
 
@@ -551,21 +587,21 @@ function wireUiEvents(): void {
   const fileInput = getElement('fileInput') as HTMLInputElement | null;
   if (fileInput) {
     fileInput.addEventListener('change', (event) => {
-      void handleFileUpload(event);
+      void handleFileUpload(event).catch(reportAsyncError);
     });
   }
 
   const convertButton = getElement('convertButton') as HTMLButtonElement | null;
   if (convertButton) {
     convertButton.addEventListener('click', () => {
-      void convertAndRenderCurrentScad();
+      void convertAndRenderCurrentScad().catch(reportAsyncError);
     });
   }
 
   const downloadButton = getElement('downloadButton') as HTMLButtonElement | null;
   if (downloadButton) {
     downloadButton.addEventListener('click', () => {
-      void downloadCurrentModel();
+      void downloadCurrentModel().catch(reportAsyncError);
     });
   }
 
@@ -585,7 +621,7 @@ function wireUiEvents(): void {
   }
 
   window.addEventListener('message', (event) => {
-    void handleHostMessage(event);
+    void handleHostMessage(event).catch(reportAsyncError);
   });
 }
 
@@ -611,6 +647,9 @@ export interface ViewerOptions {
   modelName?: string;
   libraryFiles?: Record<string, string>;
   autoConvertOnLoad?: boolean;
+  /** Worker conversion deadline in milliseconds (default: 300000). */
+  conversionTimeout?: number;
+  onConversionProgress?: (message: string) => void;
   /** Optional element to receive the built-in customizer UI when the
    * host does not supply a renderControls callback. */
   customizerContainer?: HTMLElement;
@@ -650,6 +689,8 @@ export async function RenderOpenScadDirect(options: ViewerOptions): Promise<View
     modelName: options.modelName,
     libraryFiles: options.libraryFiles,
     autoConvertOnLoad: options.autoConvertOnLoad,
+    conversionTimeout: options.conversionTimeout,
+    onConversionProgress: options.onConversionProgress,
     customizerContainer: options.customizerContainer,
     customizerTheme: options.customizerTheme,
     onModelLoaded: options.onModelLoaded,
@@ -690,7 +731,7 @@ export async function RenderOpenScadDirect(options: ViewerOptions): Promise<View
     getConfiguration: () => ({ ...state.customizerValues }),
     getCustomizerVariables: () => state.customizerModel?.variables ?? [],
     setConfiguration: async (config: Record<string, OpenSCADCustomizerValue>) => {
-      applyConfigurationOverrides(config);
+      await applyConfigurationOverrides(config);
     },
     getModelName: () => state.currentFileName ?? null,
     resetCamera: () => state.robotScene?.resetCamera(),

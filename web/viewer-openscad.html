@@ -297,7 +297,15 @@
     
     window.addEventListener('load', () => {
       if (typeof babylon_ros !== 'undefined' && typeof babylon_ros.RenderOpenScadMain === 'function') {
-        babylon_ros.RenderOpenScadMain();
+        void babylon_ros.RenderOpenScadMain().catch(error => {
+          console.error('[VIEWER] Initialization failed:', error);
+          const status = document.getElementById('status');
+          if (status) {
+            status.textContent = error instanceof Error ? error.message : String(error);
+            status.className = 'status error';
+            status.style.display = 'block';
+          }
+        });
       }
     });
   </script>

@@ -142,8 +142,10 @@ async function createOpenSCADInstance(
   stdout?: (text: string) => void,
   stderr?: (text: string) => void,
 ): Promise<any> {
+  sendProgress('Loading OpenSCAD runtime module...');
   const factory = await getOpenSCADFactory(request);
   console.log('[OpenSCAD Worker] Factory loaded successfully');
+  sendProgress('Initializing OpenSCAD WASM...');
 
   if (isNodeRuntime()) {
     const { fs, path } = getNodeModules();
@@ -452,7 +454,7 @@ async function convertOpenSCAD(request: ConversionRequest): Promise<void> {
     const instance = typeof openscad?.getInstance === 'function'
       ? openscad.getInstance()
       : openscad;
-    sendProgress('Loading OpenSCAD libraries...');
+    sendProgress('Loading OpenSCAD fonts...');
 
     // Load fonts for text rendering
     try {
@@ -480,6 +482,7 @@ async function convertOpenSCAD(request: ConversionRequest): Promise<void> {
       sendProgress('Warning: Fonts module not available - text rendering may not work');
     }
 
+    sendProgress('Loading OpenSCAD libraries...');
     for (const [virtualPath, base64Content] of Object.entries(libraryFiles)) {
       try {
         const dirPath = virtualPath.substring(0, virtualPath.lastIndexOf('/'));
